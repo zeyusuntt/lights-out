@@ -137,7 +137,9 @@ class Gateway:
                 outcome.errors.append(type(exc).__name__)
                 if not failure.retryable or (failure.charged and not retry_lost):
                     return outcome
-                if attempt + 1 == MAX_ATTEMPTS or self.elapsed() > self._timing.retry_window_s:
+                if attempt + 1 == MAX_ATTEMPTS:
+                    return outcome
+                if not failure.throttled and self.elapsed() > self._timing.retry_window_s:
                     return outcome
                 await self._pause(failure.throttled)
                 continue

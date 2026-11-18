@@ -153,3 +153,23 @@ def test_unknown_dossier_and_html_negotiation(page):
     assert httpx.get(f"{BASE}/dossiers/absent.test").status_code == 401
     html = httpx.get(f"{BASE}/dossiers/absent.test", headers={"Accept": "text/html"})
     assert html.status_code == 200 and html.headers["content-type"].startswith("text/html")
+
+
+def test_people_first_auth_error_and_hidden_nav_when_signed_out(page):
+    page.goto(f"{BASE}/login")
+    expect(page.locator("nav.nav")).to_be_hidden()
+    page.fill("[data-testid=login-email]", "ada@example.com")
+    page.fill("[data-testid=login-password]", "wrong horse")
+    page.click("[data-testid=login-submit]")
+    expect(page.get_by_test_id("auth-error")).to_have_text("Email or password is incorrect.")
+
+
+def test_first_build_fields_read_as_in_progress(page, mock):
+    mock.fault(["research"], "delay", seconds=3)
+    sign_in(page)
+    page.fill("[data-testid=research-domain]", "corvid-security.test")
+    page.click("[data-testid=research-submit]")
+    expect(page.get_by_test_id("dossier-state")).to_have_text("building")
+    expect(page.get_by_test_id("field-ceo")).to_contain_text("Research in progress")
+    expect(page.get_by_test_id("field-ceo")).to_have_attribute("data-status", "unknown")
+    expect(page.get_by_test_id("dossier-state")).to_have_text("ready", timeout=20000)

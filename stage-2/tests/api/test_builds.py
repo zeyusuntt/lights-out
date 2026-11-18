@@ -156,3 +156,15 @@ def test_refresh_researches_again_and_accumulates(api, ada, mock):
     assert second["researched_at"] == "2026-03-05T00:00:00+00:00"
     listed = api.get("/dossiers", headers=ada).json()["dossiers"][0]
     assert listed["legal_name"] == second["fields"]["legal_name"]["value"]
+
+
+def test_throttled_render_after_slow_research_is_retried(api, ada, mock):
+    mock.fault(["research"], "delay", seconds=7)
+    mock.fault(["extract"], "throttle")
+    create(api, ada, "corvid-security.test")
+    body = wait_settled(api, ada, "corvid-security.test", timeout=40)
+    assert body["state"] == "ready"
+    assert sum(f["status"] != "unknown" for f in body["fields"].values()) == 6
+    renders = [c for c in mock.calls() if c["method"] == "extract"]
+    assert any(c["status"] == 429 for c in renders) and any(c["status"] == 200 for c in renders)
+    assert body["spent_units"] == sum(c["cost"] for c in mock.calls())

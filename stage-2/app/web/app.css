@@ -173,3 +173,6 @@ input:focus-visible { outline: 3px solid var(--action); outline-offset: 1px; }
 
 .list-item .pill { align-self: start; }
 .sheet > .page-title + .stack { margin-top: var(--s4); }
+
+.source-meta a, .status a { display: inline-flex; align-items: center; min-height: 44px; }
+.nav[hidden] { display: none; }

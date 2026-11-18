@@ -187,6 +187,7 @@ function isCurrent(token) { return token === view; }
 function renderSession() {
   const box = document.getElementById("session");
   const current = session.read();
+  document.querySelector(".nav").hidden = !current;
   if (!current) {
     box.replaceChildren(h("a", { href: "/login" }, "Sign in"), h("a", { href: "/signup", class: "button secondary" }, "Create account"));
     return;
@@ -248,7 +249,7 @@ function authScreen(main, kind) {
         navigate(next.startsWith("/") ? next : "/");
         return;
       }
-      feedback.replaceChildren(notice("refused", "auth-error", errorText(result, isSignup ? "We could not create that account." : "That email and password do not match an account.")));
+      feedback.replaceChildren(notice("refused", "auth-error", authMessage(isSignup, result)));
     } catch {
       feedback.replaceChildren(notice("refused", "auth-error", "The service could not be reached. Try again."));
     } finally {
@@ -265,6 +266,13 @@ function authScreen(main, kind) {
     form,
     h("p", { class: "switch" }, isSignup ? "Already have an account? " : "New here? ",
       h("a", { href: (isSignup ? "/login" : "/signup") + location.search }, isSignup ? "Sign in" : "Create an account"))));
+}
+
+function authMessage(isSignup, result) {
+  if (!isSignup) return result.status === 401 ? "Email or password is incorrect." : "Enter your email and password.";
+  if (result.status === 409) return "An account with this email already exists. Sign in instead.";
+  if (result.status === 422) return "Check the form: a valid email, a password of at least 8 characters, and a display name of 1 to 100 characters.";
+  return "We could not create that account. Check the form and try again.";
 }
 
 function loginScreen(main) { authScreen(main, "login"); }
@@ -331,13 +339,14 @@ function listScreen(main, _arg, token) {
     } finally {
       submit.disabled = false;
     }
-  } } }, field("research-domain", "Company domain", domain, "We search the web for this company and cite every value we find."), submit);
+  } } }, field("research-domain", "Company domain", domain), submit);
 
   let debounce = null;
   search.addEventListener("input", () => { clearTimeout(debounce); debounce = setTimeout(load, 200); });
 
   main.replaceChildren(h("div", { class: "stack" },
-    h("section", { class: "sheet" }, h("h1", { class: "page-title" }, "Research a company"), h("div", { class: "stack" }, form), feedback),
+    h("section", { class: "sheet" }, h("h1", { class: "page-title" }, "Research a company"), h("div", { class: "stack" }, form),
+      h("p", { class: "hint" }, "We search the web for this company and cite every value we find."), feedback),
     h("section", { class: "sheet" },
       h("div", { class: "toolbar" }, h("h2", {}, "Dossiers"), h("div", { class: "search" }, field("dossier-search", "Search", search))),
       results)));
@@ -353,17 +362,17 @@ function citationList(fieldName, citations) {
       sourceMeta(c.url, c.provider))));
 }
 
-function fieldRow(domain, [name, label], f) {
+function fieldRow(domain, [name, label], f, pendingFirst) {
   const distinct = new Set(f.candidates.map((c) => JSON.stringify(typeof c.value === "string" ? c.value.trim() : c.value))).size;
   const known = f.value !== null && f.value !== undefined;
   return h("div", { class: "row", testid: `field-${name}`, "data-status": f.status },
     h("div", { class: "label" }, label),
     h("div", {},
       known ? h("div", { class: "value", testid: `field-value-${name}`, "data-value": dataValue(f.value) }, formatValue(name, f.value))
-        : h("div", { class: "value none" }, "Not found in sources"),
+        : h("div", { class: "value none" }, pendingFirst ? "Research in progress" : "Not found in sources"),
       f.status === "contested"
         ? h("div", { class: "status contested", testid: `field-contested-${name}` }, `Contested — ${distinct} values`, h("a", { href: `/dossiers/${domain}/evidence#evidence-${name}` }, "Compare sources"))
-        : h("div", { class: `status ${f.status}` }, f.status === "known" ? `Known — ${f.citations.length} ${f.citations.length === 1 ? "source" : "sources"}` : "Unknown")),
+        : h("div", { class: `status ${f.status}` }, f.status === "known" ? `Known — ${f.citations.length} ${f.citations.length === 1 ? "source" : "sources"}` : pendingFirst ? "Not researched yet" : "Unknown")),
     citationList(name, f.citations));
 }
 
@@ -448,7 +457,7 @@ function dossierScreen(main, raw, token) {
           h("a", { href: `/dossiers/${d.domain}/evidence`, class: "button secondary", testid: "dossier-evidence-link" }, "All evidence"))),
       h("div", { "aria-live": "polite" }, feedback),
       status,
-      h("div", { class: "register" }, FIELDS.map((f) => fieldRow(d.domain, f, d.fields[f[0]])))));
+      h("div", { class: "register" }, FIELDS.map((f) => fieldRow(d.domain, f, d.fields[f[0]], d.state === "building" && !d.researched_at)))));
   }
 
   load();
@@ -523,7 +532,7 @@ function contestedScreen(main, _arg, token) {
           for (const c of f.candidates) if (!values.some((v) => JSON.stringify(v) === JSON.stringify(c.value))) values.push(c.value);
           return h("li", { class: "list-item contested-item", testid: `contested-item-${domain}-${name}`, "data-value": dataValue(f.value) },
             h("a", { href: `/dossiers/${domain}/evidence` },
-              h("div", { class: "head" }, h("strong", {}, domain), h("span", { class: "status contested" }, label), h("span", { class: "source-meta" }, name)),
+              h("div", { class: "head" }, h("strong", {}, domain), h("span", { class: "status contested" }, label), h("span", { class: "exact" }, `field ${name}`)),
               h("div", { class: "values" }, values.map((v, i) => h("span", { class: i === 0 ? "chip selected" : "chip" },
                 formatValue(name, v), name === "funding_total" ? h("span", { class: "exact" }, ` (${v} USD)`) : null, i === 0 ? " (selected)" : "")))));
         }))

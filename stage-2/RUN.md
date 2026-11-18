@@ -11,10 +11,10 @@ come from the image (`/assets/`). DESIGN.md records the design.
 ## Build and start
 
 ```sh
-docker build -t dossier-stage-1 .
+docker build -t dossier-stage-2 .
 docker run --rm -p 8080:8080 -e PORT=8080 \
   -e NIMBLE_API_KEY=<key> -e NIMBLE_BASE_URL=<nimble base url> \
-  dossier-stage-1
+  dossier-stage-2
 ```
 
 `PORT` defaults to 8080. Leave `NIMBLE_BASE_URL` unset to use the live Nimble endpoint;
@@ -30,7 +30,7 @@ docker run --rm -d --name web --network dossier -e MOCK_ADMIN_TOKEN=local-admin 
   -v "<kit>/challenges/dossier/web/corpus/sample:/data/corpus:ro" dossier-web
 docker run --rm --network dossier -p 8000:8000 -e PORT=8000 \
   -e NIMBLE_API_KEY=local -e NIMBLE_BASE_URL=http://web:8080/nimble \
-  dossier-stage-1
+  dossier-stage-2
 ```
 
 ## Tests
