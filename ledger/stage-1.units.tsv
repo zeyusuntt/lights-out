@@ -1,0 +1,379 @@
+S1-001	# Dossier — Stage 1: company profiles
+S1-002	This stage defines the initial service and its API.
+S1-003	Build from the supplied requirements.
+S1-004	Source code, API documentation and schemas from existing products in this domain must not be used.
+S1-005	WebRouter's own documentation may be used.
+S1-006	## 1. Scope
+S1-007	A caller asks for a company by its web domain.
+S1-008	The service researches the company on the web and keeps a **dossier**: a profile of six fields, each with the value the web supports and the excerpts it came from.
+S1-009	A dossier is built in the background, read any number of times, and refreshed on request.
+S1-010	Only the HTTP API is required.
+S1-011	The following apply to all operations, including concurrent requests and retries:
+S1-012	Every value the service asserts cites at least one excerpt that a provider endpoint served to this service, and that excerpt supports the value.
+S1-013	No citation is invented, reworded, or attached to a value it does not support.
+S1-014	No build of a dossier spends more than 80 units (§9).
+S1-015	Contact data, people search, and fields other than the six in §4 are out of scope.
+S1-016	## 2. Delivery and deployment
+S1-017	Deliver an HTTP service, a `Dockerfile` and a `RUN.md` with a command that builds and starts the service without manual setup.
+S1-018	Language, framework and storage are unrestricted.
+S1-019	A `docker-compose.yml` is optional.
+S1-020	The submission is a containerized HTTP service, not a Python package.
+S1-021	Python is not required in the implementation.
+S1-022	TypeScript/JavaScript, Go, Rust, Java, Python and any other language are equally valid.
+S1-023	The submitted `Dockerfile` is built and started, and only its HTTP behavior is exercised; it does not import or execute the submission's source files on the host that runs it.
+S1-024	The image must run on its own with `-e PORT=<port>` and a port mapping.
+S1-025	All runtime dependencies, initialization and seed data must work within that single container.
+S1-026	Compose configuration is not used to start the service.
+S1-027	### Web access
+S1-028	Two providers are available:
+S1-029	`nimble` and `tavily`.
+S1-030	Nimble is the default provider: every service must be able to research companies using Nimble alone.
+S1-031	Tavily is optional: a service may use it beside Nimble, and its absence must not prevent research while Nimble answers.
+S1-032	The live submission and optional live judging provide a working Nimble key only.
+S1-033	The service reaches the providers only through WebRouter, the Python package `webrouter` (module `web_router`).
+S1-034	The service may be written in any language, but every request to a provider goes through `web_router`: called in-process, or from a Python helper process that the service runs inside its own container.
+S1-035	The stage folder's dependency manifest lists `webrouter>=0.12.0`.
+S1-036	Calling a provider's API by any other route is not permitted.
+S1-037	Install it and the provider SDK dependencies from PyPI, including in the service's Docker build:
+S1-038	```sh / pip install "webrouter[search,extract,research]>=0.12.0"
+S1-039	The deployment provides these environment variables:
+S1-040	| `PORT` | The port to listen on (§3.1) |  [columns: | Variable | Meaning |]
+S1-041	| `NIMBLE_API_KEY` | Credential for the `nimble` provider |  [columns: | Variable | Meaning |]
+S1-042	| `NIMBLE_BASE_URL` | Base URL of the `nimble` provider endpoint |  [columns: | Variable | Meaning |]
+S1-043	| `TAVILY_API_KEY` | Credential for the `tavily` provider |  [columns: | Variable | Meaning |]
+S1-044	| `TAVILY_BASE_URL` | Base URL of the `tavily` provider endpoint |  [columns: | Variable | Meaning |]
+S1-045	Keys are opaque non-empty strings.
+S1-046	WebRouter's `nimble` provider reads `NIMBLE_API_KEY` and `NIMBLE_BASE_URL` from the environment, and its `tavily` provider reads `TAVILY_API_KEY`.
+S1-047	A service that uses Tavily passes its base URL to WebRouter in `provider_config`:
+S1-048	```python / provider_config={"tavily": {"api_base_url": <TAVILY_BASE_URL>}}
+S1-049	### Resource limits
+S1-050	The service must operate within these limits:
+S1-051	| CPU | 2 vCPU |  [columns: | Limit | Value |]
+S1-052	| Memory | 3 GiB |  [columns: | Limit | Value |]
+S1-053	| Start to first healthy response | 60 s |  [columns: | Limit | Value |]
+S1-054	| Concurrent requests | up to 50 in flight |  [columns: | Limit | Value |]
+S1-055	| Per-request timeout | 5 s (10 s for `POST /_test/reset`) |  [columns: | Limit | Value |]
+S1-056	| Outbound network | available during `docker build`; at run time, **only the provider endpoints this specification lists** |  [columns: | Limit | Value |]
+S1-057	| Disk | ephemeral; state need not survive a container restart |  [columns: | Limit | Value |]
+S1-058	Runtime assets and dependencies must be included in the image.
+S1-059	This includes fonts, scripts and stylesheets; external services other than the provider endpoints this specification lists are unavailable at runtime.
+S1-060	## 3. Runtime contract
+S1-061	### 3.1 Listening
+S1-062	Listen on `0.0.0.0` using the `PORT` environment variable, default `8080`.
+S1-063	### 3.2 Health
+S1-064	```http / GET /health  ->  200  {"status": "ok"}
+S1-065	Return 200 once the service and its data store can serve requests, within 60 seconds of container start.
+S1-066	Non-200 responses are permitted before the service is ready.
+S1-067	`/health` makes no provider call.
+S1-068	### 3.3 Reset and seed
+S1-069	```http / POST /_test/reset / Content-Type: application/json / { ...fixture... } / ->  204 No Content
+S1-070	Replace all service state with the fixture in the request body (§4).
+S1-071	When reset returns 204, subsequent requests must see only that fixture: no users other than the seeded ones, no dossiers and no stored idempotent responses.
+S1-072	Repeated resets are supported.
+S1-073	A build still running when reset is called must not change the state that follows the reset.
+S1-074	This control endpoint must be enabled in the delivered image and requires no authentication.
+S1-075	### 3.4 Clock
+S1-076	The service keeps a clock that only reset and `POST /_test/clock` move.
+S1-077	Every timestamp the service records or returns is read from this clock.
+S1-078	```http / POST /_test/clock / Content-Type: application/json / { "now": "2026-03-01T09:30:00+00:00" } / ->  204 No Content
+S1-079	Reset sets the clock to the fixture's `now`.
+S1-080	Before the first reset the clock follows the system time.
+S1-081	The clock stands still between calls: two requests with no clock call between them read the same time.
+S1-082	`now` is an RFC 3339 timestamp with an explicit offset.
+S1-083	A `now` earlier than the clock's current time is 422 `validation_failed` and changes nothing.
+S1-084	`POST /_test/clock` requires no authentication.
+S1-085	### 3.5 Conventions
+S1-086	Requests and responses are `application/json; charset=utf-8`.
+S1-087	Timestamps in responses are RFC 3339 with an explicit offset, e.g. `2026-09-24T19:00:00+02:00`.
+S1-088	Unknown fields in a request body are ignored, never an error.
+S1-089	Unknown query parameters are ignored.
+S1-090	IDs are opaque strings of at most 64 characters.
+S1-091	Their format is yours.
+S1-092	## 4. Model
+S1-093	### Users
+S1-094	Users sign up and log in (§6).
+S1-095	Every authenticated user sees the same dossiers.
+S1-096	### Domains
+S1-097	A company is identified by its domain.
+S1-098	Every domain the API takes, in a body or a path, is first **normalised**: surrounding whitespace removed, lowercased, one trailing `.` removed, and one leading `www.` removed.
+S1-099	The normalised domain must then be a valid host name: two or more labels separated by `.`, each label 1 to 63 characters of `a-z`, `0-9` and `-`, not starting or ending with `-`, and 253 characters or fewer in total.
+S1-100	Anything else, including a URL with a scheme or a path, is 422 `validation_failed`.
+S1-101	`Acme-Robotics.TEST.`, `www.acme-robotics.test` and `acme-robotics.test` name the same company and the same dossier.
+S1-102	Responses always carry the normalised domain.
+S1-103	### Fields
+S1-104	A dossier has exactly these six fields:
+S1-105	| `legal_name` | String: the company's registered name, e.g. `Acme Robotics, Inc.` |  [columns: | Field | Value |]
+S1-106	| `hq_city` | String: the city of the company's headquarters, without region or country, e.g. `Lisbon` |  [columns: | Field | Value |]
+S1-107	| `ceo` | String: the full name of the company's chief executive, e.g. `Dana Ruiz` |  [columns: | Field | Value |]
+S1-108	| `founded_year` | Integer: the year the company was founded, e.g. `2014` |  [columns: | Field | Value |]
+S1-109	| `headcount_range` | String: one of `1-10`, `11-50`, `51-200`, `201-500`, `501-1000`, `1001-5000`, `5001-10000`, `10001+` |  [columns: | Field | Value |]
+S1-110	| `funding_total` | Integer: total equity funding raised, in whole US dollars, e.g. `12000000` |  [columns: | Field | Value |]
+S1-111	A string value is written as the supporting excerpt writes it, without surrounding whitespace.
+S1-112	A headcount the web states as a number, or as a range that fits inside one of the ranges above, has the range that contains it as its value.
+S1-113	Each field in a response has this shape:
+S1-114	```json / { "value": "Dana Ruiz", "status": "known", /   "citations": [ { "url": "https://acme-robotics.test/about", /                    "excerpt": "Dana Ruiz has led Acme Robotics as chief executive since 2021.", /                    "provider": "nimble" } ] }
+S1-115	`status` is `known` when `value` is not null, and `unknown` when it is.
+S1-116	A `known` field has one or more citations.
+S1-117	An `unknown` field has `"value": null` and `"citations":
+S1-118	[]`.
+S1-119	`url` is the URL of the page the excerpt was served for, `provider` is `nimble` or `tavily`, the provider that served it.
+S1-120	### Evidence and support
+S1-121	The **evidence** for a company is every page that some search, through any provider and for any query naming the company (as in Appendix A.2), returns, with its full text, and every claim that a `nimble` research run for the company asking for all six fields answers with.
+S1-122	Of the searches that a provider answers without an error, every build makes exactly one whose query is exactly the company's normalised domain, through a provider of its choice; its other such searches use other queries.
+S1-123	A search that a provider answers with an error does not count.
+S1-124	The pages whose text a build obtains from providers are the pages it **gathers**.
+S1-125	A **citation** is an excerpt of text a provider served for the page at `url`:
+S1-126	The excerpt is copied character for character from that served text, except that any run of whitespace may be written as a single space.
+S1-127	It is 1 to 500 characters long.
+S1-128	It is taken from the page's prose (below), not from its header.
+S1-129	An excerpt **supports** a value when, read on its own, it states that value for that field of this company, as Appendix A defines.
+S1-130	The excerpt may write the value differently from the API:
+S1-131	`Acme Robotics has raised $12M.` and `Acme Robotics has raised 12 million dollars.` both support a `funding_total` of `12000000`, and `Acme Robotics employs about 120 people.` supports a `headcount_range` of `51-200`.
+S1-132	A research answer carries a claimed value for a field and a citation for the claim.
+S1-133	The claim is asserted only when its citation supports it.
+S1-134	A field is `unknown` when no evidence supports a value for it, even when a research answer claims one.
+S1-135	When the evidence supports more than one value for a field, the field holds one of them and cites only excerpts that support that value.
+S1-136	### Pages
+S1-137	Every page has a URL, a title and a text.
+S1-138	A text may begin with **header lines**, each of the form `Name: value`, where the name is a capitalised word or several joined by `-`.
+S1-139	The header ends at the first empty line; everything after it is the page's **prose**.
+S1-140	A text whose first line is not a header line has no header and is all prose.
+S1-141	The header line `Facts:` carries a JSON object on the same line.
+S1-142	Its keys are field names from the table above, and its values are what the page states for those fields, in any format.
+S1-143	It is informative only: citations come from the prose, and whether an excerpt supports a value is decided by Appendix A alone.
+S1-144	The service may ignore other header lines.
+S1-145	### Fixture format
+S1-146	```json / { /   "now": "2026-03-01T09:00:00+00:00", /   "users": [ /     { "id": "u_ada", "email": "ada@example.com", "password": "correct horse", /       "display_name": "Ada" }, /     { "id": "u_bob", "email": "bob@example.com", "password": "correct horse", /       "display_name": "Bob" } /   ] / }
+S1-147	`now` is required and sets the clock (§3.4).
+S1-148	Seeded users must be able to log in with the given password immediately.
+S1-149	A fixture with two users sharing an email is a reset error: 422 `validation_failed`, changing nothing.
+S1-150	## 5. Errors
+S1-151	Every 4xx and 5xx response carries this body:
+S1-152	```json / { "error": { "code": "not_found", "message": "human readable, any wording" } }
+S1-153	Use the specified HTTP status and `code`.
+S1-154	The human-readable `message` may use any wording.
+S1-155	Endpoint-specific errors are listed with each endpoint.
+S1-156	| 400 | `malformed_request` | Unparseable body, or a field of the wrong JSON type |  [columns: | Status | `code` | When |]
+S1-157	| 400 | `missing_idempotency_key` | Required `Idempotency-Key` header absent or empty |  [columns: | Status | `code` | When |]
+S1-158	| 401 | `unauthenticated` | Missing, malformed or unknown bearer token |  [columns: | Status | `code` | When |]
+S1-159	| 404 | `not_found` | No such resource, or not visible to this caller |  [columns: | Status | `code` | When |]
+S1-160	| 409 | `idempotency_key_reuse` | Key already used by this caller with a different request body |  [columns: | Status | `code` | When |]
+S1-161	| 422 | `validation_failed` | A required field or query parameter is missing, or a stated rule is violated with no more specific code |  [columns: | Status | `code` | When |]
+S1-162	A field of the correct JSON type with an invalid format or out-of-range value gives 422 `validation_failed`, unless an endpoint specifies a different error.
+S1-163	In addition:
+S1-164	An integer-valued **query parameter** is written as plain decimal digits:
+S1-165	`1e9`, `4.0` and `+4` are 422 `validation_failed` whatever their numeric value.
+S1-166	Reserve 400 `malformed_request` for a body that does not parse or a field of the wrong type.
+S1-167	Shared ranges, enforced on every endpoint that takes them:
+S1-168	| `Idempotency-Key` | 1 to 255 characters | 422 `validation_failed` |  [columns: | Field | Valid | Otherwise |]
+S1-169	| `limit` | integer 1 to 200 | 422 `validation_failed` |  [columns: | Field | Valid | Otherwise |]
+S1-170	| `offset` | integer 0 or more | 422 `validation_failed` |  [columns: | Field | Valid | Otherwise |]
+S1-171	Requests must not produce 5xx responses, including under concurrent load and when a provider endpoint answers with an error.
+S1-172	## 6. Authentication
+S1-173	Authentication supports signup and login.
+S1-174	Email verification, password reset, refresh tokens and role-management endpoints are out of scope.
+S1-175	```http / POST /auth/signup / { "email": "a@example.com", "password": "correct horse", "display_name": "Ada" } / ->  201  { "user_id": "u_1", "display_name": "Ada", "token": "..." }
+S1-176	```http / POST /auth/login / { "email": "a@example.com", "password": "correct horse" } / ->  200  { "user_id": "u_1", "display_name": "Ada", "token": "..." }
+S1-177	| Email already registered | 409 `email_taken` |  [columns: | Case | Response |]
+S1-178	| Password shorter than 8 characters | 422 `validation_failed` |  [columns: | Case | Response |]
+S1-179	| `email` not of the form `local@domain` | 422 `validation_failed` |  [columns: | Case | Response |]
+S1-180	| `display_name` empty or longer than 100 characters | 422 `validation_failed` |  [columns: | Case | Response |]
+S1-181	| Wrong password or unknown email on login | 401 `unauthenticated` |  [columns: | Case | Response |]
+S1-182	For a user seeded by the fixture (§3.3), `user_id` is that user's `id` in the fixture.
+S1-183	Every other endpoint requires a bearer token, except `/health`, the `/_test/*` endpoints and the two above.
+S1-184	A request to such an endpoint that lacks a valid token is 401 `unauthenticated`, even when it also lacks a required `Idempotency-Key`.
+S1-185	```http / Authorization: Bearer <token>
+S1-186	Tokens do not expire.
+S1-187	An account may have multiple valid tokens and concurrent sessions.
+S1-188	Passwords must be stored using a password-hashing function such as bcrypt, scrypt or Argon2, or an equivalent.
+S1-189	Plaintext password storage is not permitted.
+S1-190	## 7. Idempotency
+S1-191	Two write paths require an idempotency key (§8):
+S1-192	**`POST /dossiers`** and **`POST /dossiers/{domain}/refresh`**.
+S1-193	Everything below applies to each of them independently.
+S1-194	```http / Idempotency-Key: <client-chosen string, 1..255 characters>
+S1-195	The key is scoped to **the authenticated user**.
+S1-196	Two different users may use the same key string with no interaction between them.
+S1-197	A replay means the same user sending the **same method, the same path and the same body**.
+S1-198	The same key with the same body on a different path is a different request, not a replay, and must succeed normally.
+S1-199	`Acme-Robotics.test` and `acme-robotics.test` in a path or body are different requests for this rule, though they name the same dossier.
+S1-200	| Header absent or empty | 400 `missing_idempotency_key` |  [columns: | Situation | Response |]
+S1-201	| First use of the key | The normal response (§8) |  [columns: | Situation | Response |]
+S1-202	| Replay: same key, same body | **200**, body identical to the original response as a JSON value |  [columns: | Situation | Response |]
+S1-203	| Same key, different body | 409 `idempotency_key_reuse` |  [columns: | Situation | Response |]
+S1-204	| Key reused after the original request failed with 4xx | Treated as a first use |  [columns: | Situation | Response |]
+S1-205	"Same body" means the same JSON value after parsing — key order and whitespace do not matter.
+S1-206	Unknown fields are ignored (§3.5) and play no part in this comparison: a body that differs from the first only in unknown fields is the same body, so the request is a replay.
+S1-207	`POST /dossiers/{domain}/refresh` takes no body; any body sent to it is ignored and plays no part in deciding a replay.
+S1-208	For concurrent identical requests with an unused key, exactly one returns the normal response.
+S1-209	The others return 200 with the same body.
+S1-210	The operation takes effect only once.
+S1-211	A successful replay returns the original response, even after the dossier has changed.
+S1-212	It starts no build and makes no provider call.
+S1-213	After the body has parsed as a JSON object and the caller is authenticated, an already claimed key is resolved before field validation.
+S1-214	Thus changing a successful request to an invalid body with the same key still returns `409 idempotency_key_reuse`.
+S1-215	## 8. API
+S1-216	### Builds
+S1-217	A **build** researches one dossier: it calls the providers, decides each field, and replaces the dossier's fields with the result when it completes.
+S1-218	A dossier's first build starts with `POST /dossiers`, and every later one with `POST /dossiers/{domain}/refresh`.
+S1-219	A build's **time** is the clock's time when the request that started it was received.
+S1-220	A dossier has at most one build running at a time.
+S1-221	A build ends in `ready` when it completed, or `failed` when none of its provider calls succeeded.
+S1-222	A failed build leaves the fields as they were.
+S1-223	When a build completes `ready`, each field is `known` exactly when the evidence (§4) supports a value for it.
+S1-224	A build whose provider calls each answer within one second ends within 10 seconds of the request that started it.
+S1-225	That bound is not a deadline for slower providers.
+S1-226	Against the live providers (`NIMBLE_BASE_URL` unset, or its host `sdk.nimbleway.com`), where a Nimble search can take over ten seconds and a research run about a minute, a build does not give up on a call that has been waiting less than 30 seconds, nor stop gathering because of the time it has run in its first 120 seconds.
+S1-227	It still ends `ready` or `failed` within 300 seconds.
+S1-228	Reading a dossier, listing dossiers and every other request except `POST /dossiers` and `POST /dossiers/{domain}/refresh` make no provider call.
+S1-229	### `POST /dossiers`
+S1-230	**An idempotent write path.** `Idempotency-Key` is required; see §7.
+S1-231	```http / POST /dossiers / Authorization: Bearer <token> / Idempotency-Key: 2f9c1a... / { "domain": "acme-robotics.test" }
+S1-232	```json / 202 / { "dossier_id": "d_7", "domain": "acme-robotics.test", "state": "building" }
+S1-233	When no dossier exists for the domain, the service creates one, starts its first build and returns 202.
+S1-234	When a dossier already exists for the domain, the service starts no build and returns **200** with that dossier's `dossier_id`, `domain` and current `state`.
+S1-235	Concurrent requests for the same domain create one dossier and start one build, whatever their keys.
+S1-236	| `domain` missing | 422 `validation_failed` |  [columns: | Case | Response |]
+S1-237	| `domain` invalid after normalisation (§4) | 422 `validation_failed` |  [columns: | Case | Response |]
+S1-238	### `GET /dossiers/{domain}`
+S1-239	```json / { /   "dossier_id": "d_7", /   "domain": "acme-robotics.test", /   "state": "ready", /   "researched_at": "2026-03-01T09:00:00+00:00", /   "spent_units": 34, /   "fields": { /     "legal_name": { "value": "Acme Robotics, Inc.", "status": "known", "citations": [ { "...": "..." } ] }, /     "hq_city": { "value": "Lisbon", "status": "known", "citations": [ { "...": "..." } ] }, /     "ceo": { "value": null, "status": "unknown", "citations": [] }, /     "founded_year": { "value": 2014, "status": "known", "citations": [ { "...": "..." } ] }, /     "headcount_range": { "value": "51-200", "status": "known", "citations": [ { "...": "..." } ] }, /     "funding_total": { "value": 12000000, "status": "known", "citations": [ { "...": "..." } ] } /   } / }
+S1-240	`state` is `building` while a build runs, otherwise the outcome of the latest build, `ready` or `failed`.
+S1-241	`fields` always holds all six fields.
+S1-242	Before the first build completes `ready`, every field is `unknown`.
+S1-243	While a later build runs, `fields` are those of the last build that completed `ready`.
+S1-244	`researched_at` is the time of the last build that completed `ready`, or null.
+S1-245	`spent_units` is the total cost (§9) of every provider call made for this dossier, by every build, since it was created.
+S1-246	The domain in the path is normalised (§4).
+S1-247	No dossier for it is 404 `not_found`.
+S1-248	### `POST /dossiers/{domain}/refresh`
+S1-249	**An idempotent write path.** `Idempotency-Key` is required; see §7.
+S1-250	No body.
+S1-251	Starts a new build of the dossier and returns 202 with `{ "dossier_id", "domain", "state":
+S1-252	"building" }`.
+S1-253	A refresh received while a build of the dossier is running starts no second build and returns 202 with the same body.
+S1-254	A refresh researches again: its build makes provider calls whether or not anything has changed since the last build, and its spending counts in `spent_units`.
+S1-255	| No dossier for the domain | 404 `not_found` |  [columns: | Case | Response |]
+S1-256	### `GET /dossiers`
+S1-257	```http / GET /dossiers?q=acme&limit=50&offset=0
+S1-258	```json / { "dossiers": [ { "dossier_id": "d_7", "domain": "acme-robotics.test", "state": "ready", /                   "legal_name": "Acme Robotics, Inc.", "researched_at": "2026-03-01T09:00:00+00:00", /                   "spent_units": 34 } ], /   "has_more": false }
+S1-259	`legal_name` is the value of the dossier's `legal_name` field, or null.
+S1-260	`q` is optional.
+S1-261	When present, only dossiers whose domain or `legal_name` contains `q`, compared case-insensitively, are listed.
+S1-262	An empty `q` lists every dossier.
+S1-263	Dossiers are ordered by domain ascending.
+S1-264	`limit` defaults to 50, range 1 to 200.
+S1-265	`offset` defaults to 0.
+S1-266	`has_more` is true when items exist beyond the last one returned.
+S1-267	## 9. Providers and cost
+S1-268	Each provider call has a cost in **units**:
+S1-269	| Search through `nimble`, depth `lite` (title, URL and snippet) | 1 |  [columns: | Call | Cost |]
+S1-270	| Search through `nimble`, depth `fast` (a truncated page body) | 5 |  [columns: | Call | Cost |]
+S1-271	| Search through `nimble`, depth `deep` (the full page) | 15 |  [columns: | Call | Cost |]
+S1-272	| Search through `tavily`, depth `lite` (title, URL and snippet) | 8 |  [columns: | Call | Cost |]
+S1-273	| Search through `tavily`, depth `fast` (title, URL and a longer snippet) | 16 |  [columns: | Call | Cost |]
+S1-274	| Search through `tavily`, depth `deep` (the full page) | 16 |  [columns: | Call | Cost |]
+S1-275	| Extract through `nimble` | 1 per URL requested, including a URL for which no page is returned |  [columns: | Call | Cost |]
+S1-276	| Extract through `tavily` | 2 per URL requested, including a URL for which no page is returned |  [columns: | Call | Cost |]
+S1-277	| Research run through `nimble` | 25 when the run is started; checking on or collecting a run costs nothing |  [columns: | Call | Cost |]
+S1-278	A search's depth is WebRouter's `search_depth`.
+S1-279	A search returns at most 10 results, whatever number it asks for.
+S1-280	A call that a provider refuses with an error status costs nothing.
+S1-281	A call whose answer does not arrive, because it times out or its connection fails, costs its units as in the table, whether or not the provider received it.
+S1-282	An extract that the provider answers with no page for the URL is not refused: it costs its units, as in the table, whatever status says so.
+S1-283	An extract through `nimble` does not set `render`.
+S1-284	A build stops making provider calls before its spending would exceed 80 units, and completes with the pages and research claims it has obtained.
+S1-285	A research request names the company by its domain in its query, and names the fields it asks for by the field names in §4, as the property names of its output schema.
+S1-286	## 10. Export and import
+S1-287	The service must support `GET /_test/export` and `POST /_test/import`.
+S1-288	Like reset, these are unauthenticated control endpoints.
+S1-289	Exports may contain credentials and session tokens; handle them as private artifacts.
+S1-290	Return 200 from export with a JSON object containing `track:
+S1-291	"dossier"`, `format_version: 1` and `state` (an implementation-defined JSON object).
+S1-292	The state format is opaque to the caller and must be accepted unchanged by import.
+S1-293	Import takes that entire object and atomically replaces the service's state, returning
+S1-294	It must accept an unchanged export produced by this service.
+S1-295	No dependency on the source process, files, volume, port or network address is allowed.
+S1-296	Import is replacement, not merge; repeating it restores the exported state without duplicating anything.
+S1-297	Invalid JSON follows §5; missing fields, wrong track/version or an invalid state give 422 `validation_failed` without changing the destination.
+S1-298	These control calls have a 10-second timeout.
+S1-299	Export is an atomic, read-only snapshot; subsequent source writes do not change it.
+S1-300	Preserve accounts and hashed-password login, existing bearer tokens, dossiers with their ids, states, fields, citations, `researched_at` and `spent_units`, all completed idempotent request bodies and original responses.
+S1-301	Identities and timestamps must not be regenerated.
+S1-302	Import makes no provider call: imported dossiers are not researched again, and their citations remain citations served to this service.
+S1-303	Failed request keys remain reusable.
+S1-304	Existing tokens and retries must remain valid after import; replacing the state with a fresh fixture does not satisfy this requirement.
+S1-305	Import removes all previous destination data and credentials.
+S1-306	Reset clears all state, including imported state.
+S1-307	Export and import do not change the clock.
+S1-308	State need not survive an abrupt container restart.
+S1-309	An export taken while a build is running holds the dossier as it was before that build; after import, that dossier is in the state of its last completed build, or `failed` with every field `unknown` when no build had completed.
+S1-310	## 11. Concurrency
+S1-311	Concurrent requests must produce the same results as executing them one at a time in some order.
+S1-312	The requirements above hold at every read.
+S1-313	## Appendix A. When an excerpt supports a value
+S1-314	This appendix is the whole definition of "supports" used in §4.
+S1-315	The service decides support by these rules alone.
+S1-316	### A.1 Sentences
+S1-317	A page's prose is split into lines at each line break, and each line into sentences.
+S1-318	A sentence ends after a `.`, `!` or `?`, together with any `"`, `”`, `’` or `)` directly after it, when whitespace follows.
+S1-319	A `.` that ends one of the legal-form suffixes in A.4, written as a whole word, does not end a sentence.
+S1-320	Each sentence is taken without its surrounding whitespace; empty sentences are dropped.
+S1-321	An excerpt is a **single sentence** when, with every run of whitespace written as one space, this rule splits it into exactly one sentence.
+S1-322	### A.2 The rule
+S1-323	An excerpt supports the value V for the field F of a company exactly when all of these hold:
+S1-324	It is a single sentence (A.1).
+S1-325	It names the company: it contains the company's normalised domain, or the company's name.
+S1-326	The company's name is the first label of its domain with each `-` read as a space:
+S1-327	`acme-robotics.test` is named by `Acme Robotics`.
+S1-328	It contains a statement phrase for F (A.3).
+S1-329	It contains none of the negating phrases (A.3).
+S1-330	It contains at least one value in F's format (A.4), and every value in F's format that it contains normalises to V (A.5).
+S1-331	The company's name, its domain and every phrase are matched without regard to case and as whole words: the characters directly before and after the match are not letters or digits.
+S1-332	Phrases with a space match one space.
+S1-333	For example, for `acme-robotics.test`:
+S1-334	| `Dana Ruiz has led Acme Robotics as chief executive since 2021.` | `ceo` `Dana Ruiz` |  [columns: | Excerpt | Supports |]
+S1-335	| `Acme Robotics CEO: Sam Ortiz.` | `ceo` `Sam Ortiz` |  [columns: | Excerpt | Supports |]
+S1-336	| `Acme Robotics was founded in 2014.` | `founded_year` `2014` |  [columns: | Excerpt | Supports |]
+S1-337	| `Acme Robotics employs about 120 people.` | `headcount_range` `51-200` |  [columns: | Excerpt | Supports |]
+S1-338	| `Acme Robotics is reportedly in talks to raise $40M.` | nothing: a negating phrase |  [columns: | Excerpt | Supports |]
+S1-339	| `Acme Robotics opened a sales office in Porto.` | nothing: no statement phrase for `hq_city` |  [columns: | Excerpt | Supports |]
+S1-340	### A.3 Phrases
+S1-341	| `legal_name` | `legal name`, `registered name`, `registered as`, `registered company`, `legal entity`, `name of record` |  [columns: | Field | Statement phrases |]
+S1-342	| `hq_city` | `headquartered in`, `headquarters in`, `head office in`, `based in`, `registered office in`, `registered seat in` |  [columns: | Field | Statement phrases |]
+S1-343	| `ceo` | `chief executive officer`, `chief executive`, `CEO` |  [columns: | Field | Statement phrases |]
+S1-344	| `founded_year` | `founded`, `founding`, `established`, `incorporated` |  [columns: | Field | Statement phrases |]
+S1-345	| `headcount_range` | `employs`, `employees`, `staff`, `people`, `headcount`, `workforce` |  [columns: | Field | Statement phrases |]
+S1-346	| `funding_total` | `raised`, `funding`, `invested`, `investment` |  [columns: | Field | Statement phrases |]
+S1-347	The negating phrases are:
+S1-348	`in talks to`, `plans to`, `planning to`, `wants to`, `expects to`, `hopes to`, `aims to`, `seeking`, `could`, `would`, `might`, `reportedly`, `rumoured`, `former`, `formerly`, `will become`, `not`.
+S1-349	### A.4 Value formats
+S1-350	A **capitalised word** is an uppercase letter followed by one or more lowercase letters, with no letter or digit directly before or after it.
+S1-351	The letters may be of any alphabet:
+S1-352	`Zürich` and `Müller` are capitalised words.
+S1-353	An **uppercase word** is two or more uppercase letters, with no letter or digit directly before or after it:
+S1-354	`AI`, `USA`.
+S1-355	A **number** is written in digits, optionally with a `,` before each group of three digits and a decimal part after a `.`:
+S1-356	`120`, `1,200`, `12.5`, `12,000,000`.
+S1-357	Digits directly next to a letter, or joined to other digits by `,` or `.` in any other way, are not a number.
+S1-358	| `legal_name` | The company's name or its domain (matched as in A.2), then zero or more capitalised or uppercase words each after one space, then an optional `,`, one space, and a legal-form suffix with no letter or digit directly after it. Where several such texts start at the same place, the shortest counts |  [columns: | Field | Format |]
+S1-359	| `hq_city` | A place name directly after a statement phrase for `hq_city` and one space: the longest run of capitalised words joined by single spaces or by `-` that starts there, not part of a longer such run |  [columns: | Field | Format |]
+S1-360	| `ceo` | A person's name: a run of two or three capitalised words joined by single spaces that is not part of a longer such run. Occurrences of the company's name and of the statement phrases for `ceo` are first taken out of the sentence and separate the words around them |  [columns: | Field | Format |]
+S1-361	| `founded_year` | A number of exactly four digits, from 1800 to 2099, that is not part of an amount |  [columns: | Field | Format |]
+S1-362	| `headcount_range` | A number with no decimal part, 1 or more, that is not part of an amount. Words before it, such as `about` or `roughly`, do not change it. A stated range such as `51-200 employees` holds two numbers |  [columns: | Field | Format |]
+S1-363	| `funding_total` | An amount (below) |  [columns: | Field | Format |]
+S1-364	The legal-form suffixes, matched exactly as written here:
+S1-365	`Inc.`, `Corp.`, `LLC`, `LLP`, `L.P.`, `Ltd`, `Limited`, `Pty Ltd`, `plc`, `PLC`, `GmbH`, `AG`, `KG`, `SE`, `AS`, `A/S`, `ASA`, `AB`, `Oy`, `Oyj`, `B.V.`, `N.V.`, `S.A.`, `S.A.S.`, `S.L.`, `S.r.l.`, `S.p.A.`, `s.r.o.`, `a.s.`, `K.K.`.
+S1-366	An **amount** is written in one of these forms, matched without regard to case, with no letter or digit directly before it or after it:
+S1-367	`$`, `US$` or `USD`, an optional space, a number, and optionally a scale:
+S1-368	`k`, `m`, `mn` or `bn` directly after the number, or one space and `thousand`, `million` or `billion`.
+S1-369	Examples:
+S1-370	`$12M`, `$12.5 million`, `US$12 million`, `USD 12 million`, `$12m`, `$12,000,000`.
+S1-371	A number, optionally one space and `thousand`, `million` or `billion`, then one space and `dollars` or `US dollars`.
+S1-372	Examples:
+S1-373	`12 million dollars`, `12,000,000 US dollars`.
+S1-374	Amounts in other currencies are not amounts.
+S1-375	### A.5 Normalisation
+S1-376	| `legal_name`, `hq_city`, `ceo` | The text as the excerpt writes it |  [columns: | Field | Normalised value |]
+S1-377	| `founded_year` | The number as an integer |  [columns: | Field | Normalised value |]
+S1-378	| `headcount_range` | The range of §4 that contains the number |  [columns: | Field | Normalised value |]
+S1-379	| `funding_total` | The number times the scale (`k` and `thousand` 1,000; `m`, `mn` and `million` 1,000,000; `bn` and `billion` 1,000,000,000) in US dollars. An amount that does not come to a whole number of dollars is not a value |  [columns: | Field | Normalised value |]
