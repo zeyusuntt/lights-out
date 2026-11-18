@@ -1,0 +1,8 @@
+STAGE: 2
+ACCEPTED: bc19abf8cbde23c3a2fa50f23baa55dbfe48d731
+Rounds: 2 (BLOCK x1: round 1 S2-F1; PASS round 2)
+Verdicts: verifier PASS (verdicts/stage-2/verifier-bc19abf8cbde.md, 223 tests, seal sha256:04c1fc3e0ac45b93b3ff4ed58d6d771e5629a0a0b7dafbcaa3bdaedec7ddf5df); second-reader PASS (verdicts/stage-2/second-reader-bc19abf8cbde.md, 205/205, ledger audit exit 0); product-user PASS (verdicts/stage-2/product-user-bc19abf8cbde.md, journey/stage-2/bc19abf8cbde/)
+Foreman check: clean clone, isolated -> claimed stage: 2 (checks/foreman-s2-r2/report.json)
+accept-check 2 bc19abf8... --ui --report checks/foreman-s2-r2/report.json -> exit 0
+Rulings: R2-1..R2-5 (rulings/stage-2.md)
+Open notes (non-blocking): nav links 27-37px and evidence back link 18px tap targets at 375px; cost 11.3 units per correct field; stage-1 export keeps only citations (R2-5 limitation, lives in stage-1/).
