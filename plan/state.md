@@ -14,6 +14,7 @@
 - second-reader BLOCK on 3cf3cef0 (4197e89): S2-F1 throttled extract after slow research not retried. FIX 2 1 sent (plan/fix-2-1.md), with 7 polish notes.
 - Round 2 candidate: bc19abf8cbde23c3a2fa50f23baa55dbfe48d731. Foreman check: claimed stage 2 (checks/foreman-s2-r2/report.json).
 - product-user PASS on bc19abf8 (478ec11); residual note: nav links 27-37px, evidence back link 18px at 375.
-- Outstanding: VERDICT verifier, second-reader on bc19abf8
+- verifier PASS on bc19abf8 (92adcd6), 223 tests. SEAL AMENDED sha256:04c1fc3e0ac45b93b3ff4ed58d6d771e5629a0a0b7dafbcaa3bdaedec7ddf5df.
+- Outstanding: VERDICT second-reader on bc19abf8
 - UI: yes -> VERIFY to verifier, second-reader, product-user; accept-check --ui.
 - Known stage-1 limitation (final report): stage-1 export keeps only citations; upgrade candidates are limited to exported excerpts (R2-5).
