@@ -13,6 +13,7 @@
 - verifier PASS on 3cf3cef0 (02e2f67), 222/222, 92/92 fields, 11.3 u/field. SEAL AMENDED sha256:a2d3420bb708d27b82630c18e8d3568c27b8782a408ef1c7a1482559a0bb22df. Notes: RUN.md tags image dossier-stage-1; 8 searches per build; UI timeout 10s.
 - second-reader BLOCK on 3cf3cef0 (4197e89): S2-F1 throttled extract after slow research not retried. FIX 2 1 sent (plan/fix-2-1.md), with 7 polish notes.
 - Round 2 candidate: bc19abf8cbde23c3a2fa50f23baa55dbfe48d731. Foreman check: claimed stage 2 (checks/foreman-s2-r2/report.json).
-- Outstanding: VERDICT verifier, second-reader, product-user on bc19abf8 (VERIFY sent)
+- product-user PASS on bc19abf8 (478ec11); residual note: nav links 27-37px, evidence back link 18px at 375.
+- Outstanding: VERDICT verifier, second-reader on bc19abf8
 - UI: yes -> VERIFY to verifier, second-reader, product-user; accept-check --ui.
 - Known stage-1 limitation (final report): stage-1 export keeps only citations; upgrade candidates are limited to exported excerpts (R2-5).
