@@ -17,6 +17,7 @@ from .clock import parse_rfc3339
 from .domains import normalise
 from .idempotency import idempotency_key, run_once
 from .passwords import hash_password, verify_password
+from .screens import asset, shell, wants_html
 from .service import Service
 from .state import Dossier, InvalidState, State, User, from_export
 from .web import (ApiError, bearer_token, error_response, invalid, json_object, json_response,
@@ -45,6 +46,9 @@ def build_app(service: Service) -> Starlette:
         token = secrets.token_urlsafe(32)
         service.state.tokens[token] = user.id
         return {"user_id": user.id, "display_name": user.display_name, "token": token}
+
+    async def shell_route(request: Request) -> Response:
+        return shell()
 
     async def health(request: Request) -> Response:
         return json_response({"status": "ok"})
@@ -129,6 +133,10 @@ def build_app(service: Service) -> Starlette:
 
     async def dossier_path(request: Request) -> Response:
         segments = _dossier_segments(request)
+        if request.method == "GET" and len(segments) == 2 and segments[1] == "evidence":
+            return shell()
+        if request.method == "GET" and len(segments) == 1 and wants_html(request):
+            return shell()
         if request.method == "GET" and len(segments) == 1:
             return await get_dossier(request, segments[0])
         if request.method == "POST" and len(segments) == 2 and segments[1] == "refresh":
@@ -195,6 +203,11 @@ def build_app(service: Service) -> Starlette:
 
     routes = [
         Route("/health", health, methods=["GET"]),
+        Route("/", shell_route, methods=["GET"]),
+        Route("/login", shell_route, methods=["GET"]),
+        Route("/signup", shell_route, methods=["GET"]),
+        Route("/contested", shell_route, methods=["GET"]),
+        Route("/assets/{name}", asset, methods=["GET"]),
         Route("/_test/reset", reset, methods=["POST"]),
         Route("/_test/clock", set_clock, methods=["POST"]),
         Route("/_test/export", export_state, methods=["GET"]),
