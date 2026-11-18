@@ -71,3 +71,16 @@ def test_restart_during_a_build_ends_it_and_keeps_its_spending(api, ada, mock):
     assert sum(c["cost"] for c in mock.calls()) <= after["spent_units"] <= 2 * 80
     assert api.post("/dossiers/corvid-security.test/refresh", headers={**ada, **key()}).status_code == 202
     time.sleep(5)
+
+
+def test_refused_calls_before_a_stop_are_not_counted(api, ada, mock):
+    mock.fault(["search"], "error")
+    mock.fault(["research"], "delay", seconds=5)
+    create(api, ada, "corvid-security.test")
+    time.sleep(2.5)
+    shown = api.get("/dossiers/corvid-security.test", headers=ada).json()["spent_units"]
+    assert shown <= 25
+    kill_and_start()
+    after = wait_settled(api, ada, "corvid-security.test", timeout=10)
+    assert after["state"] == "failed" and after["spent_units"] <= 25
+    time.sleep(5)

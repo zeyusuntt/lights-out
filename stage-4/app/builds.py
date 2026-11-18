@@ -32,6 +32,12 @@ class Build:
     outcome: str = "building"
     spent: int = 0
     versions: list[Version] = field(default_factory=list)
+    durable: int | None = None
+
+    @property
+    def shown(self) -> int:
+        """The spending as last written to disk: what responses report (R4-8)."""
+        return self.spent if self.durable is None else self.durable
 
     @property
     def ready(self) -> bool:

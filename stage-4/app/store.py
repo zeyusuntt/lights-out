@@ -25,15 +25,18 @@ class Store:
         except FileNotFoundError:
             return None
 
-    async def save(self, snapshot: Callable[[], dict]) -> None:
+    async def save(self, snapshot: Callable[[], tuple[dict, Callable[[], None]]]) -> None:
+        """Write the state, then call the snapshot's callback, once it is on disk."""
         self._requested += 1
         mine = self._requested
         async with self._lock:
             if self._written >= mine:
                 return
             covered = self._requested
-            data = json.dumps(snapshot(), separators=(",", ":")).encode()
+            document, written = snapshot()
+            data = json.dumps(document, separators=(",", ":")).encode()
             await asyncio.to_thread(self._write, data)
+            written()
             self._written = covered
 
     def _write(self, data: bytes) -> None:

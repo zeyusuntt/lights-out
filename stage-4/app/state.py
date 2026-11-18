@@ -45,8 +45,9 @@ class Batch:
         return [dossiers[d].builds[i] for d, i in self.builds
                 if d in dossiers and i < len(dossiers[d].builds)]
 
-    def spent_units(self, dossiers: dict[str, Dossier]) -> int:
-        return sum(b.spent for b in self._builds(dossiers))
+    def spent_units(self, dossiers: dict[str, Dossier], live: bool = False) -> int:
+        """Units the batch's builds spent: as reported, or including reservations not yet on disk."""
+        return sum(b.spent if live else b.shown for b in self._builds(dossiers))
 
     def view(self, dossiers: dict[str, Dossier]) -> dict:
         running = any(b.outcome == "building" for b in self._builds(dossiers))

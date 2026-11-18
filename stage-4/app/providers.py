@@ -142,6 +142,8 @@ class Gateway:
             except (WebRouterError, nimble_python.NimbleError, OSError, ValueError) as exc:
                 failure = _classify(exc)
                 self._budget.settle(units, failure.charged)
+                if not failure.charged:
+                    await self._record()
                 outcome.errors.append(type(exc).__name__)
                 if not failure.retryable or (failure.charged and not retry_lost):
                     return outcome

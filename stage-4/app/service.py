@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import os
+from collections.abc import Callable
 from pathlib import Path
 
 from web_router import AsyncWebRouter
@@ -41,10 +42,18 @@ class Service:
             self._router = make_router()
         return self._router
 
-    def snapshot(self) -> dict:
+    def snapshot(self) -> tuple[dict, Callable[[], None]]:
         """What survives a stop: the state, a running build kept as failed with its spending so
-        far (R4-0), and the clock."""
-        return {"document": self.state.export(settled=False), "clock": self.clock.saved()}
+        far (R4-0), and the clock; and what to do once that is on disk: report the spending
+        it holds (R4-8)."""
+        pending = [(b, b.spent) for d in self.state.dossiers.values() for b in d.builds
+                   if b.durable is not None]
+
+        def written() -> None:
+            for build, spent in pending:
+                build.durable = None if build.outcome != "building" and build.spent == spent else spent
+
+        return {"document": self.state.export(settled=False), "clock": self.clock.saved()}, written
 
     async def persist(self) -> None:
         await self.store.save(self.snapshot)
@@ -72,7 +81,7 @@ class Service:
         if batch.id not in self._shared:
             state = self.state
             self._shared[batch.id] = SharedBudget(batch.budget_units,
-                                                  lambda: batch.spent_units(state.dossiers))
+                                                  lambda: batch.spent_units(state.dossiers, live=True))
         return self._shared[batch.id]
 
     async def _build(self, state: State, dossier: Dossier, build: Build,

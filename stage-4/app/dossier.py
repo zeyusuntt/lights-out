@@ -92,7 +92,7 @@ class Dossier:
 
     @property
     def spent_units(self) -> int:
-        return sum(b.spent for b in self.builds)
+        return sum(b.shown for b in self.builds)
 
     def last_ready(self, moment: datetime | None = None) -> int | None:
         """Index of the latest ready build, or of the latest whose time is at or before a moment."""
@@ -157,7 +157,7 @@ class Dossier:
         index = self.last_ready(moment)
         if index is None:
             return None
-        spent = sum(b.spent for b in self.builds if _at_or_before(b.time, moment))
+        spent = sum(b.shown for b in self.builds if _at_or_before(b.time, moment))
         return self._body(index, "ready", spent)
 
     def values(self, day: str, moment: datetime) -> dict[str, dict] | None:
@@ -185,7 +185,7 @@ class Dossier:
     def begin_build(self, time: str) -> Build:
         self.before_build = self.state if self.state != "building" else "failed"
         self.state = "building"
-        build = Build(time)
+        build = Build(time, durable=0)
         self.builds.append(build)
         return build
 
@@ -225,7 +225,8 @@ class Dossier:
     def recorded_builds(self, settled: bool) -> list[Build]:
         """The builds to export: a running one left out when settled, else kept as failed."""
         if settled:
-            return [b for b in self.builds if b.outcome != "building"]
+            return [Build(b.time, b.outcome, b.shown, b.versions) for b in self.builds
+                    if b.outcome != "building"]
         return [Build(b.time, "failed", b.spent) if b.outcome == "building" else b for b in self.builds]
 
     def recorded_state(self, settled: bool) -> str:
