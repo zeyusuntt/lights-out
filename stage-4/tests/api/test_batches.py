@@ -107,3 +107,15 @@ def test_batch_runs_affordable_research_for_research_only_evidence(api, ada, moc
     assert sum(c["method"] == "research" for c in mock.calls()) == 1
     body = api.get("/dossiers/corvid-security.test", headers=ada).json()
     assert body["fields"]["headcount_range"]["value"] == "1001-5000"
+
+
+def test_short_batch_renders_searched_pages_before_research(api, ada, mock):
+    data = api.post("/batches", headers={**ada, **key()},
+                    json={"domains": ["halvorsen-robotics.test"], "budget_units": 30}).json()
+    done = wait_batch(api, ada, data["batch_id"])
+    assert done["spent_units"] <= 30
+    calls = [c for c in mock.calls() if c["status"] == 200]
+    first_render = next(i for i, c in enumerate(calls) if c["method"] == "extract")
+    assert all(c["method"] != "research" for c in calls[:first_render])
+    body = api.get("/dossiers/halvorsen-robotics.test", headers=ada).json()
+    assert sum(f["status"] != "unknown" for f in body["fields"].values()) >= 3

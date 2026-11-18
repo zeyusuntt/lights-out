@@ -11,7 +11,7 @@ from .candidates import ALL_FIELDS, EXECUTIVES, Candidate
 from .budget import COST
 from .lineage import Origins
 from .pages import Lineage, PageText, sentences, split_served
-from .providers import PROVIDER, Gateway, Outcome, SearchHit, is_live
+from .providers import PROVIDER, Gateway, SearchHit, is_live
 from .support import (FIELDS, INVESTORS, STATEMENT_PHRASES, TITLES, citations_in, company_name,
                       find_phrase)
 
@@ -19,6 +19,7 @@ SNIPPET_LIMIT = 300
 SNIPPET_MARGIN = 10
 ALL_PHRASES = tuple(p for f in FIELDS + TITLES + (INVESTORS,) for p in STATEMENT_PHRASES[f])
 RESEARCH_UNITS = COST[(PROVIDER, "research", None)]
+RENDER_UNITS = COST[(PROVIDER, "render", None)]
 
 
 def names_company(text: str, domain: str) -> bool:
@@ -63,32 +64,57 @@ class BuildResearch:
 
     async def run(self) -> list[Version]:
         """The page versions this build gathered."""
-        name = company_name(self.domain).title()
-        queries = [self.domain, name] + [f"{name} {' '.join(STATEMENT_PHRASES[f])}" for f in FIELDS]
-        queries.append(f"{name} {' '.join(p for t in TITLES for p in STATEMENT_PHRASES[t])}")
-        queries.append(f"{name} {' '.join(STATEMENT_PHRASES[INVESTORS])}")
-        research = asyncio.ensure_future(self._research())
-        outcomes = await asyncio.gather(*(
-            self.gateway.search(q, exact_domain=i == 0) for i, q in enumerate(queries)))
-        for outcome in outcomes:
-            if outcome.answered:
-                for hit in outcome.value:
-                    self._hits.setdefault(hit.url, hit)
-        claims = await research
-        if claims.answered:
-            self._cited = list(dict.fromkeys(c.url for c in claims.value))
-        pages = await self._render(self._to_render())
+        if self.gateway.in_batch:
+            await self._search()
+            pages = await self._gather_within_budget()
+        else:
+            research = asyncio.ensure_future(self._research())
+            await self._search()
+            self._cited = await research
+            pages = await self._render(self._to_render())
         origins = Origins(self.domain, self._lineage_of, {p.url: p.lineage for p in pages})
         found = await asyncio.gather(*(origins.origin(p.lineage) for p in pages))
         return [Version(page.url, page.true_from,
                         page_candidates(page, self.domain, self.retrieved_at, origin))
                 for page, origin in zip(pages, found)]
 
-    async def _research(self) -> Outcome:
-        """The research run, unless a batch's shared budget can no longer pay for it."""
+    async def _search(self) -> None:
+        name = company_name(self.domain).title()
+        queries = [self.domain, name] + [f"{name} {' '.join(STATEMENT_PHRASES[f])}" for f in FIELDS]
+        queries.append(f"{name} {' '.join(p for t in TITLES for p in STATEMENT_PHRASES[t])}")
+        queries.append(f"{name} {' '.join(STATEMENT_PHRASES[INVESTORS])}")
+        outcomes = await asyncio.gather(*(
+            self.gateway.search(q, exact_domain=i == 0) for i, q in enumerate(queries)))
+        for outcome in outcomes:
+            if outcome.answered:
+                for hit in outcome.value:
+                    self._hits.setdefault(hit.url, hit)
+
+    async def _gather_within_budget(self) -> list[PageText]:
+        """In a batch (R4-9): when the shared budget cannot cover the whole plan, render the
+        searched pages first, and run research after only while some field is unsupported and
+        the budget can then still pay for a page it cites."""
+        planned = self._to_render()
+        if self.gateway.affords(RESEARCH_UNITS + RENDER_UNITS * (len(planned) + 1)):
+            self._cited = await self._research()
+            return await self._render(self._to_render())
+        pages = await self._render(planned)
+        if self._unsupported(pages) and self.gateway.affords(RESEARCH_UNITS + RENDER_UNITS):
+            self._cited = await self._research()
+            done = {p.url for p in pages}
+            pages += await self._render([u for u in self._cited if u not in done])
+        return pages
+
+    def _unsupported(self, pages: list[PageText]) -> bool:
+        supported = {f for p in pages for f, cands in page_candidates(p, self.domain, "", "").items() if cands}
+        return any(f not in supported for f in FIELDS)
+
+    async def _research(self) -> list[str]:
+        """The URLs the research run cites, unless a batch's shared budget cannot pay for it."""
         if not self.gateway.affords(RESEARCH_UNITS):
-            return Outcome()
-        return await self.gateway.research(self.domain)
+            return []
+        claims = await self.gateway.research(self.domain)
+        return list(dict.fromkeys(c.url for c in claims.value)) if claims.answered else []
 
     async def _lineage_of(self, url: str) -> Lineage | None:
         outcome = await self.gateway.served_text(url)

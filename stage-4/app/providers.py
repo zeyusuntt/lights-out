@@ -126,6 +126,10 @@ class Gateway:
     def affords(self, units: int) -> bool:
         return self._budget.affords(units)
 
+    @property
+    def in_batch(self) -> bool:
+        return self._budget.shared
+
     def may_gather(self) -> bool:
         return self.elapsed() < self._timing.gather_window_s
 

@@ -48,6 +48,10 @@ class BuildBudget:
     def remaining(self) -> int:
         return self._limit - self._held
 
+    @property
+    def shared(self) -> bool:
+        return self._shared is not None
+
     def affords(self, units: int) -> bool:
         """Whether the shared budget, if any, still has room for these units."""
         return self._shared is None or self._shared.affords(units)
