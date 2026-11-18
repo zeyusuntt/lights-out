@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import os
 import time
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
 from typing import Any
 from urllib.parse import urlparse
@@ -91,10 +92,12 @@ def _classify(exc: BaseException) -> Failure:
 class Gateway:
     """One build's access to the providers: spends from its budget, retries refusals."""
 
-    def __init__(self, router: AsyncWebRouter, budget: BuildBudget, timing: Timing) -> None:
+    def __init__(self, router: AsyncWebRouter, budget: BuildBudget, timing: Timing,
+                 record: Callable[[], Awaitable[None]]) -> None:
         self._router = router
         self._budget = budget
         self._timing = timing
+        self._record = record
         self._started = time.monotonic()
         self._throttled_wait = 0.0
         self._waiting = 0
@@ -120,15 +123,20 @@ class Gateway:
         """Time the build has run, less the time it spent waiting out 429 answers."""
         return time.monotonic() - self._started - self._throttled_wait
 
+    def affords(self, units: int) -> bool:
+        return self._budget.affords(units)
+
     def may_gather(self) -> bool:
         return self.elapsed() < self._timing.gather_window_s
 
-    async def _call(self, units: int, make_call, retry_lost: bool = False) -> Outcome:
+    async def _call(self, units: int, make_call, retry_lost: bool = False, keep: int = 0) -> Outcome:
+        """Make a call: reserve its units and record them durably first, then settle them."""
         outcome = Outcome()
         for attempt in range(MAX_ATTEMPTS):
-            if not self._budget.reserve(units):
+            if not self._budget.reserve(units, keep):
                 outcome.errors.append("budget")
                 return outcome
+            await self._record()
             try:
                 outcome.value = await make_call()
             except (WebRouterError, nimble_python.NimbleError, OSError, ValueError) as exc:
@@ -157,19 +165,27 @@ class Gateway:
                     for r in response.results]
         return await self._call(COST[(PROVIDER, "search", "lite")], call, retry_lost=exact_domain)
 
-    async def render(self, url: str) -> Outcome:
-        """The text a browser shows once the page has loaded, or an answered outcome with None
-        when there is no page."""
+    async def _extract(self, url: str, render: bool, keep: int = 0) -> Outcome:
         async def call() -> str | None:
+            options = {"provider_options": {"render": True}} if render else {}
             try:
-                response = await self._router.extract(
-                    [url], provider=PROVIDER, provider_options={"render": True})
+                response = await self._router.extract([url], provider=PROVIDER, **options)
             except ProviderError as exc:
                 if _classify(exc) == Failure(charged=True, retryable=False):
                     return None
                 raise
             return next((d.content for d in response.documents if d.url == url and d.content), None)
-        return await self._call(COST[(PROVIDER, "render", None)], call)
+        return await self._call(COST[(PROVIDER, "render" if render else "extract", None)], call,
+                                keep=keep)
+
+    async def render(self, url: str, keep: int = 0) -> Outcome:
+        """The text a browser shows once the page has loaded, or an answered outcome with None
+        when there is no page. `keep` units of the build's limit stay unspent."""
+        return await self._extract(url, True, keep)
+
+    async def served_text(self, url: str) -> Outcome:
+        """The page's served text without loading it in a browser, for its header lines."""
+        return await self._extract(url, False)
 
     async def research(self, domain: str) -> Outcome:
         async def call() -> list[ResearchClaim]:

@@ -9,13 +9,13 @@ from pathlib import Path
 
 from web_router import AsyncWebRouter
 
-from .budget import BuildBudget
+from .budget import BuildBudget, SharedBudget
 from .builds import Build
 from .clock import Clock
 from .dossier import Dossier
 from .providers import Gateway, Timing, make_router
 from .research import BuildResearch
-from .state import State, from_export
+from .state import Batch, State, from_export
 from .store import Store
 
 log = logging.getLogger("dossier.builds")
@@ -28,6 +28,7 @@ class Service:
         self.clock = Clock()
         self._router = router
         self._builds: dict[int, asyncio.Task] = {}
+        self._shared: dict[str, SharedBudget] = {}
         self.store = store or Store(Path(os.environ.get("DOSSIER_STATE_PATH", DEFAULT_STATE_PATH)))
         saved = self.store.load()
         if saved is not None:
@@ -41,8 +42,9 @@ class Service:
         return self._router
 
     def snapshot(self) -> dict:
-        """What survives a restart: the state as an export (a running build left out) and the clock."""
-        return {"document": self.state.export(), "clock": self.clock.saved()}
+        """What survives a stop: the state, a running build kept as failed with its spending so
+        far (R4-0), and the clock."""
+        return {"document": self.state.export(settled=False), "clock": self.clock.saved()}
 
     async def persist(self) -> None:
         await self.store.save(self.snapshot)
@@ -53,22 +55,39 @@ class Service:
             task.cancel()
         self._builds.clear()
         self.state = state
+        self._shared.clear()
 
-    def start_build(self, dossier: Dossier) -> None:
+    def start_build(self, dossier: Dossier, batch: Batch | None = None) -> None:
         """Start a build of the dossier, which must not be building already."""
         build = dossier.begin_build(self.clock.iso())
-        task = asyncio.ensure_future(self._build(self.state, dossier, build))
+        shared = None
+        if batch is not None:
+            batch.builds.append((dossier.domain, len(dossier.builds) - 1))
+            shared = self._shared_budget(batch)
+        task = asyncio.ensure_future(self._build(self.state, dossier, build, shared))
         self._builds[id(task)] = task
         task.add_done_callback(lambda t: self._builds.pop(id(t), None))
 
-    async def _build(self, state: State, dossier: Dossier, build: Build) -> None:
+    def _shared_budget(self, batch: Batch) -> SharedBudget:
+        if batch.id not in self._shared:
+            state = self.state
+            self._shared[batch.id] = SharedBudget(batch.budget_units,
+                                                  lambda: batch.spent_units(state.dossiers))
+        return self._shared[batch.id]
+
+    async def _build(self, state: State, dossier: Dossier, build: Build,
+                     shared: SharedBudget | None) -> None:
         def current() -> bool:
             return self.state is state and state.dossiers.get(dossier.domain) is dossier
 
-        def charge(units: int) -> None:
+        def account(units: int) -> None:
             build.spent += units
 
-        gateway = Gateway(self.router, BuildBudget(charge), Timing.for_environment())
+        async def record() -> None:
+            if current():
+                await self.persist()
+
+        gateway = Gateway(self.router, BuildBudget(account, shared), Timing.for_environment(), record)
         try:
             versions = await BuildResearch(gateway, dossier.domain, build.time).run()
         except asyncio.CancelledError:

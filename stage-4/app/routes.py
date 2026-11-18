@@ -24,7 +24,7 @@ from .dossier import Dossier
 from .pages import valid_date
 from .screens import asset, shell, wants_html
 from .service import Service
-from .state import State, User, from_export
+from .state import Batch, State, User, from_export
 from .validate import InvalidState
 from .web import (ApiError, bearer_token, error_response, invalid, json_object, json_response,
                   malformed, no_content, not_found, parse_json, typed, unauthenticated)
@@ -136,6 +136,34 @@ def build_app(service: Service) -> Starlette:
             return 202, dossier.summary()
 
         return run_once(service.state, user_id, request, key, compared, create)
+
+    async def create_batch(request: Request) -> Response:
+        user_id = user_of(request)
+        key = idempotency_key(request)
+        body = await json_object(request)
+        user_id = user_of(request)
+        compared = {k: body[k] for k in ("domains", "budget_units") if k in body}
+
+        def create() -> tuple[int, dict]:
+            domains, budget = _batch_request(body)
+            state = service.state
+            batch = Batch(state.new_batch_id(), user_id, domains, budget)
+            state.batches[batch.id] = batch
+            for domain in domains:
+                if domain not in state.dossiers:
+                    dossier = Dossier(id=state.new_dossier_id(), domain=domain)
+                    state.dossiers[domain] = dossier
+                    service.start_build(dossier, batch)
+            return 202, batch.view(state.dossiers)
+
+        return run_once(service.state, user_id, request, key, compared, create)
+
+    async def get_batch(request: Request) -> Response:
+        user_id = user_of(request)
+        batch = service.state.batches.get(request.path_params["batch_id"])
+        if batch is None or batch.owner != user_id:
+            raise not_found("no such batch")
+        return json_response(batch.view(service.state.dossiers))
 
     async def dossier_path(request: Request) -> Response:
         segments = _dossier_segments(request)
@@ -256,6 +284,8 @@ def build_app(service: Service) -> Starlette:
         Route("/_test/import", import_state, methods=["POST"]),
         Route("/auth/signup", signup, methods=["POST"]),
         Route("/changes", list_changes, methods=["GET"]),
+        Route("/batches", create_batch, methods=["POST"]),
+        Route("/batches/{batch_id}", get_batch, methods=["GET"]),
         Route("/auth/login", login, methods=["POST"]),
         Route("/dossiers", create_dossier, methods=["POST"]),
         Route("/dossiers", list_dossiers, methods=["GET"]),
@@ -278,6 +308,26 @@ def _dossier_segments(request: Request) -> list[str]:
     raw = request.scope.get("raw_path") or request.url.path.encode()
     rest = raw.split(b"?", 1)[0][len(b"/dossiers/"):]
     return [unquote(part.decode("latin-1")) for part in rest.split(b"/")]
+
+
+MAX_BATCH = 50
+MAX_BUDGET = 100000
+
+
+def _batch_request(body: dict) -> tuple[list[str], int]:
+    """The normalised domains and the budget of a batch request, or 422 (stage 4)."""
+    raw = body.get("domains")
+    if raw is not None and (not isinstance(raw, list) or not all(isinstance(d, str) for d in raw)):
+        raise malformed("domains must be a list of strings")
+    if not raw or len(raw) > MAX_BATCH:
+        raise invalid("domains must list 1 to 50 domains")
+    domains = [normalise(d) for d in raw]
+    if None in domains or len(set(domains)) != len(domains):
+        raise invalid("every domain must be a valid host name, and no two the same")
+    budget = body.get("budget_units")
+    if not isinstance(budget, int) or isinstance(budget, bool) or not 1 <= budget <= MAX_BUDGET:
+        raise invalid("budget_units must be an integer from 1 to 100000")
+    return domains, budget
 
 
 def _instant(request: Request, name: str, default: datetime | None) -> datetime:
