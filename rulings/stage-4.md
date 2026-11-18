@@ -50,3 +50,15 @@ Chosen: **(a)**. Basis: **IMPLIED** (stage-1 §10 says import "atomically replac
 Readings: (a) a call already answered with an error before the stop is not in flight, so its units must not be counted after the restart; (b) its durable reservation may be counted until a settlement is recorded.
 Chosen: **(a)**. Basis: **EXPLICIT**.
 Why: stage-4 Restarts allows counting only calls "that were in flight at the stop and that no provider billed". A call the provider has already answered with an error status is complete, and it "costs nothing" (§9, stage-4 Provider failure). The restart rules also require everything else to be "answered as before the stop": a dossier showing `spent_units` 0 before the kill must not show 35 after it, merely because a refund lived only in memory. Builder: record a call's settlement (refund on refusal, or final cost) durably no later than the moment it becomes visible in any response. Equivalently, do not expose a refund in memory before it is persisted. Only reservations for calls that had no answer at the stop may be counted after a restart.
+
+## R4-9 — S4-002 / S4-098: planning a build under a tight caller budget (second-reader DISPUTE, round 2)
+
+Case: batch-reader-aa.test, budget 30. One searchable page, rendered for 3u, supplies all eight fields. The build starts a 25u research run, spends the remaining 5u on lite searches, latches, and ends ready at 30u with every field unknown. At budgets 14 and 20 it gets all eight.
+Readings: (a) genuine exhaustion of the caller budget excuses the loss, since the batch rule only says builds complete with what they obtained; (b) the build must plan so that affordable evidence is not displaced by calls that cannot yield it.
+Chosen: **(b)**. Basis: **IMPLIED** (the dispatch event rules: "correctness comes first: a saving that leaves out evidence a field needs is a defect" and "plan the searches once per build"; R4-6 already requires the highest-value calls first). The batch rule's completion clause says how a build ends once the budget is spent. It does not license spending the budget in an order that throws away evidence the same budget could have obtained.
+Required ordering when the remaining budget (batch remainder or per-build cap) cannot cover the whole plan:
+1. First, the company-naming searches and the rendering of the pages they return, highest value first.
+2. Then a research run, only while some field is still unsupported, and only if the remainder after its 25u can still pay to render at least one page it cites (3u). A claim's citation must be read from browser text to become a candidate (stage 2), so research without that is not evidence.
+3. The R4-6 latch stays at reservation time.
+This is need-based, not a fixed reserve (FIX 4 1 stands). V4-1 and F4 must still pass: there the evidence needs research, and after the page work the budget covers research plus a cited page. When the whole plan fits the budget, as in an unbatched build under 80, the order is free.
+Tests: the budget-30 case above must end with all supported fields known. Its oracle is the evidence reachable within the budget by this ordering.
