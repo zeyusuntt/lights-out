@@ -6,4 +6,4 @@
 ## Stage 4 — ACCEPTED a7228733bd425af053de0063ec2a3fc1ef68d873 (3 rounds, 2 BLOCK).
 
 All stages closed. ACCEPTED 4 sent, announcing the end.
-Outstanding: verifier commits acceptance/ suites (fpublish); second-reader commits acceptance/second-reader/ probes. Then FINAL REPORT (reports/final.md).
+Verifier published suites at c359185. Outstanding: second-reader probes commit, then FINAL REPORT.
