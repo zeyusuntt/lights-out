@@ -38,3 +38,17 @@ Readings: (a) restore the whole pre-build snapshot including its pre-build `spen
 Chosen: **(a)**. Basis: **EXPLICIT** (the specific sentence wins).
 
 Why: §10 says "An export taken while a build is running holds the dossier as it was before that build". This sentence is about this particular operation, so it beats the general cumulative rule of §8. The exported dossier carries the `spent_units`, fields, `researched_at` and state it had before the running build started. For a first build, that is `failed`, every field unknown, `researched_at` null, and `spent_units` 0. Exception: if the running build is a first build, `spent_units` is whatever the dossier had before that build started, which is 0. On the source, the running build continues and its spending counts as usual. Completed idempotent responses (for example the 202 `building` that started the build) are preserved verbatim in the export. Import starts no build.
+
+## R1-5 — readings raised by the verifier's seal, adopted for the builder
+
+Basis given for each. All seats build and test to these.
+
+- **Path domains (§4):** "Every domain the API takes, in a body or a path, is first normalised ... Anything else ... is 422 `validation_failed`." A path domain that is invalid after normalisation is 422 `validation_failed` on GET and on refresh. It is not 404, because validation comes before lookup. EXPLICIT.
+- **Refresh body (§7):** "any body sent to it is ignored and plays no part in deciding a replay." That includes an unparseable body or a non-object body: refresh still gives 202, and its replay gives 200. EXPLICIT (specific beats §5's general malformed rule).
+- **Clock (§3.4):** a `now` equal to the current instant (in any offset) is accepted with 204. Only a strictly earlier `now` is 422. A missing `now` is 422. A non-string `now` is 400 `malformed_request`. A string without an explicit offset is 422. EXPLICIT/IMPLIED.
+- **Reset (§4 fixture):** a fixture missing `now`, or with an invalid one, is 422 `validation_failed` and changes nothing. A fixture with a wrong-typed field is 400. In every case nothing changes. IMPLIED ("now is required").
+- **Tokens after reset (§3.3):** tokens issued before a reset are invalid after it. EXPLICIT ("replace all service state").
+- **Import (§10):** a missing `track`/`format_version`/`state`, a wrong track or version, or an unrecognised state object is 422. Only a body that is not valid JSON is 400. EXPLICIT.
+- **limit/offset (§5):** `""`, `" 4"`, `"abc"`, `"0"`, `"201"`, `"-1"`, `"1e9"`, `"4.0"` and `"+4"` are each 422 for `limit`. The same goes for `offset` where the value is not plain digits. EXPLICIT.
+- **Second POST /dossiers on an existing domain (§8):** 200 with exactly `dossier_id`, `domain`, `state`. EXPLICIT.
+- **Research request (§9):** its query contains the normalised domain. Its output-schema property names are field names from §4. The evidence definition counts the all-six-field run, so the build should ask for all six. EXPLICIT.
