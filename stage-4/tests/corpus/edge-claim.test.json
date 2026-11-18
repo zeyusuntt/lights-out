@@ -1,0 +1,37 @@
+{
+ "domain": "edge-claim.test",
+ "names": [
+  "Edge Claim"
+ ],
+ "pages": [
+  {
+   "url": "https://edge-claim.test/history",
+   "kind": "news",
+   "epochs": [
+    0
+   ],
+   "searchable": false,
+   "published_at": "2025-05-01T10:00:00+02:00",
+   "title": "Edge Claim history",
+   "text": "Edge Claim makes kettles.\nEdge Claim was founded in 1990.\nNobody at Edge Claim would name Pat Lee as CEO.",
+   "facts": {},
+   "lineage": {
+    "canonical": null,
+    "first_published_by": null,
+    "registrant": "news.test"
+   }
+  }
+ ],
+ "research": {
+  "nimble": {
+   "0": [
+    {
+     "field": "ceo",
+     "value": "Pat Lee",
+     "url": "https://edge-claim.test/history",
+     "excerpt": "Nobody at Edge Claim would name Pat Lee as CEO."
+    }
+   ]
+  }
+ }
+}
