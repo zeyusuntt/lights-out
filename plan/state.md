@@ -4,11 +4,11 @@
 ## Stage 2 — ACCEPTED bc19abf8cbde23c3a2fa50f23baa55dbfe48d731 (2 rounds, 1 BLOCK). accepted/stage-2.txt.
 
 ## Stage 3
-- stage-3/ placed by stage-copy from bc19abf8, uncommitted; builder commits it unchanged (a pure copy, so the seal excludes it).
-- Opened to second-reader + verifier.
+- stage-3/ copy committed by builder d9b8e90 (pure copy).
+- Seal sha256:10ad55f8793831fa22b63fe4e674fcb4ca9f7387865e0ff145c487b4705916de (262, 0 product commits). Opened to builder + product-user with plan/stage-3-note.md; rulings sent to verifier.
 - Round: 0. BLOCK count: 0. Candidate: none.
 - Ledger READY 3 6777747. Rulings R3-1..R3-4 committed.
-- Outstanding: SEALED 3 (verifier)
+- Outstanding: CANDIDATE 3 (builder); possible SEAL AMENDED (verifier)
 - UI: yes (stage-2 screens persist) -> accept-check --ui.
 - Watch: the stage-2 export keeps only the current dossier view (last-ready candidates with kind/published_at), with no build history, Effective lines or per-build spending. The stage-3 "Upgrades" sentences about stage-2 builds will need a ruling (a stage-2 limitation).
 - Known stage-1 limitation (final report): stage-1 export keeps only citations (R2-5).
