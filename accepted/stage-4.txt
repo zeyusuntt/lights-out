@@ -1,0 +1,9 @@
+STAGE: 4
+ACCEPTED: a7228733bd425af053de0063ec2a3fc1ef68d873
+Rounds: 3 (BLOCK x2: round 1 on b9288225 V4-1/F1-F4; round 2 on 010b35ad V4-2/S4-F5; PASS round 3)
+Verdicts: verifier PASS (verdicts/stage-4/verifier-a7228733bd42.md, 306/306, seal sha256:a0a3fbbc3c2ba0663f8b49f1d598de8b57c12c0d7e8fa27449224e6eba5d5ee3); second-reader PASS (verdicts/stage-4/second-reader-a7228733bd42.md, 305/305, ledger audit exit 0); product-user PASS (verdicts/stage-4/product-user-a7228733bd42.md, journey/stage-4/a7228733bd42/)
+Foreman check: clean clone, isolated -> claimed stage: 4 (checks/foreman-s4-r3/report.json)
+accept-check 4 a7228733... --ui --report checks/foreman-s4-r3/report.json -> exit 0
+Rulings: R4-0..R4-9 (rulings/stage-4.md)
+Open notes (non-blocking): heaviest build 74/80 units; 12.6 units per correct field; batch plan estimate omits lineage fetches (R4-2 fallback covers); scrypt reported on event loop; brand link and login/signup inline links under 44px.
+This is the last stage. The run is complete.
