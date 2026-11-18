@@ -52,3 +52,9 @@ Basis given for each. All seats build and test to these.
 - **limit/offset (§5):** `""`, `" 4"`, `"abc"`, `"0"`, `"201"`, `"-1"`, `"1e9"`, `"4.0"` and `"+4"` are each 422 for `limit`. The same goes for `offset` where the value is not plain digits. EXPLICIT.
 - **Second POST /dossiers on an existing domain (§8):** 200 with exactly `dossier_id`, `domain`, `state`. EXPLICIT.
 - **Research request (§9):** its query contains the normalised domain. Its output-schema property names are field names from §4. The evidence definition counts the all-six-field run, so the build should ask for all six. EXPLICIT.
+
+## R1-6 — citing a supporting sentence longer than 500 characters (raised by F4, round 2)
+
+Readings: (a) such a sentence cannot be cited at all; (b) cite a contiguous span of it, of at most 500 characters, that on its own satisfies A.2.
+Chosen: **(b)**. Basis: **IMPLIED**.
+Why: §4 defines a citation as an excerpt copied character for character from served text, 1 to 500 characters. It does not require the excerpt to be a whole sentence. A.1/A.2 require the excerpt to be a single sentence, and a contiguous span inside one sentence that contains no sentence end splits into exactly one sentence. So (b) satisfies every sentence. No citation, from search or research, exceeds 500 characters. A field is only required to be known (R1-2) when some span of at most 500 characters supports it.
