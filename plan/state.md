@@ -10,6 +10,7 @@
 - Candidate: 3cf3cef0862c212f6f572712876ad700e9e0e381. Foreman check: claimed stage 2 (checks/foreman-s2-r1/report.json)
 - SEAL AMENDED 2 sha256:5e65df495d997ee6ef6380094df32116a4f96308ba5ab5bec548f5eff9e48b8c (220, no code seen).
 - product-user PASS on 3cf3cef0 (b080afd), 6 non-blocking UI notes.
-- Outstanding: VERDICT verifier, second-reader on 3cf3cef0
+- verifier PASS on 3cf3cef0 (02e2f67), 222/222, 92/92 fields, 11.3 u/field. SEAL AMENDED sha256:a2d3420bb708d27b82630c18e8d3568c27b8782a408ef1c7a1482559a0bb22df. Notes: RUN.md tags image dossier-stage-1; 8 searches per build; UI timeout 10s.
+- Outstanding: VERDICT second-reader on 3cf3cef0
 - UI: yes -> VERIFY to verifier, second-reader, product-user; accept-check --ui.
 - Known stage-1 limitation (final report): stage-1 export keeps only citations; upgrade candidates are limited to exported excerpts (R2-5).
