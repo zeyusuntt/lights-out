@@ -1,0 +1,197 @@
+{
+ "domain": "chainmere.test",
+ "names": [
+  "Chainmere"
+ ],
+ "pages": [
+  {
+   "url": "https://a-hop.test/x",
+   "kind": "news",
+   "epochs": [
+    0,
+    1
+   ],
+   "searchable": true,
+   "published_at": "2026-01-05T00:00:00Z",
+   "true_from": null,
+   "title": "Page",
+   "text": "Chainmere was founded in 2015.",
+   "facts": {},
+   "lineage": {
+    "canonical": "https://b-hop.test/x",
+    "first_published_by": null,
+    "registrant": "a-hop.test"
+   }
+  },
+  {
+   "url": "https://b-hop.test/x",
+   "kind": "news",
+   "epochs": [
+    0,
+    1
+   ],
+   "searchable": true,
+   "published_at": "2026-01-05T00:00:00Z",
+   "true_from": null,
+   "title": "Page",
+   "text": "Chainmere was founded in 2015.",
+   "facts": {},
+   "lineage": {
+    "canonical": "https://c-hop.test/x",
+    "first_published_by": null,
+    "registrant": "b-hop.test"
+   }
+  },
+  {
+   "url": "https://c-hop.test/x",
+   "kind": "news",
+   "epochs": [
+    0,
+    1
+   ],
+   "searchable": true,
+   "published_at": "2026-01-05T00:00:00Z",
+   "true_from": null,
+   "title": "Page",
+   "text": "Chainmere was founded in 2015.",
+   "facts": {},
+   "lineage": {
+    "canonical": "https://d-hop.test/x",
+    "first_published_by": null,
+    "registrant": "c-hop.test"
+   }
+  },
+  {
+   "url": "https://d-hop.test/x",
+   "kind": "news",
+   "epochs": [
+    0,
+    1
+   ],
+   "searchable": true,
+   "published_at": "2026-01-05T00:00:00Z",
+   "true_from": null,
+   "title": "Page",
+   "text": "Chainmere was founded in 2015.",
+   "facts": {},
+   "lineage": {
+    "canonical": "https://e-hop.test/x",
+    "first_published_by": null,
+    "registrant": "d-hop.test"
+   }
+  },
+  {
+   "url": "https://e-hop.test/x",
+   "kind": "news",
+   "epochs": [
+    0,
+    1
+   ],
+   "searchable": true,
+   "published_at": "2026-01-05T00:00:00Z",
+   "true_from": null,
+   "title": "Page",
+   "text": "Chainmere was founded in 2015.",
+   "facts": {},
+   "lineage": {
+    "canonical": null,
+    "first_published_by": null,
+    "registrant": "estate.test"
+   }
+  },
+  {
+   "url": "https://m-hop.test/y",
+   "kind": "news",
+   "epochs": [
+    0,
+    1
+   ],
+   "searchable": true,
+   "published_at": "2026-01-05T00:00:00Z",
+   "true_from": null,
+   "title": "Page",
+   "text": "Chainmere was founded in 2015.",
+   "facts": {},
+   "lineage": {
+    "canonical": "https://gone-away.test/z",
+    "first_published_by": null,
+    "registrant": "m-hop.test"
+   }
+  },
+  {
+   "url": "https://chainmere.test/self",
+   "kind": "own",
+   "epochs": [
+    0,
+    1
+   ],
+   "searchable": true,
+   "published_at": "2026-01-05T00:00:00Z",
+   "true_from": null,
+   "title": "Page",
+   "text": "Chainmere CEO: Una Vale.",
+   "facts": {},
+   "lineage": {
+    "canonical": "https://chainmere.test/self",
+    "first_published_by": null,
+    "registrant": "chainmere.test"
+   }
+  },
+  {
+   "url": "https://registry-z.test/chainmere",
+   "kind": "filing",
+   "epochs": [
+    1
+   ],
+   "searchable": true,
+   "published_at": "2026-02-01T00:00:00Z",
+   "true_from": null,
+   "title": "Page",
+   "text": "Chainmere chief executive Una Vale signed the filing.",
+   "facts": {},
+   "lineage": {
+    "canonical": null,
+    "first_published_by": null,
+    "registrant": "registry-z.test"
+   }
+  },
+  {
+   "url": "https://origin-vault.test/chainmere",
+   "kind": "news",
+   "epochs": [
+    0,
+    1
+   ],
+   "searchable": false,
+   "published_at": "2026-01-05T00:00:00Z",
+   "true_from": null,
+   "title": "Page",
+   "text": "Chainmere was founded in 1999.",
+   "facts": {},
+   "lineage": {
+    "canonical": null,
+    "first_published_by": null,
+    "registrant": "vault.test"
+   }
+  },
+  {
+   "url": "https://copyhub.test/chainmere",
+   "kind": "news",
+   "epochs": [
+    0,
+    1
+   ],
+   "searchable": true,
+   "published_at": "2026-01-05T00:00:00Z",
+   "true_from": null,
+   "title": "Page",
+   "text": "Chainmere employs 30 people.",
+   "facts": {},
+   "lineage": {
+    "canonical": "https://origin-vault.test/chainmere",
+    "first_published_by": null,
+    "registrant": "copyhub.test"
+   }
+  }
+ ]
+}

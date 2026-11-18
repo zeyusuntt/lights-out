@@ -1,0 +1,89 @@
+{
+ "domain": "nullmark-systems.test",
+ "names": [
+  "Nullmark Systems"
+ ],
+ "pages": [
+  {
+   "url": "https://nullmark-systems.test/home",
+   "kind": "own",
+   "epochs": [
+    0,
+    1
+   ],
+   "searchable": true,
+   "published_at": "2026-01-10T00:00:00Z",
+   "true_from": "2026-01-01",
+   "title": "Home",
+   "text": "Nullmark Systems is reportedly headquartered in Oslo.\nNullmark Systems is based in the north of Norway.\nNullmark Systems Inc is the legal name used on invoices.\nNullmark Systems was founded in the 1990s by two engineers.",
+   "facts": {
+    "ceo": "Ola Berg",
+    "funding_total": "$30M",
+    "hq_city": "Oslo"
+   },
+   "lineage": {
+    "canonical": null,
+    "first_published_by": null,
+    "registrant": "nullmark-systems.test"
+   }
+  },
+  {
+   "url": "https://nordicpost.test/nullmark-systems",
+   "kind": "news",
+   "epochs": [
+    0,
+    1
+   ],
+   "searchable": true,
+   "published_at": "2026-01-10T00:00:00Z",
+   "true_from": "2026-01-01",
+   "title": "Nullmark Systems",
+   "text": "Nullmark Systems plans to raise $30M next year.\nNullmark Systems has raised 30 million euros so far.\nNullmark Systems has 300 employees and 2,400 customers.\nThe Nullmark Systems CEO met Ana Ruiz Silva Costa at a fair.",
+   "facts": {},
+   "lineage": {
+    "canonical": null,
+    "first_published_by": null,
+    "registrant": "nordicpost.test"
+   }
+  },
+  {
+   "url": "https://nordicpost.test/nullmark-systems-leadership",
+   "kind": "news",
+   "epochs": [
+    0,
+    1
+   ],
+   "searchable": false,
+   "published_at": "2026-01-10T00:00:00Z",
+   "true_from": "2026-01-01",
+   "title": "Nullmark Systems Leadership",
+   "text": "Nullmark Systems is not led by a chief executive named Ola Berg.",
+   "facts": {},
+   "lineage": {
+    "canonical": null,
+    "first_published_by": null,
+    "registrant": "nordicpost.test"
+   }
+  }
+ ],
+ "research": {
+  "nimble": {
+   "0": [
+    {
+     "field": "ceo",
+     "value": "Ola Berg",
+     "url": "https://nordicpost.test/nullmark-systems-leadership",
+     "excerpt": "Nullmark Systems is not led by a chief executive named Ola Berg."
+    }
+   ],
+   "1": [
+    {
+     "field": "ceo",
+     "value": "Ola Berg",
+     "url": "https://nordicpost.test/nullmark-systems-leadership",
+     "excerpt": "Nullmark Systems is not led by a chief executive named Ola Berg."
+    }
+   ]
+  }
+ }
+}

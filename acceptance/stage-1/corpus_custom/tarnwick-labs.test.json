@@ -1,0 +1,102 @@
+{
+ "domain": "tarnwick-labs.test",
+ "names": [
+  "Tarnwick Labs"
+ ],
+ "pages": [
+  {
+   "url": "https://tarnwick-labs.test/",
+   "kind": "own",
+   "epochs": [
+    0,
+    1
+   ],
+   "searchable": true,
+   "published_at": "2026-01-10T00:00:00Z",
+   "true_from": "2026-01-01",
+   "title": "",
+   "text": "Tarnwick Labs S.A.S. is the registered name of the company. Tarnwick Labs has its head office in Zürich.\nTarnwick Labs employs 8 people.\nTarnwick Labs has raised 4.5 million US dollars.",
+   "facts": {},
+   "lineage": {
+    "canonical": null,
+    "first_published_by": null,
+    "registrant": "tarnwick-labs.test"
+   }
+  },
+  {
+   "url": "https://tarnwick-labs.test/leadership",
+   "kind": "own",
+   "epochs": [
+    0
+   ],
+   "searchable": true,
+   "published_at": "2026-01-10T00:00:00Z",
+   "true_from": "2026-01-01",
+   "title": "Leadership",
+   "text": "Tarnwick Labs is led by chief executive Mira Solberg.",
+   "facts": {},
+   "lineage": {
+    "canonical": null,
+    "first_published_by": null,
+    "registrant": "tarnwick-labs.test"
+   }
+  },
+  {
+   "url": "https://tarnwick-labs.test/leadership",
+   "kind": "own",
+   "epochs": [
+    1
+   ],
+   "searchable": true,
+   "published_at": "2026-01-10T00:00:00Z",
+   "true_from": "2026-01-01",
+   "title": "Leadership",
+   "text": "Tarnwick Labs named Jonas Erikson Vale as its new chief executive.",
+   "facts": {},
+   "lineage": {
+    "canonical": null,
+    "first_published_by": null,
+    "registrant": "tarnwick-labs.test"
+   }
+  },
+  {
+   "url": "https://registry-north.test/tarnwick-labs",
+   "kind": "filing",
+   "epochs": [
+    0,
+    1
+   ],
+   "searchable": false,
+   "published_at": "2026-01-10T00:00:00Z",
+   "true_from": "2026-01-01",
+   "title": "Tarnwick Labs",
+   "text": "Particulars on file for Tarnwick Labs.\nTarnwick Labs was established in 1987.",
+   "facts": {},
+   "lineage": {
+    "canonical": null,
+    "first_published_by": null,
+    "registrant": "registry-north.test"
+   }
+  }
+ ],
+ "research": {
+  "nimble": {
+   "0": [
+    {
+     "field": "founded_year",
+     "value": 1987,
+     "url": "https://registry-north.test/tarnwick-labs",
+     "excerpt": "Tarnwick Labs was established in 1987."
+    }
+   ],
+   "1": [
+    {
+     "field": "founded_year",
+     "value": 1987,
+     "url": "https://registry-north.test/tarnwick-labs",
+     "excerpt": "Tarnwick Labs was established in 1987."
+    }
+   ]
+  }
+ }
+}

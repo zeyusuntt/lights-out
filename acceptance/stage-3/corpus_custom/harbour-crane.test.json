@@ -1,0 +1,213 @@
+{
+ "domain": "harbour-crane.test",
+ "names": [
+  "Harbour Crane"
+ ],
+ "pages": [
+  {
+   "url": "https://harbour-crane.test/leadership",
+   "kind": "own",
+   "epochs": [
+    0
+   ],
+   "searchable": true,
+   "published_at": "2026-01-02T00:00:00Z",
+   "true_from": "2021-04-01",
+   "title": "Page",
+   "text": "Harbour Crane CEO: Dana Ruiz.",
+   "facts": {},
+   "lineage": {
+    "canonical": null,
+    "first_published_by": null,
+    "registrant": "harbour-crane.test"
+   }
+  },
+  {
+   "url": "https://harbour-crane.test/leadership",
+   "kind": "own",
+   "epochs": [
+    1,
+    2
+   ],
+   "searchable": true,
+   "published_at": "2026-03-21T00:00:00Z",
+   "true_from": "2026-03-20",
+   "title": "Page",
+   "text": "Harbour Crane CEO: Lee Park.",
+   "facts": {},
+   "lineage": {
+    "canonical": null,
+    "first_published_by": null,
+    "registrant": "harbour-crane.test"
+   }
+  },
+  {
+   "url": "https://harbour-crane.test/about",
+   "kind": "own",
+   "epochs": [
+    0
+   ],
+   "searchable": true,
+   "published_at": "2026-01-02T00:00:00Z",
+   "true_from": "2020-01-01",
+   "title": "Page",
+   "text": "Harbour Crane is headquartered in Porto.",
+   "facts": {},
+   "lineage": {
+    "canonical": null,
+    "first_published_by": null,
+    "registrant": "harbour-crane.test"
+   }
+  },
+  {
+   "url": "https://harbour-crane.test/about",
+   "kind": "own",
+   "epochs": [
+    1
+   ],
+   "searchable": true,
+   "published_at": "2026-03-21T00:00:00Z",
+   "true_from": "2019-06-01",
+   "title": "Page",
+   "text": "Harbour Crane is headquartered in Braga.",
+   "facts": {},
+   "lineage": {
+    "canonical": null,
+    "first_published_by": null,
+    "registrant": "harbour-crane.test"
+   }
+  },
+  {
+   "url": "https://portnews.test/harbour-crane-round",
+   "kind": "news",
+   "epochs": [
+    0
+   ],
+   "searchable": true,
+   "published_at": "2025-01-03T00:00:00Z",
+   "true_from": "2025-01-01",
+   "title": "Page",
+   "text": "Harbour Crane has raised $10M from investors.",
+   "facts": {},
+   "lineage": {
+    "canonical": null,
+    "first_published_by": null,
+    "registrant": "portnews.test"
+   }
+  },
+  {
+   "url": "https://harbour-crane.test/history",
+   "kind": "own",
+   "epochs": [
+    0,
+    1,
+    2
+   ],
+   "searchable": true,
+   "published_at": "2025-06-30T23:30:00-02:00",
+   "true_from": null,
+   "title": "Page",
+   "text": "Harbour Crane was founded in 2010.",
+   "facts": {},
+   "lineage": {
+    "canonical": null,
+    "first_published_by": null,
+    "registrant": "harbour-crane.test"
+   }
+  },
+  {
+   "url": "https://harbour-crane.test/team",
+   "kind": "own",
+   "epochs": [
+    0,
+    1,
+    2
+   ],
+   "searchable": true,
+   "published_at": "2026-01-02T00:00:00Z",
+   "true_from": "2024-05-01",
+   "title": "Page",
+   "text": "Harbour Crane CTO: Ben Okafor.",
+   "facts": {},
+   "lineage": {
+    "canonical": null,
+    "first_published_by": null,
+    "registrant": "harbour-crane.test"
+   }
+  },
+  {
+   "url": "https://harbour-crane.test/finance",
+   "kind": "own",
+   "epochs": [
+    1,
+    2
+   ],
+   "searchable": true,
+   "published_at": "2026-03-01T00:00:00Z",
+   "true_from": "2026-01-01",
+   "title": "Page",
+   "text": "Harbour Crane CFO: Ana Silva.",
+   "facts": {},
+   "lineage": {
+    "canonical": null,
+    "first_published_by": null,
+    "registrant": "harbour-crane.test"
+   }
+  },
+  {
+   "url": "https://registry-west.test/harbour-crane",
+   "kind": "filing",
+   "epochs": [
+    1,
+    2
+   ],
+   "searchable": true,
+   "published_at": "2026-02-01T00:00:00Z",
+   "true_from": "not-a-date",
+   "title": "Page",
+   "text": "Harbour Crane Ltd is the registered name of the company.",
+   "facts": {},
+   "lineage": {
+    "canonical": null,
+    "first_published_by": null,
+    "registrant": "registry-west.test"
+   }
+  },
+  {
+   "url": "https://harbour-crane.test/people",
+   "kind": "own",
+   "epochs": [
+    2
+   ],
+   "searchable": true,
+   "published_at": null,
+   "true_from": null,
+   "title": "Page",
+   "text": "Harbour Crane employs 40 people.",
+   "facts": {},
+   "lineage": {
+    "canonical": null,
+    "first_published_by": null,
+    "registrant": "harbour-crane.test"
+   }
+  },
+  {
+   "url": "https://harbour-crane.test/about",
+   "kind": "own",
+   "epochs": [
+    2
+   ],
+   "searchable": true,
+   "published_at": "2026-04-16T00:00:00Z",
+   "true_from": "2026-04-15",
+   "title": "Page",
+   "text": "Harbour Crane is not headquartered in Lisbon.",
+   "facts": {},
+   "lineage": {
+    "canonical": null,
+    "first_published_by": null,
+    "registrant": "harbour-crane.test"
+   }
+  }
+ ]
+}

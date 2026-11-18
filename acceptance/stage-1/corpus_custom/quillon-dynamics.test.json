@@ -1,0 +1,69 @@
+{
+ "domain": "quillon-dynamics.test",
+ "names": [
+  "Quillon Dynamics"
+ ],
+ "pages": [
+  {
+   "url": "https://quillon-dynamics.test/about",
+   "kind": "own",
+   "epochs": [
+    0,
+    1
+   ],
+   "searchable": true,
+   "published_at": "2026-01-10T00:00:00Z",
+   "true_from": "2026-01-01",
+   "title": "About",
+   "text": "Quillon Dynamics GmbH is the registered name of the business.\nQuillon Dynamics is headquartered in Saint-Étienne. Quillon Dynamics might move its head office in Lyon.\nVisitors are welcome at the Quillon Dynamics showroom.",
+   "facts": {
+    "hq_city": "Lyon"
+   },
+   "lineage": {
+    "canonical": null,
+    "first_published_by": null,
+    "registrant": "quillon-dynamics.test"
+   }
+  },
+  {
+   "url": "https://quillon-dynamics.test/team",
+   "kind": "own",
+   "epochs": [
+    0,
+    1
+   ],
+   "searchable": true,
+   "published_at": "2026-01-10T00:00:00Z",
+   "true_from": "2026-01-01",
+   "title": "Team",
+   "text": "Quillon Dynamics CEO: Hana Okafor.\nFormer chief executive Peter Lund left Quillon Dynamics last spring.\nQuillon Dynamics employs roughly 1,200 people across its sites.",
+   "facts": {},
+   "lineage": {
+    "canonical": null,
+    "first_published_by": null,
+    "registrant": "quillon-dynamics.test"
+   }
+  },
+  {
+   "url": "https://ledgerwire.test/2026/quillon-dynamics-round",
+   "kind": "news",
+   "epochs": [
+    0,
+    1
+   ],
+   "searchable": true,
+   "published_at": "2026-01-10T00:00:00Z",
+   "true_from": "2026-01-01",
+   "title": "Quillon Dynamics Round",
+   "text": "Quillon Dynamics raised $12.5M from investors this winter.\nQuillon Dynamics was founded in 1998 and once raised €40 million in Europe.\nQuillon Dynamics could raise US$90 million next year.",
+   "facts": {
+    "funding_total": "$90M"
+   },
+   "lineage": {
+    "canonical": null,
+    "first_published_by": null,
+    "registrant": "ledgerwire.test"
+   }
+  }
+ ]
+}

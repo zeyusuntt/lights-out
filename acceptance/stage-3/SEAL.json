@@ -1,0 +1,23 @@
+[
+ {
+  "digest": "10ad55f8793831fa22b63fe4e674fcb4ca9f7387865e0ff145c487b4705916de",
+  "files": 30,
+  "at": "2026-11-18T19:29:32.824479+00:00",
+  "reason": "",
+  "product_commits": "0"
+ },
+ {
+  "digest": "65b7f98961390255f965e21544d569f1caa1c81c917d6e198b136c81a26fd2cb",
+  "files": 31,
+  "at": "2026-11-18T19:31:45.900325+00:00",
+  "reason": "Rulings R3-1..R3-4 and C2. R3-3: stage-2 import candidates get learned_at = retrieved_at and true_from = the UTC date of published_at; the initial row's true_from is the selected candidate's; /values picks among dated candidates. R3-1: as_of spent_units includes in-flight spending. R3-2: a null-valued history entry has learned_at = the transition build. C2: harbour-crane epoch 2 adds a gathered page with no candidate, which ends the earlier hq version, and the model treats candidate-free pages naming the company with a statement phrase as versions. R3-4: phase C kills the container mid-build and checks rollback, no stuck building, the replay and a new refresh. Code not seen",
+  "product_commits": "0"
+ },
+ {
+  "digest": "c64bd8a7860af2af0737859db7ff9daf450e165d2f335ad5151dfba75ccbb5be",
+  "files": 31,
+  "at": "2026-11-18T20:13:06.614540+00:00",
+  "reason": "After seeing cd24f51f (code seen): the round-trip test now restores the clock after reset (reset moves it; /values defaults as_of to the clock). Post-seal addition test_post_seal_fifty_concurrent_durable_writes_within_5s; 271 tests",
+  "product_commits": "4"
+ }
+]

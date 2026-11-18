@@ -1,0 +1,58 @@
+[
+ {
+  "digest": "c968ad43d6861ae9e0d1e6030855c688026f612b2fae296d9947c8b4531fa7a9",
+  "files": 16,
+  "at": "2026-11-18T16:12:29.587471+00:00",
+  "reason": "",
+  "product_commits": "0"
+ },
+ {
+  "digest": "50392299fec4a783f42cf3f601d541d20b9276d3efda1cfd8d161db295f5b137",
+  "files": 16,
+  "at": "2026-11-18T16:13:45.265512+00:00",
+  "reason": "Rulings R1-1 (pre-reset clock call freezes the clock), R1-3 (a refused exact-domain search is retried; exactly one success across providers), R1-4 (a mid-build export holds pre-build spent_units), R1-5 (a wrong-typed reset fixture is 400); no product code seen",
+  "product_commits": "0"
+ },
+ {
+  "digest": "27bb5f23efa1e770677a06b227369afe8a10f090857d09e1509bda9342f65ada",
+  "files": 16,
+  "at": "2026-11-18T16:42:06.300538+00:00",
+  "reason": "After seeing candidate 52f4f877 (code seen): three test misreadings fixed. (1) The oracle now reads a page's served static_text when the corpus has one, as the mock serves it, instead of the browser text. (2) A Bearer header with a trailing space can't be sent by the client, so that case is dropped. (3) The www.www. case now waits via the list, since a path domain is normalised again.",
+  "product_commits": "3"
+ },
+ {
+  "digest": "72e446188c5b6ed406f7d4236d6254b07f8dea62404e2b77d3b6ebe030836249",
+  "files": 16,
+  "at": "2026-11-18T17:01:10.949504+00:00",
+  "reason": "Post-seal additions after fault planting on 52f4f877 (code seen): test_post_seal_254_char_domain_rejected, test_post_seal_export_after_spending_keeps_prebuild_units; 173 tests",
+  "product_commits": "3"
+ },
+ {
+  "digest": "1aebc59fe83f9c5bf3606c1aa035f143921a2aba41db08817ff0100024822038",
+  "files": 16,
+  "at": "2026-11-18T17:09:37.658264+00:00",
+  "reason": "Post-seal additions for findings the seal missed (FIX 1 1 F1 encoded-slash path domains, F2 fixture id over 64 chars); code seen; 177 tests",
+  "product_commits": "4"
+ },
+ {
+  "digest": "dd48383b385c744d3fc634cefc00016f4bfa2836bd403baae05b832a4839563c",
+  "files": 17,
+  "at": "2026-11-18T17:20:22.091376+00:00",
+  "reason": "RULING R1-6: the oracle requires a field to be known when a span of at most 500 chars of a long sentence satisfies A.2; new corpus company brackwater-kilns.test (a 600+ char founding sentence) and test_post_seal_long_sentence_cited_by_short_span; code seen; 179 tests",
+  "product_commits": "4"
+ },
+ {
+  "digest": "7b8b3d0fcd865088dec9e86470db0fe08bc4b96ba14b3bb1b5ce61f42fae256a",
+  "files": 20,
+  "at": "2026-11-18T17:29:18.154460+00:00",
+  "reason": "Round 3 on d07442da (code seen): post-seal corpus companies ironvale-pottery (an 800-char sentence with the supporting span at its end; R1-6), copperleaf-studio (header-shaped research prose; F3), saltmarsh-works (a long research excerpt; F4); the citation check accepts research-served bare excerpts as prose and rejects excerpts found only in a page header line; 185 tests",
+  "product_commits": "5"
+ },
+ {
+  "digest": "0f942c2213ef59e59a66d7e0ad1340dba384f702e09113f73fe8a286110ec5f7",
+  "files": 20,
+  "at": "2026-11-18T17:32:23.051485+00:00",
+  "reason": "RULING R1-7. The oracle already decided short sentences whole. Now long-sentence span edges may not cut an amount, a number or a capitalised-word run. The citation check now requires each excerpt to be a whole served sentence of 500 chars or fewer, or an edge-intact span of a longer one. Code seen; 186 tests",
+  "product_commits": "5"
+ }
+]

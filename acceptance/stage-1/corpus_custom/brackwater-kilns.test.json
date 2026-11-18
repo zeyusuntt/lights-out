@@ -1,0 +1,27 @@
+{
+ "domain": "brackwater-kilns.test",
+ "names": [
+  "Brackwater Kilns"
+ ],
+ "pages": [
+  {
+   "url": "https://brackwater-kilns.test/history",
+   "kind": "own",
+   "epochs": [
+    0,
+    1
+   ],
+   "searchable": true,
+   "published_at": "2026-01-10T00:00:00Z",
+   "true_from": "2026-01-01",
+   "title": "History",
+   "text": "Brackwater Kilns began as a small pottery workshop on the edge of the river and grew over many decades through the patient work of several generations of craftspeople, apprentices, glaze chemists, kiln builders, delivery drivers, shop assistants, bookkeepers and loyal neighbours who bought plates, bowls, cups, vases, lamps, tiles and garden pots every season, through floods, fires, recessions, booms, strikes, festivals, weddings and funerals, and through the arrival of electric kilns, gas kilns, online orders and overseas buyers, and Brackwater Kilns was founded in 1952 by two sisters who still sign every catalogue by hand.\nBrackwater Kilns CEO: Orla Venn.",
+   "facts": {},
+   "lineage": {
+    "canonical": null,
+    "first_published_by": null,
+    "registrant": "brackwater-kilns.test"
+   }
+  }
+ ]
+}

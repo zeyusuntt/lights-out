@@ -1,0 +1,141 @@
+{
+ "domain": "rankford-tools.test",
+ "names": [
+  "Rankford Tools"
+ ],
+ "pages": [
+  {
+   "url": "https://rankford-tools.test/about",
+   "kind": "own",
+   "epochs": [
+    0,
+    1
+   ],
+   "searchable": true,
+   "published_at": "2026-01-10T00:00:00Z",
+   "true_from": null,
+   "title": "Page",
+   "text": "Rankford Tools CEO: Alma Reyes.\nRankford Tools was founded in 2001.",
+   "facts": {},
+   "lineage": {
+    "canonical": null,
+    "first_published_by": null,
+    "registrant": "rankford-tools.test"
+   }
+  },
+  {
+   "url": "https://registry-east.test/rankford",
+   "kind": "filing",
+   "epochs": [
+    0,
+    1
+   ],
+   "searchable": true,
+   "published_at": "2026-02-01T00:00:00+01:00",
+   "true_from": null,
+   "title": "Page",
+   "text": "Rankford Tools chief executive Bruno Keller signed the filing.",
+   "facts": {},
+   "lineage": {
+    "canonical": null,
+    "first_published_by": null,
+    "registrant": "registry-east.test"
+   }
+  },
+  {
+   "url": "https://dailywire.test/rankford",
+   "kind": "news",
+   "epochs": [
+    0,
+    1
+   ],
+   "searchable": true,
+   "published_at": "2026-03-01T00:00:00Z",
+   "true_from": null,
+   "title": "Page",
+   "text": "Rankford Tools CEO Carla Nunez spoke to reporters.\nRankford Tools was founded in 2001.",
+   "facts": {},
+   "lineage": {
+    "canonical": null,
+    "first_published_by": null,
+    "registrant": "dailywire.test"
+   }
+  },
+  {
+   "url": "https://bizindex.test/rankford",
+   "kind": "aggregator",
+   "epochs": [
+    0,
+    1
+   ],
+   "searchable": true,
+   "published_at": "2026-02-25T00:00:00Z",
+   "true_from": null,
+   "title": "Page",
+   "text": "Rankford Tools CEO: Dmitri Volk.\nRankford Tools is based in Bergen.",
+   "facts": {},
+   "lineage": {
+    "canonical": null,
+    "first_published_by": null,
+    "registrant": "bizindex.test"
+   }
+  },
+  {
+   "url": "https://www.rankford-tools.test/people",
+   "kind": null,
+   "epochs": [
+    0,
+    1
+   ],
+   "searchable": true,
+   "published_at": "yesterday",
+   "true_from": null,
+   "title": "Page",
+   "text": "Rankford Tools CEO: Elena Sato.",
+   "facts": {},
+   "lineage": {
+    "canonical": null,
+    "first_published_by": null,
+    "registrant": "www.rankford-tools.test"
+   }
+  },
+  {
+   "url": "https://rankford-notes.test/rankford",
+   "kind": "blog",
+   "epochs": [
+    0,
+    1
+   ],
+   "searchable": true,
+   "published_at": null,
+   "true_from": null,
+   "title": "Page",
+   "text": "Rankford Tools CEO: Felix Grau.\nRankford Tools employs 40 people.\nRankford Tools has 300 staff.",
+   "facts": {},
+   "lineage": {
+    "canonical": null,
+    "first_published_by": null,
+    "registrant": "rankford-notes.test"
+   }
+  },
+  {
+   "url": "https://a-list.test/rankford",
+   "kind": "aggregator",
+   "epochs": [
+    0,
+    1
+   ],
+   "searchable": true,
+   "published_at": "2026-02-25T00:00:00Z",
+   "true_from": null,
+   "title": "Page",
+   "text": "Rankford Tools is based in Oslo.",
+   "facts": {},
+   "lineage": {
+    "canonical": null,
+    "first_published_by": null,
+    "registrant": "a-list.test"
+   }
+  }
+ ]
+}

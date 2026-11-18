@@ -1,0 +1,47 @@
+{
+ "domain": "copperleaf-studio.test",
+ "names": [
+  "Copperleaf Studio"
+ ],
+ "pages": [
+  {
+   "url": "https://copperleaf-studio.test/profile",
+   "kind": "own",
+   "epochs": [
+    0,
+    1
+   ],
+   "searchable": false,
+   "published_at": "2026-01-10T00:00:00Z",
+   "true_from": "2026-01-01",
+   "title": "Page",
+   "text": "Profile: Copperleaf Studio CEO: Ines Marlow.",
+   "facts": {},
+   "lineage": {
+    "canonical": null,
+    "first_published_by": null,
+    "registrant": "copperleaf-studio.test"
+   }
+  }
+ ],
+ "research": {
+  "nimble": {
+   "0": [
+    {
+     "field": "ceo",
+     "value": "Ines Marlow",
+     "url": "https://copperleaf-studio.test/profile",
+     "excerpt": "Profile: Copperleaf Studio CEO: Ines Marlow."
+    }
+   ],
+   "1": [
+    {
+     "field": "ceo",
+     "value": "Ines Marlow",
+     "url": "https://copperleaf-studio.test/profile",
+     "excerpt": "Profile: Copperleaf Studio CEO: Ines Marlow."
+    }
+   ]
+  }
+ }
+}

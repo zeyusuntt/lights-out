@@ -1,0 +1,37 @@
+[
+ {
+  "digest": "9363e05a0c20b9f7879889ef7e30f65e28b58befd8e7b6ea2cd86d5b700410c2",
+  "files": 36,
+  "at": "2026-11-18T20:23:38.762657+00:00",
+  "reason": "",
+  "product_commits": "0"
+ },
+ {
+  "digest": "d996aff2c3bd07ce52ea3b9d2c65a5d1a85bc9ba64db4a5db679645f7775747e",
+  "files": 36,
+  "at": "2026-11-18T20:30:43.567183+00:00",
+  "reason": "Rulings R4-0..R4-7. R4-0: billed units must count in the dossier AND in the batch (per-company attribution). R4-1: a Canonical-only, non-searchable original's own value is no candidate (chainmere copyhub/origin-vault). R4-5: raw budget_units 1.0 and 1e0 give 422. R4-7: batches survive a native export/import as done, with owner-only GET and the POST replaying. R4-3 is respected (no origin keys required on /values). R4-6 and R4-2 are not separately observable black-box beyond spent <= budget. Code not seen",
+  "product_commits": "0"
+ },
+ {
+  "digest": "438bf8f9fcdc2e8cdc1558abcb243c180dc31e4db48e5acbfbd956482d1506ec",
+  "files": 36,
+  "at": "2026-11-18T20:52:55.287589+00:00",
+  "reason": "After seeing b9288225 (code seen): suite bugs fixed (evidence_values had no slot for investors; carried stage-3 field-set checks now include investors). Post-seal addition test_post_seal_batch_budget_covering_full_build_misses_nothing (from reading the code: research skipped under budget+30); 301 tests",
+  "product_commits": "4"
+ },
+ {
+  "digest": "b53596ffbf945ef6dbbaa522437702a7e0c348b3a176d835540a7d599adc2828",
+  "files": 36,
+  "at": "2026-11-18T22:13:49.266088+00:00",
+  "reason": "RULING R4-9 (code seen): post-seal addition test_post_seal_short_batch_budget_pages_before_research[23,3] (quillon batch budget below its unbatched cost); 303 tests",
+  "product_commits": "7"
+ },
+ {
+  "digest": "a0a3fbbc3c2ba0663f8b49f1d598de8b57c12c0d7e8fa27449224e6eba5d5ee3",
+  "files": 36,
+  "at": "2026-11-18T22:55:09.274232+00:00",
+  "reason": "Post-seal addition after fault planting on a7228733 (code seen): lumen-forge.test/about gains 'Lumen Forge is led by Ivo Grant.' (led by without an amount names no investor); 303 tests",
+  "product_commits": "7"
+ }
+]

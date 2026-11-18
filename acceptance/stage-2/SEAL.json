@@ -1,0 +1,30 @@
+[
+ {
+  "digest": "7206b9c1ce8df10a3a0bdca0461d42a0e0dea245d0804ae7706a2029e3262ca8",
+  "files": 25,
+  "at": "2026-11-18T18:01:29.878204+00:00",
+  "reason": "",
+  "product_commits": "0"
+ },
+ {
+  "digest": "5e65df495d997ee6ef6380094df32116a4f96308ba5ab5bec548f5eff9e48b8c",
+  "files": 25,
+  "at": "2026-11-18T18:02:39.049819+00:00",
+  "reason": "Rulings R2-2, R2-3, R2-5. R2-5: imported candidates are exactly what the exported citation excerpts support, tested against all six fields, with kind and published_at null and retrieved_at = researched_at; plus a stage-2 export/import round-trip. R2-2: HTML shells without a bearer header for any Accept that includes text/html, unchanged 401 JSON otherwise, and a signed-out screen goes to /login and back. R2-3: researched_at shown people-first plus the exact RFC 3339 string and attribute. Code not seen",
+  "product_commits": "0"
+ },
+ {
+  "digest": "a2d3420bb708d27b82630c18e8d3568c27b8782a408ef1c7a1482559a0bb22df",
+  "files": 25,
+  "at": "2026-11-18T18:38:49.216513+00:00",
+  "reason": "Post-seal additions after fault planting on 3cf3cef0 (code seen): test_post_seal_poll_gap_at_most_2s, test_post_seal_reload_out_of_order_stale_response; 222 tests",
+  "product_commits": "3"
+ },
+ {
+  "digest": "04c1fc3e0ac45b93b3ff4ed58d6d771e5629a0a0b7dafbcaa3bdaedec7ddf5df",
+  "files": 25,
+  "at": "2026-11-18T19:13:48.981207+00:00",
+  "reason": "Post-seal addition for S2-F1, which the seal missed: test_post_seal_throttled_extract_after_slow_research (fails on 3cf3cef0, passes on bc19abf8); code seen; 223 tests",
+  "product_commits": "4"
+ }
+]

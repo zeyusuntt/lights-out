@@ -1,0 +1,179 @@
+{
+ "domain": "lumen-forge.test",
+ "names": [
+  "Lumen Forge"
+ ],
+ "pages": [
+  {
+   "url": "https://lumen-forge.test/about",
+   "kind": "own",
+   "epochs": [
+    0,
+    1
+   ],
+   "searchable": true,
+   "published_at": "2026-01-05T00:00:00Z",
+   "true_from": "2024-05-02",
+   "title": "Page",
+   "text": "Lumen Forge CEO: Ivo Grant.\nLumen Forge is backed by Northwind Ventures.\nLumen Forge is headquartered in Oslo.\nLumen Forge is led by Ivo Grant.",
+   "facts": {},
+   "lineage": {
+    "canonical": null,
+    "first_published_by": null,
+    "registrant": "WWW.Lumen-Forge.TEST"
+   }
+  },
+  {
+   "url": "https://registry-x.test/lumen-forge",
+   "kind": "filing",
+   "epochs": [
+    0,
+    1
+   ],
+   "searchable": true,
+   "published_at": "2026-01-05T00:00:00Z",
+   "true_from": null,
+   "title": "Page",
+   "text": "Lumen Forge chief executive Ivo Grant filed the annual report.",
+   "facts": {},
+   "lineage": {
+    "canonical": null,
+    "first_published_by": null,
+    "registrant": "registry-x.test"
+   }
+  },
+  {
+   "url": "https://mirror-site.test/lumen",
+   "kind": "news",
+   "epochs": [
+    0,
+    1
+   ],
+   "searchable": true,
+   "published_at": "2026-01-05T00:00:00Z",
+   "true_from": null,
+   "title": "Page",
+   "text": "Lumen Forge CEO: Ivo Grant.",
+   "facts": {},
+   "lineage": {
+    "canonical": "https://lumen-forge.test/about",
+    "first_published_by": null,
+    "registrant": "mirror-site.test"
+   }
+  },
+  {
+   "url": "https://syndic.test/lumen-round",
+   "kind": "news",
+   "epochs": [
+    0,
+    1
+   ],
+   "searchable": true,
+   "published_at": "2026-01-05T00:00:00Z",
+   "true_from": null,
+   "title": "Page",
+   "text": "Lumen Forge has raised $20M in a round led by Harbor Point.",
+   "facts": {},
+   "lineage": {
+    "canonical": null,
+    "first_published_by": "Wire-One.test",
+    "registrant": "syndic.test"
+   }
+  },
+  {
+   "url": "https://wire-one.test/lumen-round",
+   "kind": "news",
+   "epochs": [
+    0,
+    1
+   ],
+   "searchable": true,
+   "published_at": "2026-01-05T00:00:00Z",
+   "true_from": null,
+   "title": "Page",
+   "text": "Lumen Forge has raised $20M in a round led by Harbor Point.",
+   "facts": {},
+   "lineage": {
+    "canonical": null,
+    "first_published_by": null,
+    "registrant": "wire-one.test"
+   }
+  },
+  {
+   "url": "https://lumen-forge-official.test/about",
+   "kind": "own",
+   "epochs": [
+    0,
+    1
+   ],
+   "searchable": true,
+   "published_at": "2026-01-05T00:00:00Z",
+   "true_from": null,
+   "title": "Page",
+   "text": "Lumen Forge is headquartered in Oslo.\nLumen Forge investors include Quiet Partners.",
+   "facts": {},
+   "lineage": {
+    "canonical": null,
+    "first_published_by": null,
+    "registrant": "shady-host.test"
+   }
+  },
+  {
+   "url": "https://agg-one.test/lumen",
+   "kind": "aggregator",
+   "epochs": [
+    0,
+    1
+   ],
+   "searchable": true,
+   "published_at": "2026-01-05T00:00:00Z",
+   "true_from": null,
+   "title": "Page",
+   "text": "Bluebird Capital is an investor in Lumen Forge.",
+   "facts": {},
+   "lineage": {
+    "canonical": null,
+    "first_published_by": null,
+    "registrant": "agg-one.test"
+   }
+  },
+  {
+   "url": "https://newsy.test/lumen",
+   "kind": "news",
+   "epochs": [
+    0,
+    1
+   ],
+   "searchable": true,
+   "published_at": "2026-01-05T00:00:00Z",
+   "true_from": "2025-02-01",
+   "title": "Page",
+   "text": "Lumen Forge investors include Bluebird Capital.",
+   "facts": {},
+   "lineage": {
+    "canonical": null,
+    "first_published_by": null,
+    "registrant": "not a domain!"
+   }
+  },
+  {
+   "url": "https://agg-two.test/lumen",
+   "kind": "own",
+   "epochs": [
+    0,
+    1
+   ],
+   "searchable": true,
+   "published_at": "2026-01-05T00:00:00Z",
+   "true_from": null,
+   "title": "Page",
+   "text": "Lumen Forge employs 12 people.",
+   "facts": {},
+   "lineage": {
+    "canonical": null,
+    "first_published_by": null,
+    "registrant": "agg-two.test"
+   }
+  }
+ ]
+}
