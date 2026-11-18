@@ -5,7 +5,7 @@ import sys
 import time
 from pathlib import Path
 
-from conftest import FIXTURE, create, key, wait_settled
+from conftest import FIXTURE, create, key, login, wait_settled
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from app.support import supported_value  # noqa: E402
@@ -25,19 +25,26 @@ def test_ready_builds_cite_served_supporting_prose(api, ada, mock):
     served = {}
     bodies = [wait_settled(api, ada, d) for d in SAMPLE]
     for call in mock.calls():
-        for item in call.get("served") or []:
-            served.setdefault(item["url"], []).append(collapse(item["text"]))
+        if call["method"] == "extract":
+            for item in call.get("served") or []:
+                served.setdefault(item["url"], []).append(collapse(item["text"]))
     for body in bodies:
         assert body["state"] == "ready"
         assert 0 < body["spent_units"] <= 80
         for name, field in body["fields"].items():
             assert (field["value"] is None) == (field["status"] == "unknown") == (not field["citations"])
+            assert sum(c["selected"] for c in field["candidates"]) == (1 if field["candidates"] else 0)
+            for candidate in field["candidates"]:
+                assert any(candidate["excerpt"] in text for text in served[candidate["url"]])
+                assert supported_value(candidate["excerpt"], name, body["domain"]) == candidate["value"]
+                assert candidate["kind"] in ("own", "filing", "news", "aggregator")
+                assert candidate["retrieved_at"] == body["researched_at"]
             for citation in field["citations"]:
                 assert citation["provider"] == "nimble"
                 assert 1 <= len(citation["excerpt"]) <= 500
                 assert any(citation["excerpt"] in text for text in served[citation["url"]])
                 assert supported_value(citation["excerpt"], name, body["domain"]) == field["value"]
-    known = {b["domain"]: sum(f["status"] == "known" for f in b["fields"].values()) for b in bodies}
+    known = {b["domain"]: sum(f["status"] != "unknown" for f in b["fields"].values()) for b in bodies}
     assert known["corvid-security.test"] == 6 and known["getferncliff-foods.test"] == 0
 
 
@@ -53,8 +60,9 @@ def test_spent_units_match_provider_log_and_one_exact_domain_search(api, ada, mo
     assert len(research) == 1 and domain in research[0]["query"]
     assert research[0]["fields"] == sorted(body["fields"])
     research_urls = {item["url"] for item in research[0]["served"] or []}
-    extracted = {u for c in calls if c["method"] == "extract" for u in c["urls"]}
-    assert not research_urls & extracted
+    rendered = {u for c in calls if c["method"] == "extract" for u in c["urls"]}
+    assert research_urls <= rendered
+    assert all(c["cost"] == 3 for c in calls if c["method"] == "extract")
 
 
 def test_reads_make_no_provider_call(api, ada, mock):
@@ -98,7 +106,7 @@ def test_throttled_provider_still_builds(api, ada, mock):
     body = wait_settled(api, ada, "corvid-security.test")
     assert time.monotonic() - started < 10
     assert body["state"] == "ready"
-    assert sum(f["status"] == "known" for f in body["fields"].values()) == 6
+    assert sum(f["status"] != "unknown" for f in body["fields"].values()) == 6
     calls = mock.calls()
     assert body["spent_units"] == sum(c["cost"] for c in calls)
     exact = [c for c in calls if c["method"] == "search" and c["query"] == "corvid-security.test"
@@ -111,7 +119,6 @@ def test_reset_during_build_leaves_new_state_untouched(api, ada, mock):
     create(api, ada, "corvid-security.test")
     assert api.post("/_test/reset", json=FIXTURE).status_code == 204
     time.sleep(2.5)
-    from conftest import login
     fresh = login(api)
     assert api.get("/dossiers", headers=fresh).json() == {"dossiers": [], "has_more": False}
 

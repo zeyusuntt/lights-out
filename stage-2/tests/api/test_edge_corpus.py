@@ -55,3 +55,12 @@ def test_supporting_span_late_in_a_long_page_sentence(edge):
     year = built(edge, "edge-late.test")["fields"]["founded_year"]
     assert year["value"] == 1952
     assert all(len(c["excerpt"]) <= 500 for c in year["citations"])
+
+
+def test_page_cited_by_an_unsupported_claim_is_still_read(edge):
+    fields = built(edge, "edge-claim.test")["fields"]
+    assert fields["ceo"]["status"] == "unknown"
+    year = fields["founded_year"]
+    assert year["value"] == 1990
+    assert year["candidates"][0]["kind"] == "news"
+    assert year["candidates"][0]["published_at"] == "2025-05-01T10:00:00+02:00"
