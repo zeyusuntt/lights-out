@@ -39,17 +39,25 @@ DOSSIER_URL=http://localhost:8000 MOCK_URL=http://localhost:8080 MOCK_ADMIN_TOKE
   python -m pytest tests/api
 ```
 
+`tests/api/test_edge_corpus.py` runs too when a second mock web serves `tests/corpus`
+(`EDGE_MOCK_URL`) to a second service (`EDGE_DOSSIER_URL`). That corpus has research excerpts
+shaped like header lines and sentences longer than 500 characters.
+
 ## How a build spends
 
 A build makes, at most, in this order:
 
 1. together: one `lite` search for exactly the normalised domain, one `lite` search for the
    company's name, and one Nimble research run asking for the six fields (27 units);
-2. extracts (1 unit each) of pages cited by research claims that the searches did not
-   already serve in full, and, while some field still has no supported value, of truncated
+2. extracts (1 unit each) of a research-cited page only when the excerpt has the shape of a
+   header line and the field is still unsupported, since only the page's own text places it in
+   header or prose, and, while some field still has no supported value, of truncated
    search results that name the company;
 3. only for fields still unsupported: one `lite` search per field with the company's name
    and that field's statement phrases, then extracts of new truncated results naming it.
+
+A supporting sentence longer than 500 characters is cited by the longest run of its whole
+words, at most 500 characters, that supports the value on its own.
 
 Units are reserved before every call and a build never exceeds 80. Refused calls (429,
 5xx) cost nothing and are retried after a pause; calls that time out are charged.

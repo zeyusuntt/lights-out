@@ -8,7 +8,7 @@ from urllib.parse import urlparse
 
 from .pages import PageText, is_header_line, prose_of
 from .providers import Gateway, ResearchClaim, SearchHit, is_live
-from .support import FIELDS, STATEMENT_PHRASES, company_name, find_phrase, supported_value
+from .support import FIELDS, STATEMENT_PHRASES, citable, company_name, find_phrase
 
 SNIPPET_LIMIT = 300
 SNIPPET_MARGIN = 10
@@ -86,7 +86,7 @@ class BuildResearch:
         if outcome.answered:
             self._claims = outcome.value
         self._evaluate()
-        await self._extract(self._truncated_hits())
+        await self._extract(self._header_shaped_claim_pages() + self._truncated_hits())
         self._evaluate()
         missing = self.findings.missing()
         if missing and self.gateway.may_gather():
@@ -126,9 +126,23 @@ class BuildResearch:
                 and (names_company(f"{hit.title} {hit.snippet}", self.domain)
                      or self.domain.split(".")[0] in url.lower())]
 
-    def _claim_value(self, claim: ResearchClaim) -> object | None:
-        value = supported_value(claim.excerpt, claim.field, self.domain)
-        return value if value is not None and _same_claim(value, claim.value) else None
+    def _claim_citation(self, claim: ResearchClaim) -> tuple[object, str] | None:
+        """(value, citation text) when the claim's excerpt supports the value it claims."""
+        found = citable(claim.excerpt, claim.field, self.domain)
+        if found is None or not _same_claim(found[0], claim.value):
+            return None
+        return citable(claim.excerpt, claim.field, self.domain, found[0])
+
+    def _claim_page(self, claim: ResearchClaim) -> PageText | None:
+        page = self._evidence.get(claim.url)
+        return page if page is not None and page.complete else self._fetched.get(claim.url)
+
+    def _header_shaped_claim_pages(self) -> list[str]:
+        """Pages to read in full: a claim for a field still unsupported whose excerpt has the
+        shape of a header line, which only the page's own text can place in header or prose."""
+        return [c.url for c in self._claims
+                if not self.findings.values[c.field] and is_header_line(c.excerpt.strip())
+                and self._claim_page(c) is None and self._claim_citation(c) is not None]
 
     async def _extract(self, urls: list[str]) -> None:
         urls = [u for u in dict.fromkeys(urls) if u not in self._fetched]
@@ -147,22 +161,21 @@ class BuildResearch:
         for page in self._evidence.values():
             for excerpt in page.excerpts():
                 for name in FIELDS:
-                    value = supported_value(excerpt, name, self.domain)
-                    if value is not None:
-                        self.findings.add(name, value, Citation(page.url, excerpt))
+                    found = citable(excerpt, name, self.domain)
+                    if found is not None:
+                        self.findings.add(name, found[0], Citation(page.url, found[1]))
         for claim in self._claims:
-            value = self._claim_value(claim)
-            page = self._evidence.get(claim.url)
-            if value is not None and _from_prose(claim.excerpt, page):
-                self.findings.add(claim.field, value, Citation(claim.url, " ".join(claim.excerpt.split())))
+            found = self._claim_citation(claim)
+            if found is not None and self._in_prose(claim):
+                self.findings.add(claim.field, found[0], Citation(claim.url, found[1]))
 
-
-def _from_prose(excerpt: str, page: PageText | None) -> bool:
-    """A research excerpt is cited as served unless it reads as a header line, or the
-    page's full prose, already gathered in this build, does not contain it."""
-    if is_header_line(excerpt.strip()):
-        return False
-    return page is None or not page.complete or page.contains(excerpt)
+    def _in_prose(self, claim: ResearchClaim) -> bool:
+        """A research excerpt is prose when the page's full text, read in this build, has it in
+        its prose; without that text, unless it has the shape of a header line."""
+        page = self._claim_page(claim)
+        if page is not None:
+            return page.contains(claim.excerpt)
+        return not is_header_line(claim.excerpt.strip())
 
 
 def _same_claim(value: object, claimed: object) -> bool:

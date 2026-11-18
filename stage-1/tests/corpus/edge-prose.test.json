@@ -1,0 +1,36 @@
+{
+ "domain": "edge-prose.test",
+ "names": [
+  "Edge Prose"
+ ],
+ "pages": [
+  {
+   "url": "https://edge-prose.test/page-0",
+   "kind": "own",
+   "epochs": [
+    0
+   ],
+   "searchable": false,
+   "title": "Edge Prose",
+   "text": "Profile: Edge Prose CEO: Dana Ruiz.",
+   "facts": {},
+   "lineage": {
+    "canonical": null,
+    "first_published_by": null,
+    "registrant": "edge-prose.test"
+   }
+  }
+ ],
+ "research": {
+  "nimble": {
+   "0": [
+    {
+     "field": "ceo",
+     "value": "Dana Ruiz",
+     "url": "https://edge-prose.test/page-0",
+     "excerpt": "Profile: Edge Prose CEO: Dana Ruiz."
+    }
+   ]
+  }
+ }
+}

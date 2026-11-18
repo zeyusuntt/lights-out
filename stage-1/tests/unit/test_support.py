@@ -73,3 +73,14 @@ def test_decimal_does_not_split():
 def test_single_sentence_collapses_whitespace():
     assert is_single_sentence("Acme   Robotics\nwas founded in 2014.")
     assert not is_single_sentence("One. Two.")
+
+
+def test_long_sentence_is_cited_by_a_supporting_span():
+    from app.support import citable
+    sentence = "Acme Robotics CEO: Dana Ruiz" + " with published company background" * 30 + "."
+    value, span = citable(sentence, "ceo", D)
+    assert value == "Dana Ruiz" and len(span) <= 500 and span in sentence
+    assert supported_value(span, "ceo", D) == "Dana Ruiz"
+    assert citable(sentence, "ceo", D, want="Sam Ortiz") is None
+    far = "Acme Robotics" + " and partners" * 60 + " named Dana Ruiz as CEO."
+    assert citable(far, "ceo", D) is None

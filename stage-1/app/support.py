@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
+from functools import lru_cache
 
 FIELDS = ("legal_name", "hq_city", "ceo", "founded_year", "headcount_range", "funding_total")
 
@@ -296,3 +297,42 @@ def supported_value(excerpt: str, field: str, domain: str) -> str | int | None:
 def supports(excerpt: str, field: str, domain: str, value: str | int) -> bool:
     found = supported_value(excerpt, field, domain)
     return found is not None and found == value
+
+
+MAX_CITATION = 500
+MAX_SPAN_CHECKS = 2000
+
+
+def _word_bounds(text: str) -> tuple[list[int], list[int]]:
+    starts = [i for i in range(len(text)) if text[i] != " " and (i == 0 or text[i - 1] == " ")]
+    ends = [i + 1 for i in range(len(text)) if text[i] != " " and (i + 1 == len(text) or text[i + 1] == " ")]
+    return starts, ends
+
+
+@lru_cache(maxsize=8192)
+def citable(excerpt: str, field: str, domain: str, want: object | None = None) -> tuple[object, str] | None:
+    """(value, citation text) for a sentence: the sentence itself when it fits in 500
+    characters, else the longest span of whole words of it, at most 500 characters,
+    that on its own supports a value (the wanted one, when given)."""
+    text = collapse(excerpt)
+    if len(text) <= MAX_CITATION:
+        value = supported_value(text, field, domain)
+        return (value, text) if value is not None and want in (None, value) else None
+    if not _name_spans(text, domain) or not any(find_phrase(text, p) for p in STATEMENT_PHRASES[field]):
+        return None
+    starts, ends = _word_bounds(text)
+    best: tuple[object, str] | None = None
+    checks = 0
+    for start in starts:
+        fitting = [e for e in ends if start < e <= start + MAX_CITATION]
+        for end in reversed(fitting):
+            if best is not None and end - start <= len(best[1]):
+                break
+            checks += 1
+            if checks > MAX_SPAN_CHECKS:
+                return best
+            value = supported_value(text[start:end], field, domain)
+            if value is not None and want in (None, value):
+                best = (value, text[start:end])
+                break
+    return best

@@ -8,7 +8,6 @@ from dataclasses import dataclass
 from .support import collapse, split_line
 
 _HEADER_LINE = re.compile(r"[^\W\d_][^\W\d_]+(?:-[^\W\d_][^\W\d_]+)*:(?: |$)")
-MAX_EXCERPT = 500
 
 
 def is_header_line(line: str) -> bool:
@@ -39,14 +38,14 @@ class PageText:
     complete: bool
 
     def excerpts(self) -> list[str]:
-        """Each complete sentence of the prose, whitespace collapsed, within the length limit."""
+        """Each complete sentence of the prose, whitespace collapsed."""
         lines = self.prose.splitlines()
         result = []
         for index, line in enumerate(lines):
             sentences = split_line(line)
             if not self.complete and index == len(lines) - 1:
                 sentences = sentences[:-1]
-            result.extend(c for c in map(collapse, sentences) if 1 <= len(c) <= MAX_EXCERPT)
+            result.extend(c for c in map(collapse, sentences) if c)
         return result
 
     def contains(self, excerpt: str) -> bool:
