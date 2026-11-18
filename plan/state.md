@@ -15,7 +15,8 @@
 - Builder committed 79b12c07 early (R4-8 fix only, not verified). Told to wait for FIX 4 1.
 - second-reader BLOCK on b9288225 (fb02ed7): F1 corroborated_since stint reset, F2 lineage reserve, F3 R4-8 refunds, F4 = V4-1. FIX 4 1 sent (plan/fix-4-1.md).
 - Round 2 candidate: 010b35ad7282e9b4018daee982a1846a5af8301e. Foreman check: claimed stage 4 (checks/foreman-s4-r2/report.json).
-- Outstanding: VERDICT verifier, second-reader, product-user on 010b35ad (VERIFY sent)
+- product-user PASS on 010b35ad (6a1804b); residual: brand link 27px, login/signup inline links <44px.
+- Outstanding: VERDICT verifier, second-reader on 010b35ad
 - UI: yes -> accept-check --ui.
 - Watch: stage-4 Restarts supersedes R3-4 rollback-without-spend: billed units must be counted durably, and running builds end ready/failed within 10 s after health. The stage-3 export does keep builds (schema 3), so the 3->4 upgrade should be exact.
 - Known limitations for final report: stage-1 export citations only (R2-5); stage-2 export lacks build history and Effective (R3-3).
