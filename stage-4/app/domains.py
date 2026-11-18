@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+from urllib.parse import urlparse
 
 _LABEL = re.compile(r"[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?")
 
@@ -18,3 +19,9 @@ def normalise(raw: str) -> str | None:
     if len(domain) > 253 or len(labels) < 2 or not all(_LABEL.fullmatch(l) for l in labels):
         return None
     return domain
+
+
+def host_of(url: str) -> str:
+    """The host of a URL, normalised as a domain is, or as written when it is no host name."""
+    host = (urlparse(url).hostname or "").strip()
+    return normalise(host) or host.lower().rstrip(".")

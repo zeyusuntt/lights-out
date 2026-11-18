@@ -2,12 +2,13 @@
 
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass, field
 from datetime import datetime
 
 from .builds import Build, holding_on
-from .candidates import (ALL_FIELDS, EXECUTIVES, Candidate, fields_view, ranked, same_value,
-                         unknown_view, values_view)
+from .candidates import (ALL_FIELDS, EXECUTIVES, INVESTORS, Candidate, fields_view, member_groups,
+                         ranked, same_value, unknown_view, values_view)
 from .clock import parse_rfc3339
 from .support import TITLES
 
@@ -47,7 +48,7 @@ def _member_dates(view: dict) -> dict[str, tuple[str, str | None]]:
 
 
 def _differs(name: str, old: object, new: object) -> bool:
-    if name == EXECUTIVES:
+    if name in (EXECUTIVES, INVESTORS):
         return (old or []) != (new or [])
     if old is None or new is None:
         return (old is None) != (new is None)
@@ -56,6 +57,14 @@ def _differs(name: str, old: object, new: object) -> bool:
 
 def transition_type(name: str, old: dict, new: dict) -> str:
     """`correction` or `change` for a selected value that differs (stage 3, Changes)."""
+    if name == INVESTORS:
+        earlier = set(old["value"] or [])
+        changed = earlier.symmetric_difference(new["value"] or [])
+        added_dates = {n: min((c["true_from"] for c in new["candidates"] if c["value"] == n and c["true_from"]),
+                              default=None) for n in changed}
+        return "correction" if all(
+            n not in earlier and added_dates[n] and old["true_from"] and added_dates[n] <= old["true_from"]
+            for n in changed) else "change"
     if name == EXECUTIVES:
         before, after = _member_dates(old), _member_dates(new)
         for title in TITLES:
@@ -111,7 +120,27 @@ class Dossier:
             if view["value"] is not None:
                 entries = [e for e in self.history[name] if e.build <= index]
                 view["learned_at"] = entries[-1].learned_at if entries else None
+                view["corroborated_since"] = self._corroborated_since(name, index)
         return views
+
+    def _corroborated_since(self, name: str, index: int) -> str | None:
+        """The time of the first ready build of the run, ending at `index`, after each of which
+        every member had two or more standing origins (R4-4)."""
+        standing: dict[str, set[str]] = {}
+        since: str | None = None
+        for build in self.builds[:index + 1]:
+            if not build.ready:
+                continue
+            groups = member_groups(name, build.candidates()[name])
+            standing = {self._key(key): standing.get(self._key(key), set()) | {c.source for c in cands}
+                        for key, cands in groups}
+            holds = bool(standing) and all(len(origins) >= 2 for origins in standing.values())
+            since = (since or build.time) if holds else None
+        return since
+
+    @staticmethod
+    def _key(key: object) -> str:
+        return json.dumps(key.strip() if isinstance(key, str) else key)
 
     def summary(self) -> dict:
         return {"dossier_id": self.id, "domain": self.domain, "state": self.state}
@@ -193,9 +222,13 @@ class Dossier:
                          "to": new["value"], "true_from": new["true_from"], "learned_at": time})
         return feed
 
-    def settled_builds(self) -> list[Build]:
-        """The builds as they stand when no build is running (an in-flight one is left out)."""
-        return [b for b in self.builds if b.outcome != "building"]
+    def recorded_builds(self, settled: bool) -> list[Build]:
+        """The builds to export: a running one left out when settled, else kept as failed."""
+        if settled:
+            return [b for b in self.builds if b.outcome != "building"]
+        return [Build(b.time, "failed", b.spent) if b.outcome == "building" else b for b in self.builds]
 
-    def settled_state(self) -> str:
-        return self.before_build if self.state == "building" else self.state
+    def recorded_state(self, settled: bool) -> str:
+        if self.state != "building":
+            return self.state
+        return self.before_build if settled else "failed"

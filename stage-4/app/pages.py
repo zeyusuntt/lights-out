@@ -5,11 +5,10 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 from datetime import date, timezone
-from urllib.parse import urlparse
 
 from .candidates import KINDS
 from .clock import parse_rfc3339
-from .domains import normalise
+from .domains import host_of, normalise
 from .support import collapse, split_line
 
 _DATE = re.compile(r"\d{4}-\d{2}-\d{2}")
@@ -40,12 +39,30 @@ def _header(lines: list[str], name: str) -> str | None:
     return next((l[len(prefix):].strip() for l in lines if l.startswith(prefix)), None)
 
 
-def page_kind(lines: list[str], url: str, domain: str) -> str:
+@dataclass(frozen=True)
+class Lineage:
+    """What a page's header says about who published it (stage 4)."""
+
+    registrant: str
+    canonical: str | None
+    first_published_by: str | None
+    lookalike: bool
+
+    @classmethod
+    def from_header(cls, lines: list[str], url: str) -> Lineage:
+        registrant = normalise(_header(lines, "Registrant") or "") or host_of(url)
+        canonical = _header(lines, "Canonical") or None
+        first = normalise(_header(lines, "First-Published-By") or "")
+        lookalike = _header(lines, "Kind") == "own" and registrant != host_of(url)
+        return cls(registrant, canonical if canonical != url else None, first, lookalike)
+
+
+def page_kind(lines: list[str], url: str, domain: str, registrant: str) -> str:
+    """The page's kind: `own` only when the company's domain is the registrant."""
     kind = _header(lines, "Kind")
-    if kind in KINDS:
-        return kind
-    host = normalise(urlparse(url).hostname or "")
-    return "own" if host == domain else "aggregator"
+    if kind not in KINDS:
+        kind = "own" if host_of(url) == domain else "aggregator"
+    return "aggregator" if kind == "own" and registrant != domain else kind
 
 
 def published_at(lines: list[str]) -> str | None:
@@ -87,12 +104,14 @@ class PageText:
     kind: str
     published_at: str | None
     true_from: str | None
+    lineage: Lineage
 
     @classmethod
     def from_served(cls, url: str, provider: str, served_text: str, domain: str) -> PageText:
         lines, prose = split_served(served_text)
-        return cls(url, provider, prose, page_kind(lines, url, domain), published_at(lines),
-                   true_from(lines))
+        lineage = Lineage.from_header(lines, url)
+        return cls(url, provider, prose, page_kind(lines, url, domain, lineage.registrant),
+                   published_at(lines), true_from(lines), lineage)
 
     def excerpts(self) -> list[str]:
         return sentences(self.prose)

@@ -49,3 +49,29 @@ def test_imported_null_kind_has_aggregator_authority_and_same_values_are_known()
     assert view["status"] == "known" and view["value"] == 0
     assert [c["url"] for c in view["candidates"]] == ["https://agg.test/", "https://x.test/"]
     assert field_view([])["status"] == "unknown"
+
+
+def inv(name, url, kind="news", origin=None, true_from=None):
+    return Candidate(name, url, f"x {name}", "nimble", kind, None, T, true_from, None, origin)
+
+
+def test_investor_membership_value_and_dates():
+    view = _field_view("investors", [
+        inv("Northwind Ventures", "https://n1.test/", origin="wire.test", true_from="2024-05-02"),
+        inv("Northwind Ventures", "https://n2.test/", origin="wire.test"),
+        inv("Bluebird Capital", "https://acme.test/", kind="own", true_from="2023-01-01"),
+        inv("Oak Fund", "https://o1.test/", origin="a.test", true_from="2022-01-01"),
+        inv("Oak Fund", "https://o2.test/", origin="b.test", true_from="2021-01-01"),
+    ], lambda *_: None)
+    assert view["value"] == ["Bluebird Capital", "Oak Fund"]
+    assert view["status"] == "known" and view["true_from"] == "2023-01-01"
+    assert [c["selected"] for c in view["candidates"] if c["value"] == "Northwind Ventures"] == [False, False]
+    assert view["origins"] == ["a.test", "acme.test", "b.test"] and view["corroborated"] is False
+    alone = _field_view("investors", [inv("Northwind Ventures", "https://n1.test/")], lambda *_: None)
+    assert alone["status"] == "unknown" and alone["value"] is None and len(alone["candidates"]) == 1
+
+
+def test_scalar_origins_only_from_the_selected_value():
+    view = field_view([cand("Dana Ruiz", "https://acme.test/a", "own"),
+                       cand("Lee Park", "https://x.test/", "news"), cand("Lee Park", "https://y.test/", "news")])
+    assert view["origins"] == ["acme.test"] and view["corroborated"] is False

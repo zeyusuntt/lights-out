@@ -1,7 +1,11 @@
 from datetime import datetime, timezone
 
 from app.builds import Build, Version, holding_on
-from app.candidates import Candidate, executives_view
+from app.candidates import Candidate, field_view
+
+
+def executives_view(cands, learned):
+    return field_view("executives", cands, learned)
 from app.dossier import Dossier, transition_type
 
 T1, T2, T3 = "2026-03-01T09:00:00+00:00", "2026-03-02T09:00:00+00:00", "2026-03-03T09:00:00+00:00"

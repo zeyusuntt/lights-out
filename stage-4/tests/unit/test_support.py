@@ -110,3 +110,18 @@ def test_span_edges_do_not_cut_runs_or_amounts():
 def test_short_sentences_are_never_cut():
     from app.support import citable
     assert citable("Acme Robotics did not name Dana Ruiz as CEO.", "ceo", D) is None
+
+
+@pytest.mark.parametrize("excerpt, names", [
+    ("Acme Robotics raised $40M in a round led by General Atlantic.", ["General Atlantic"]),
+    ("Acme Robotics is led by Dana Ruiz.", []),
+    ("Acme Robotics is backed by Northwind Ventures and Bluebird Capital.", ["Northwind Ventures", "Bluebird Capital"]),
+    ("Investors in Acme Robotics include Big Sky Growth Partners.", ["Big Sky Growth Partners"]),
+    ("Acme Robotics investors include Capital and Ocean Fund Group.", []),
+    ("Acme Robotics is reportedly backed by Northwind Ventures.", []),
+    ("Acme Robotics raised €40M led by General Atlantic.", []),
+    ("Northwind Ventures participated in the Acme Robotics round.", ["Northwind Ventures"]),
+])
+def test_investor_names(excerpt, names):
+    from app.support import supported_values
+    assert supported_values(excerpt, "investors", D) == names

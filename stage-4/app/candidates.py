@@ -1,4 +1,4 @@
-"""Candidates, the selection rule and field status (stages 2 and 3)."""
+"""Candidates, the selection rule, members, status and origins (stages 2 to 4)."""
 
 from __future__ import annotations
 
@@ -7,10 +7,12 @@ from collections.abc import Callable
 from dataclasses import dataclass, replace
 
 from .clock import parse_rfc3339
-from .support import FIELDS, TITLES
+from .domains import host_of
+from .support import FIELDS, INVESTORS, TITLES
 
 EXECUTIVES = "executives"
-ALL_FIELDS = FIELDS + (EXECUTIVES,)
+ALL_FIELDS = FIELDS + (EXECUTIVES, INVESTORS)
+MEMBER_KINDS = ("own", "filing")
 KINDS = ("own", "filing", "news", "aggregator")
 AUTHORITY = {"own": 0, "filing": 0, "news": 1, "aggregator": 2, None: 2}
 PROVIDER_ORDER = {"nimble": 0, "tavily": 1, "kernel": 2, "browserbase": 3}
@@ -27,6 +29,12 @@ class Candidate:
     retrieved_at: str
     true_from: str | None = None
     title: str | None = None
+    origin: str | None = None
+
+    @property
+    def source(self) -> str:
+        """The candidate's origin; for an imported one that records none, its URL's host."""
+        return self.origin or host_of(self.url)
 
     def rank_key(self) -> tuple:
         published = parse_rfc3339(self.published_at) if self.published_at else None
@@ -47,19 +55,21 @@ class Candidate:
         data.update({"value": self.value, "url": self.url, "excerpt": self.excerpt,
                      "provider": self.provider, "kind": self.kind,
                      "published_at": self.published_at, "retrieved_at": self.retrieved_at,
-                     "true_from": self.true_from, "learned_at": learned_at, "selected": selected})
+                     "true_from": self.true_from, "learned_at": learned_at, "origin": self.source,
+                     "selected": selected})
         return data
 
     def to_record(self) -> dict:
         return {"value": self.value, "url": self.url, "excerpt": self.excerpt,
                 "provider": self.provider, "kind": self.kind, "published_at": self.published_at,
-                "retrieved_at": self.retrieved_at, "true_from": self.true_from, "title": self.title}
+                "retrieved_at": self.retrieved_at, "true_from": self.true_from, "title": self.title,
+                "origin": self.source}
 
     @classmethod
     def from_record(cls, data: dict) -> Candidate:
         return cls(data["value"], data["url"], data["excerpt"], data["provider"], data.get("kind"),
                    data.get("published_at"), data["retrieved_at"], data.get("true_from"),
-                   data.get("title"))
+                   data.get("title"), data.get("origin"))
 
 
 Learned = Callable[[str, Candidate], str | None]
@@ -95,51 +105,91 @@ def _cite(candidates: list[Candidate]) -> list[dict]:
     return [{"url": c.url, "excerpt": c.excerpt, "provider": c.provider} for c in candidates]
 
 
+Groups = list[tuple[object, list[Candidate]]]
+
+
+def member_groups(name: str, candidates: list[Candidate]) -> Groups:
+    """The selected value's members, each with its candidates in rank order: the selected value
+    of a scalar field, each title's selected person, or each investor that is a member."""
+    order = ranked(candidates)
+    if name == EXECUTIVES:
+        groups = []
+        for title in TITLES:
+            mine = [c for c in order if c.title == title]
+            if mine:
+                groups.append(((title, mine[0].value), [c for c in mine if same_value(c.value, mine[0].value)]))
+        return groups
+    if name == INVESTORS:
+        names = sorted({c.value for c in order})
+        groups = [(n, [c for c in order if c.value == n]) for n in names]
+        return [(n, cs) for n, cs in groups
+                if any(c.kind in MEMBER_KINDS for c in cs) or len({c.source for c in cs}) >= 2]
+    if not order:
+        return []
+    return [(order[0].value, [c for c in order if same_value(c.value, order[0].value)])]
+
+
 def unknown_view() -> dict:
     return {"value": None, "status": "unknown", "true_from": None, "learned_at": None,
-            "citations": [], "candidates": []}
+            "citations": [], "candidates": [], "origins": [], "corroborated": False,
+            "corroborated_since": None}
+
+
+def _origins(groups: Groups) -> dict:
+    origins = sorted({c.source for _, cs in groups for c in cs})
+    corroborated = bool(groups) and all(len({c.source for c in cs}) >= 2 for _, cs in groups)
+    return {"origins": origins, "corroborated": corroborated, "corroborated_since": None}
+
+
+def _status(groups: Groups, order: list[Candidate], name: str) -> str:
+    if name == INVESTORS:
+        return "known"
+    keys = {(c.title, json.dumps(_stripped(c.value))) for c in order}
+    titles = {c.title for c in order}
+    return "contested" if len(keys) > len(titles) else "known"
+
+
+def _true_from(name: str, groups: Groups) -> str | None:
+    if name == INVESTORS:
+        dates = [min((c.true_from for c in cs if c.true_from), default=None) for _, cs in groups]
+    else:
+        dates = [cs[0].true_from for _, cs in groups]
+    if name in FIELDS:
+        return dates[0]
+    return None if None in dates else max(dates)
+
+
+def _value(name: str, groups: Groups) -> object:
+    if name == EXECUTIVES:
+        return [{"title": t, "name": n} for (t, n), _ in groups]
+    if name == INVESTORS:
+        return [n for n, _ in groups]
+    return groups[0][0]
 
 
 def field_view(name: str, candidates: list[Candidate], learned: Learned) -> dict:
-    """One of the six fields: selected value, status, true_from, citations and ranked candidates."""
+    """A field: selected value, status, true_from, citations, ranked candidates and origins."""
+    groups = member_groups(name, candidates)
     order = ranked(candidates)
-    if not order:
-        return unknown_view()
-    chosen = order[0]
+    if name == EXECUTIVES:
+        order = [c for t in TITLES for c in order if c.title == t]
+    selected = {id(c) for _, cs in groups for c in (cs if name == INVESTORS else cs[:1])}
+    candidates_json = [c.as_json(id(c) in selected, learned(name, c)) for c in order]
+    if not groups:
+        return {**unknown_view(), "candidates": candidates_json}
     return {
-        "value": chosen.value,
-        "status": "known" if len(_distinct([c.value for c in order])) == 1 else "contested",
-        "true_from": chosen.true_from,
+        "value": _value(name, groups),
+        "status": _status(groups, order, name),
+        "true_from": _true_from(name, groups),
         "learned_at": None,
-        "citations": _cite([c for c in order if same_value(c.value, chosen.value)]),
-        "candidates": [c.as_json(i == 0, learned(name, c)) for i, c in enumerate(order)],
-    }
-
-
-def executives_view(candidates: list[Candidate], learned: Learned) -> dict:
-    """The executives field: one member per title that has a selected person."""
-    by_title = {t: ranked([c for c in candidates if c.title == t]) for t in TITLES}
-    members = [(t, cands[0]) for t, cands in by_title.items() if cands]
-    if not members:
-        return unknown_view()
-    dates = [c.true_from for _, c in members]
-    contested = any(len(_distinct([c.value for c in cands])) > 1 for cands in by_title.values())
-    return {
-        "value": [{"title": t, "name": c.value} for t, c in members],
-        "status": "contested" if contested else "known",
-        "true_from": None if None in dates else max(dates),
-        "learned_at": None,
-        "citations": [cite for t, chosen in members
-                      for cite in _cite([c for c in by_title[t] if same_value(c.value, chosen.value)])],
-        "candidates": [c.as_json(i == 0, learned(EXECUTIVES, c))
-                       for cands in by_title.values() for i, c in enumerate(cands)],
+        "citations": [cite for _, cs in groups for cite in _cite(cs)],
+        "candidates": candidates_json,
+        **_origins(groups),
     }
 
 
 def fields_view(by_field: dict[str, list[Candidate]], learned: Learned) -> dict[str, dict]:
-    views = {name: field_view(name, by_field.get(name, []), learned) for name in FIELDS}
-    views[EXECUTIVES] = executives_view(by_field.get(EXECUTIVES, []), learned)
-    return views
+    return {name: field_view(name, by_field.get(name, []), learned) for name in ALL_FIELDS}
 
 
 def values_view(by_field: dict[str, list[Candidate]]) -> dict[str, dict]:

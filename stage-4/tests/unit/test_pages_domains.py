@@ -1,5 +1,6 @@
 from app.domains import normalise
-from app.pages import PageText, page_kind, published_at, split_served
+from app.domains import host_of
+from app.pages import Lineage, PageText, page_kind, published_at, split_served
 
 
 def test_normalise():
@@ -21,12 +22,23 @@ def test_header_and_prose():
     assert PageText.from_served("u", "nimble", "A b.  C   d.", "a.test").excerpts() == ["A b.", "C d."]
 
 
-def test_kind_falls_back_to_the_host():
+def test_kind_falls_back_to_the_host_and_own_needs_the_registrant():
     for url, kind in (("https://WWW.Acme.test./about", "own"), ("https://acme.test/x", "own"),
                       ("https://shop.acme.test/x", "aggregator"), ("https://news.test/acme", "aggregator")):
-        assert page_kind([], url, "acme.test") == kind, url
-    assert page_kind(["Kind: Filing"], "https://acme.test/", "acme.test") == "own"
-    assert page_kind(["Kind: filing"], "https://registry.test/", "acme.test") == "filing"
+        assert page_kind([], url, "acme.test", host_of(url)) == kind, url
+    assert page_kind(["Kind: Filing"], "https://acme.test/", "acme.test", "acme.test") == "own"
+    assert page_kind(["Kind: filing"], "https://registry.test/", "acme.test", "registry.test") == "filing"
+    assert page_kind(["Kind: own"], "https://acme.test/", "acme.test", "domainhold.test") == "aggregator"
+    assert page_kind([], "https://acme.test/", "acme.test", "domainhold.test") == "aggregator"
+    assert page_kind(["Kind: own"], "https://other.test/", "acme.test", "acme.test") == "own"
+
+
+def test_lineage_and_lookalike():
+    lines = ["Kind: own", "Registrant: Acme.test.", "Canonical: https://Wire.test/a", "First-Published-By: www.wire.test"]
+    lineage = Lineage.from_header(lines, "https://acme-copy.test/x")
+    assert lineage == Lineage("acme.test", "https://Wire.test/a", "wire.test", True)
+    assert Lineage.from_header(["Canonical: https://a.test/x"], "https://a.test/x").canonical is None
+    assert Lineage.from_header([], "https://WWW.A.test/x").registrant == "a.test"
 
 
 def test_bad_publication_time_is_none():

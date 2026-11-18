@@ -9,6 +9,8 @@ from functools import lru_cache
 FIELDS = ("legal_name", "hq_city", "ceo", "founded_year", "headcount_range", "funding_total")
 TITLES = ("cfo", "coo", "cto")
 PERSON_FIELDS = ("ceo",) + TITLES
+INVESTORS = "investors"
+INVESTOR_ENDINGS = ("Ventures", "Capital", "Partners", "Fund", "Investments", "Holdings", "Equity")
 
 STATEMENT_PHRASES = {
     "legal_name": ("legal name", "registered name", "registered as", "registered company",
@@ -19,6 +21,7 @@ STATEMENT_PHRASES = {
     "cfo": ("chief financial officer", "CFO"),
     "coo": ("chief operating officer", "COO"),
     "cto": ("chief technology officer", "CTO"),
+    "investors": ("investor", "investors", "led by", "backed by", "participated"),
     "founded_year": ("founded", "founding", "established", "incorporated"),
     "headcount_range": ("employs", "employees", "staff", "people", "headcount", "workforce"),
     "funding_total": ("raised", "funding", "invested", "investment"),
@@ -262,6 +265,24 @@ def _people(text: str, domain: str, field: str) -> list[Found]:
             if count in (2, 3)]
 
 
+def _investors(text: str, domain: str) -> list[Found]:
+    """Investor names: runs of two or more capitalised words ending in a fund word, and, in an
+    excerpt with an amount, the run directly after `led by` or `backed by`."""
+    masked = list(text)
+    for start, end in _name_spans(text, domain) + _phrase_spans(text, INVESTORS):
+        masked[start:end] = "\x00" * (end - start)
+    plain = "".join(masked)
+    runs = {s: (e, count) for s, e, count in _runs(plain, _words(plain, upper_too=False), " ")}
+    found = {s: e for s, (e, count) in runs.items()
+             if count >= 2 and text[s:e].split(" ")[-1] in INVESTOR_ENDINGS}
+    if amounts(text):
+        for phrase in ("led by", "backed by"):
+            for _, end in find_phrase(text, phrase):
+                if text[end:end + 1] == " " and end + 1 in runs:
+                    found[end + 1] = runs[end + 1][0]
+    return [(s, e, text[s:e]) for s, e in sorted(found.items())]
+
+
 def _headcount_bucket(n: int) -> str:
     for low, high, label in HEADCOUNT_RANGES:
         if low <= n <= high:
@@ -281,6 +302,8 @@ def found_values(field: str, text: str, domain: str) -> list[Found]:
         return _cities(text)
     if field in PERSON_FIELDS:
         return _people(text, domain, field)
+    if field == INVESTORS:
+        return _investors(text, domain)
     if field == "founded_year":
         return [(s, e, int(v)) for s, e, v in numbers(text)
                 if e - s == 4 and isinstance(v, int) and 1800 <= v <= 2099]
@@ -298,30 +321,29 @@ def values_in_format(field: str, text: str, domain: str) -> list[object]:
 
 # A.2 the rule --------------------------------------------------------------------
 
+def supported_values(excerpt: str, field: str, domain: str) -> list[object]:
+    """The values this excerpt supports for the field of the company: by A.2 the one value all
+    its values normalise to; for investors, each investor name it contains."""
+    text = collapse(excerpt)
+    if not text or not is_single_sentence(text) or not _name_spans(text, domain):
+        return []
+    if not _phrase_spans(text, field) or any(find_phrase(text, p) for p in NEGATING_PHRASES):
+        return []
+    values = values_in_format(field, text, domain)
+    if field == INVESTORS:
+        return list(dict.fromkeys(values))
+    if not values or any(v != values[0] for v in values):
+        return []
+    return values[:1]
+
+
 def supported_value(excerpt: str, field: str, domain: str) -> str | int | None:
     """The value V this excerpt supports for the field of the company, or None."""
-    text = collapse(excerpt)
-    if not text or not is_single_sentence(text):
-        return None
-    if not _name_spans(text, domain):
-        return None
-    if not _phrase_spans(text, field):
-        return None
-    if any(find_phrase(text, p) for p in NEGATING_PHRASES):
-        return None
-    values = values_in_format(field, text, domain)
-    if not values or any(v != values[0] for v in values):
-        return None
-    return values[0]
-
-
-def supports(excerpt: str, field: str, domain: str, value: str | int) -> bool:
-    found = supported_value(excerpt, field, domain)
-    return found is not None and found == value
+    values = supported_values(excerpt, field, domain)
+    return values[0] if values else None
 
 
 MAX_CITATION = 500
-
 
 
 
@@ -363,8 +385,9 @@ def citable(excerpt: str, field: str, domain: str, want: object | None = None) -
     value on its own."""
     text = collapse(excerpt)
     if len(text) <= MAX_CITATION:
-        value = supported_value(text, field, domain)
-        return (value, text) if value is not None and want in (None, value) else None
+        values = supported_values(text, field, domain)
+        value = values[0] if want is None and values else want
+        return (value, text) if value is not None and value in values else None
     if not is_single_sentence(text):
         return None
     names, phrases = _name_spans(text, domain), _phrase_spans(text, field)
@@ -378,6 +401,15 @@ def citable(excerpt: str, field: str, domain: str, want: object | None = None) -
                 if end - start > MAX_CITATION or (best and end - start >= len(best[1])):
                     continue
                 span = text[start:end].strip()
-                if supported_value(span, field, domain) == value:
+                if value in supported_values(span, field, domain):
                     best = (value, span)
     return best
+
+
+def citations_in(sentence: str, field: str, domain: str) -> list[tuple[object, str]]:
+    """(value, citation text) for every value a sentence supports for the field."""
+    if field != INVESTORS:
+        hit = citable(sentence, field, domain)
+        return [hit] if hit else []
+    names = dict.fromkeys(v for _, _, v in found_values(field, collapse(sentence), domain))
+    return [hit for name in names if (hit := citable(sentence, field, domain, name))]
