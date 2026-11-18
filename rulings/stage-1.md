@@ -58,3 +58,11 @@ Basis given for each. All seats build and test to these.
 Readings: (a) such a sentence cannot be cited at all; (b) cite a contiguous span of it, of at most 500 characters, that on its own satisfies A.2.
 Chosen: **(b)**. Basis: **IMPLIED**.
 Why: §4 defines a citation as an excerpt copied character for character from served text, 1 to 500 characters. It does not require the excerpt to be a whole sentence. A.1/A.2 require the excerpt to be a single sentence, and a contiguous span inside one sentence that contains no sentence end splits into exactly one sentence. So (b) satisfies every sentence. No citation, from search or research, exceeds 500 characters. A field is only required to be known (R1-2) when some span of at most 500 characters supports it.
+
+## R1-7 — scope of R1-6 spans (raised by V3-1 and F5, round 3)
+
+Readings: (a) any contiguous span of any served sentence may be a citation if it satisfies A.2 on its own; (b) support is decided on whole sentences, and spans are used only where a whole sentence cannot be cited because it is over 500 characters.
+Chosen: **(b)**, with edge integrity. Basis: **IMPLIED** (A.1 splits prose into sentences, and §1.1 says no citation is attached to a value it does not support).
+- A sentence of 500 characters or fewer is cited whole, and supports V only if the whole sentence satisfies A.2. No sub-span of such a sentence is cited, so no span may cut a negating phrase or a competing value out of a short sentence.
+- A sentence over 500 characters may be cited by a contiguous span of at most 500 characters that on its own satisfies A.2 for V, as in R1-6. The span's two edges must not cut through a word, a number, an amount, or a run of capitalised words. Every value the span reads must be read the same way as in the full sentence. Whitespace at the edges is trimmed.
+- R1-2: a field is required known when some served sentence of at most 500 characters supports a value, or some sentence over 500 characters has such a span. There is no search cap: the specification sets none.
