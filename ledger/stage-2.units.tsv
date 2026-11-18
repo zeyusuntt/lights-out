@@ -1,0 +1,188 @@
+S2-001	# Dossier — Stage 2: competing sources and the dossier screens
+S2-002	The stage-1 requirements continue to apply, with the additions below.
+S2-003	Numbered section references such as §4 and §7 refer to `stage-1.md`.
+S2-004	Sources disagree.
+S2-005	A dossier now keeps every value its evidence supports, as candidates, and selects one per field by a fixed rule.
+S2-006	Researchers read dossiers, their evidence and the fields in dispute in a browser.
+S2-007	The following applies to all operations, in addition to the stage-1 list:
+S2-008	A field's selected value is the one the selection rule below picks from the field's candidates; the same candidates always yield the same value.
+S2-009	## Page kind and publication time
+S2-010	Two header lines (§4, Pages) now carry requirements:
+S2-011	| `Kind: own`, `Kind: filing`, `Kind: news`, `Kind: aggregator` | The page's **kind**: the company's own site, a filing registry, a news report, or an aggregator of company data |  [columns: | Header line | Meaning |]
+S2-012	| `Published: <RFC 3339 timestamp>` | When the page was published |  [columns: | Header line | Meaning |]
+S2-013	A page with no `Kind` line, or with a value not listed above, is of kind `own` when the host of its URL, normalised as `stage-1.md` normalises a domain, is the company's domain, and of kind `aggregator` otherwise.
+S2-014	A page with no `Published` line, or with a value that is not an RFC 3339 timestamp, has no publication time.
+S2-015	## Page text
+S2-016	From this stage, a page's **text** is the text a browser shows once the page has loaded, without clicking controls.
+S2-017	Activating disclosure controls is not required.
+S2-018	The graded corpus contains no facts that require a click to reveal them.
+S2-019	Evidence (§4) is read from page text so defined, and a citation's excerpt must appear in the page's text.
+S2-020	A citation's `provider` is the provider that served the text the excerpt was copied from.
+S2-021	## Web access
+S2-022	From this stage an extract through `nimble` may ask Nimble to load the page in a browser and serve the text the browser shows once the page has loaded, with no control activated:
+S2-023	`provider_options={"render":
+S2-024	True}` on WebRouter's extract.
+S2-025	Two optional browser vendors are also available, in addition to the providers in §2:
+S2-026	`kernel`, through `open_browser`;
+S2-027	`browserbase`, through `open_browser` and `browse`.
+S2-028	A service may use Nimble's rendered extract alone to obtain every page's browser text; neither browser vendor is required.
+S2-029	The deployment provides these environment variables in addition to those in §2:
+S2-030	| `KERNEL_API_KEY` | Credential for the `kernel` provider |  [columns: | Variable | Meaning |]
+S2-031	| `KERNEL_BASE_URL` | Base URL of the `kernel` provider endpoint |  [columns: | Variable | Meaning |]
+S2-032	| `BROWSERBASE_API_KEY` | Credential for the `browserbase` provider |  [columns: | Variable | Meaning |]
+S2-033	| `BROWSERBASE_BASE_URL` | Base URL of the `browserbase` provider endpoint |  [columns: | Variable | Meaning |]
+S2-034	WebRouter reads the keys from the environment.
+S2-035	A service that uses these vendors passes their base URLs to WebRouter in `provider_config`, beside those of §2:
+S2-036	```python / provider_config={"kernel": {"base_url": <KERNEL_BASE_URL>}, /                  "browserbase": {"base_url": <BROWSERBASE_BASE_URL>}}
+S2-037	These calls cost, in the units of §9:
+S2-038	| Extract through `nimble` that loads the page in a browser | 3 per URL requested, including a URL for which no page is returned |  [columns: | Call | Cost |]
+S2-039	| Open a session through `kernel` | 0 |  [columns: | Call | Cost |]
+S2-040	| Open a session through `browserbase` | 2 |  [columns: | Call | Cost |]
+S2-041	| Each page served to a session, through either | 1 |  [columns: | Call | Cost |]
+S2-042	| Browse run through `browserbase` | 4 |  [columns: | Call | Cost |]
+S2-043	A failed open, a failed page load and releasing a session cost nothing.
+S2-044	Each provider keeps at most 4 sessions open at once; opening another is answered with an error.
+S2-045	A session that no client has been connected to for 60 seconds is closed by the provider.
+S2-046	## Rate limits
+S2-047	From this stage a provider may answer any call with 429.
+S2-048	A call answered 429 costs nothing (`stage-1.md` §9).
+S2-049	The same call (the same provider, operation and arguments) made again less than one second after a 429 for it was answered is answered 429 again.
+S2-050	No call is answered 429 more than three times in a row, except that opening a session while its provider keeps 4 open (Web access) is answered 429 until one of them closes.
+S2-051	Time a build spends waiting to make a call again after a 429 does not count toward the 10 seconds of `stage-1.md` §8.
+S2-052	## Candidates
+S2-053	A **candidate** is one value for one field, supported by one excerpt of one page.
+S2-054	Every value that a page of the evidence (§4) supports for a field is a candidate of that field, once for each such page.
+S2-055	The evidence now also holds the page that each research claim of the evidence cites, whether or not the citation supports its claim: a build reads that page as it reads any other.
+S2-056	A research claim whose citation does not support it is still not a candidate.
+S2-057	A candidate's `provider` is a provider that served the text its excerpt is taken from; when several did, any of them may be given.
+S2-058	Each field gains `candidates`:
+S2-059	```json / { /   "value": "Dana Ruiz", /   "status": "contested", /   "citations": [ { "url": "https://acme-robotics.test/about", "excerpt": "...", "provider": "nimble" } ], /   "candidates": [ /     { "value": "Dana Ruiz", "url": "https://acme-robotics.test/about", /       "excerpt": "Dana Ruiz has led Acme Robotics as chief executive since 2021.", /       "provider": "nimble", "kind": "own", /       "published_at": "2026-01-10T00:00:00+00:00", /       "retrieved_at": "2026-03-01T09:00:00+00:00", "selected": true }, /     { "value": "Sam Ortiz", "url": "https://bizdata.test/acme-robotics", /       "excerpt": "Acme Robotics CEO: Sam Ortiz.", /       "provider": "tavily", "kind": "aggregator", /       "published_at": "2026-02-20T00:00:00+00:00", /       "retrieved_at": "2026-03-01T09:00:00+00:00", "selected": false } /   ] / }
+S2-060	`url`, `excerpt` and `provider` follow the citation rules in §4.
+S2-061	`kind` is the page's kind, and `published_at` its publication time or null.
+S2-062	Only an imported candidate (below) has a null `kind`; it has the authority of `aggregator`.
+S2-063	`retrieved_at` is the time of the build that gathered the candidate (§8, Builds).
+S2-064	`selected` is true on exactly one candidate of a field that has candidates, the one the rule picks, and false on the others.
+S2-065	`candidates` lists the candidates of the last build that completed `ready`, in the order the selection rule ranks them, the selected one first.
+S2-066	A field with no candidate has `"candidates":
+S2-067	[]` and is `unknown`.
+S2-068	Two values are the same value when they are equal as JSON values; strings are compared exactly, after removing surrounding whitespace.
+S2-069	## The selection rule
+S2-070	Rank a field's candidates, highest first, by:
+S2-071	**Authority** of the page's kind:
+S2-072	`own` and `filing` rank equal and highest, then `news`, then `aggregator`.
+S2-073	**Recency** within the same authority: the later `published_at` ranks higher.
+S2-074	A candidate without a publication time ranks below every candidate of the same authority that has one.
+S2-075	**URL**: when authority and publication time are equal, the candidate whose `url` is smaller, comparing the strings by Unicode code point, ranks higher; between two candidates with the same URL, they rank by provider in the order `nimble`, `tavily`, `kernel`, `browserbase`.
+S2-076	**Value**: between two candidates with the same URL and provider, the one whose value is smaller ranks higher: integers compare as numbers, strings by Unicode code point after removing surrounding whitespace.
+S2-077	The highest-ranked candidate is the selected one.
+S2-078	The field's `value` is the selected candidate's value, and its `citations` are the `url`, `excerpt` and `provider` of every candidate with that value, in rank order.
+S2-079	A candidate of lower authority is selected only when no candidate of higher authority exists for that field.
+S2-080	The rule runs over all of a field's candidates.
+S2-081	## Status
+S2-082	`status` is now one of three values:
+S2-083	| `known` | The field has candidates, and they all have the same value |  [columns: | `status` | When |]
+S2-084	| `contested` | The field's candidates carry two or more different values |  [columns: | `status` | When |]
+S2-085	| `unknown` | The field has no candidate; `value` is null |  [columns: | `status` | When |]
+S2-086	A `contested` field still has a selected `value` and its citations.
+S2-087	`GET /dossiers` (§8) is unchanged.
+S2-088	The `legal_name` it lists is the selected value.
+S2-089	## Screens
+S2-090	The following screens must be reachable by URL.
+S2-091	Other screens must be reachable through the UI.
+S2-092	Server-side and client-side rendering are both permitted.
+S2-093	| `/` | The dossier list with search, and a form to research a domain |  [columns: | Route | Screen |]
+S2-094	| `/dossiers/{domain}` | One dossier: its state, its six fields with their values, status and citations, a refresh and a reload |  [columns: | Route | Screen |]
+S2-095	| `/dossiers/{domain}/evidence` | Every candidate of every field of that dossier |  [columns: | Route | Screen |]
+S2-096	| `/contested` | Every contested field across all dossiers |  [columns: | Route | Screen |]
+S2-097	| `/signup` | Signup |  [columns: | Route | Screen |]
+S2-098	| `/login` | Login |  [columns: | Route | Screen |]
+S2-099	The browser and the API share `/dossiers/{domain}`.
+S2-100	Return the UI for `Accept: text/html`; API requests without that header receive JSON.
+S2-101	`/`, `/dossiers/{domain}/evidence` and `/contested` are browser routes; they read the API's dossier data.
+S2-102	The domain in a browser route is normalised as in §4.
+S2-103	The UI must expose the `data-testid` attributes listed below for integration testing.
+S2-104	Additional elements are permitted, and the visual implementation is the team's choice subject to the product-quality requirements below.
+S2-105	## Product and visual direction
+S2-106	The browser experience must feel like a coherent, presentation-ready research product, not a thin wrapper of raw controls.
+S2-107	Aim for a calm, legible, evidence-first character: a reader opening a dossier should see at a glance which fields are known, which are unknown and which are contested, and where each value came from.
+S2-108	A field's value and its status must be the clearest information on the dossier screen, with its citations directly beside it.
+S2-109	Fields, citations, candidates and contested fields should be easy to scan, and status, provider, page kind and publication time should be understandable without interpreting raw API data.
+S2-110	Use a consistent visual system for typography, spacing, colour, controls and feedback.
+S2-111	Primary actions — research, refresh — must be easy to identify.
+S2-112	Known, unknown, contested, building, failed, loading, successful, refused and uncertain states must be visually distinct as well as satisfying the behavioural requirements below.
+S2-113	Format names, years, headcount ranges, money and timestamps for people first; expose technical identifiers only where they help the user.
+S2-114	Each citation shows its excerpt as quoted text and links to its URL.
+S2-115	The required flows must remain clear and usable at a 375 CSS-pixel viewport and at conventional desktop widths, without horizontal page scrolling.
+S2-116	Inputs need visible labels, keyboard focus must be apparent, and text and controls need sufficient contrast.
+S2-117	Provide considered empty, loading and error states, and keep navigation consistent across the required routes.
+S2-118	A custom illustration, brand asset or exact visual match to a reference is not required.
+S2-119	## Signup and login
+S2-120	| `signup-email`, `signup-password`, `signup-display-name` | Inputs |  [columns: | `data-testid` | Element |]
+S2-121	| `signup-submit` | Button |  [columns: | `data-testid` | Element |]
+S2-122	| `login-email`, `login-password`, `login-submit` | Inputs and button |  [columns: | `data-testid` | Element |]
+S2-123	| `auth-error` | Error message. Present only when there is one |  [columns: | `data-testid` | Element |]
+S2-124	| `current-user` | Visible on every screen when signed in. Text contains the display name |  [columns: | `data-testid` | Element |]
+S2-125	| `logout-button` | Button |  [columns: | `data-testid` | Element |]
+S2-126	## Dossier list — `/`
+S2-127	| `research-domain` | Input for the domain to research |  [columns: | `data-testid` | Element |]
+S2-128	| `research-submit` | Button. Sends `POST /dossiers` |  [columns: | `data-testid` | Element |]
+S2-129	| `research-error` | Error message, when the request is refused — including an invalid domain |  [columns: | `data-testid` | Element |]
+S2-130	| `research-uncertain` | Shown when the outcome of a research request is unknown (below) |  [columns: | `data-testid` | Element |]
+S2-131	| `dossier-search` | Input. Filters the list as `q` does on `GET /dossiers` |  [columns: | `data-testid` | Element |]
+S2-132	| `dossier-list` | Container. Children ordered by domain ascending |  [columns: | `data-testid` | Element |]
+S2-133	| `dossier-item-{domain}` | One per listed dossier. Carries `data-state="{state}"`. Text contains the domain, and the legal name when known. Links to `/dossiers/{domain}` |  [columns: | `data-testid` | Element |]
+S2-134	| `empty-dossiers` | Shown instead of the list when no dossier matches |  [columns: | `data-testid` | Element |]
+S2-135	A research request that succeeds, with 202 or 200, opens `/dossiers/{domain}` for the normalised domain.
+S2-136	A domain that already has a dossier, including one created by another client after this browser read the list, opens that dossier and starts no build.
+S2-137	## Dossier — `/dossiers/{domain}`
+S2-138	| `dossier-domain` | Text is exactly the normalised domain |  [columns: | `data-testid` | Element |]
+S2-139	| `dossier-state` | Text is exactly `building`, `ready` or `failed` |  [columns: | `data-testid` | Element |]
+S2-140	| `dossier-spent` | Formatted `spent_units`. Carries `data-units="{integer}"` |  [columns: | `data-testid` | Element |]
+S2-141	| `dossier-researched-at` | Text contains `researched_at`, formatted. Absent when it is null |  [columns: | `data-testid` | Element |]
+S2-142	| `field-{field}` | One per field, six in all, in the order of the table in `stage-1.md` §4. Carries `data-status="{status}"` |  [columns: | `data-testid` | Element |]
+S2-143	| `field-value-{field}` | The formatted value. Carries `data-value` (below). Present only when the value is not null |  [columns: | `data-testid` | Element |]
+S2-144	| `field-contested-{field}` | A marker. Present only when the field is `contested` |  [columns: | `data-testid` | Element |]
+S2-145	| `field-citations-{field}` | Container of the field's citations, in API order |  [columns: | `data-testid` | Element |]
+S2-146	| `citation-{field}-{n}` | The field's `n`th citation, counting from 1. Text contains the excerpt. Contains a link whose `href` is the citation's `url`. Carries `data-provider="{provider}"` |  [columns: | `data-testid` | Element |]
+S2-147	| `dossier-evidence-link` | Link to `/dossiers/{domain}/evidence` |  [columns: | `data-testid` | Element |]
+S2-148	| `dossier-refresh` | Button. Sends `POST /dossiers/{domain}/refresh` |  [columns: | `data-testid` | Element |]
+S2-149	| `refresh-error` | Error message, when a refresh is refused |  [columns: | `data-testid` | Element |]
+S2-150	| `refresh-uncertain` | Shown when the outcome of a refresh is unknown (below) |  [columns: | `data-testid` | Element |]
+S2-151	| `dossier-reload` | Button. Reads the dossier again without starting a build |  [columns: | `data-testid` | Element |]
+S2-152	| `dossier-not-found` | Shown instead of the fields when no dossier exists for the domain |  [columns: | `data-testid` | Element |]
+S2-153	`data-value` is the API value as text: a string value unchanged, an integer in plain decimal digits.
+S2-154	While the dossier's state is `building`, the screen reads the dossier again at least every 2 seconds until the state is `ready` or `failed`, and then shows the new fields without a manual reload.
+S2-155	## Evidence — `/dossiers/{domain}/evidence`
+S2-156	| `evidence-{field}` | One container per field, six in all. Children in API `candidates` order |  [columns: | `data-testid` | Element |]
+S2-157	| `candidate-{field}-{n}` | The field's `n`th candidate, counting from 1. Text contains the formatted value and the excerpt. Carries `data-value`, `data-provider`, `data-kind`, `data-url`, `data-published-at` (the RFC 3339 `published_at`, empty when null) and `data-selected="true"` or `"false"` |  [columns: | `data-testid` | Element |]
+S2-158	| `evidence-empty-{field}` | Shown instead of candidates when the field has none |  [columns: | `data-testid` | Element |]
+S2-159	## Contested fields — `/contested`
+S2-160	| `contested-list` | Container. Children ordered by domain ascending, then by field in the order of the table in `stage-1.md` §4 |  [columns: | `data-testid` | Element |]
+S2-161	| `contested-item-{domain}-{field}` | One per contested field of any dossier. Carries `data-value` for the selected value. Text contains the domain, the field and every distinct candidate value. Links to `/dossiers/{domain}/evidence` |  [columns: | `data-testid` | Element |]
+S2-162	| `empty-contested` | Shown instead of the list when no field is contested |  [columns: | `data-testid` | Element |]
+S2-163	## Refresh and competing clients
+S2-164	After any successful action, the data on the same page must show the new state without a manual reload.
+S2-165	Navigation must wait for the write to succeed before it refreshes the data.
+S2-166	Any mechanism is fine, including a full navigation.
+S2-167	Apart from the reading while a dossier is `building`, there is no live-update requirement: another client may change state, but this browser need only read again after its own action, an explicit reload or a build it is waiting on.
+S2-168	`dossier-reload` reads the dossier again.
+S2-169	**Latest read wins:** a delayed earlier read must not overwrite a later one, including when responses arrive out of order.
+S2-170	This applies to the reads while a dossier is `building` as well.
+S2-171	Another client may refresh a dossier after this browser reads it.
+S2-172	A refresh from this browser while that build runs is answered 202 like any other and the screen follows the running build to its end.
+S2-173	If a research or refresh response is lost, including after the request commits, show `research-uncertain` or `refresh-uncertain` (nonempty text), not `research-error` or `refresh-error`.
+S2-174	Keep the request retryable with the **same key and body**.
+S2-175	A successful retry removes both the error and the uncertainty elements, shows the dossier, and starts at most one build.
+S2-176	Unknown outcomes are not confirmed refusals.
+S2-177	No background polling beyond the reading while `building`, live synchronization, or recovery across page reloads is required.
+S2-178	## Existing clients after an upgrade
+S2-179	A stage-2 service must accept an export produced by the same team's stage-1 service.
+S2-180	A browser signed in before that export/import upgrade must remain signed in afterwards.
+S2-181	Imported dossiers appear in the list and on their screens.
+S2-182	Each imported field gains one candidate for every value that text the providers served to the dossier's last stage-1 build that completed `ready` supports for that field (`stage-1.md` §4), once for each page whose served text supports it.
+S2-183	The candidate's excerpt is taken from that text and supports the value; its `provider` is the provider that served that text, its `kind` and `published_at` are as the exported state records them or else null, and its `retrieved_at` is the dossier's `researched_at`.
+S2-184	Each imported field's `value`, `status` and `citations` then follow from its candidates by the selection rule and Status, as after a build.
+S2-185	A research or refresh request whose response was lost before export remains retryable after import with the same body and key; the UI must recover the original response and show the imported dossier.
+S2-186	These requirements apply when import completes between browser requests; migration during an in-flight request is not required.
+S2-187	No page reload or new screen is required.
+S2-188	The candidates of an imported dossier are replaced by those of its next completed build.
