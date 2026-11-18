@@ -9,7 +9,7 @@ from urllib.parse import urlparse
 from .builds import Version
 from .candidates import ALL_FIELDS, EXECUTIVES, Candidate
 from .budget import COST
-from .lineage import MAX_HOPS, Origins
+from .lineage import Origins
 from .pages import Lineage, PageText, sentences, split_served
 from .providers import PROVIDER, Gateway, Outcome, SearchHit, is_live
 from .support import (FIELDS, INVESTORS, STATEMENT_PHRASES, TITLES, citations_in, company_name,
@@ -19,8 +19,6 @@ SNIPPET_LIMIT = 300
 SNIPPET_MARGIN = 10
 ALL_PHRASES = tuple(p for f in FIELDS + TITLES + (INVESTORS,) for p in STATEMENT_PHRASES[f])
 RESEARCH_UNITS = COST[(PROVIDER, "research", None)]
-PAGE_ROOM = 30
-LINEAGE_ROOM = 2 * MAX_HOPS * COST[(PROVIDER, "extract", None)]
 
 
 def names_company(text: str, domain: str) -> bool:
@@ -52,8 +50,8 @@ class BuildResearch:
     investors' phrases; the research run goes alongside unless a batch budget is too short. Then each page
     that may hold evidence is loaded in a browser through Nimble's rendered extract: every page a
     research claim cites, and every search result that names the company unless the text the
-    search already served shows a whole page with no statement phrase at all. Room is kept for
-    fetching originals named by `Canonical` lines, which give each page its origin.
+    search already served shows a whole page with no statement phrase at all. Last, the
+    originals that gathered pages' `Canonical` lines name are fetched, for each page's origin.
     """
 
     def __init__(self, gateway: Gateway, domain: str, retrieved_at: str) -> None:
@@ -87,8 +85,8 @@ class BuildResearch:
                 for page, origin in zip(pages, found)]
 
     async def _research(self) -> Outcome:
-        """The research run, unless a shared budget is too short to leave room for pages."""
-        if not self.gateway.affords(RESEARCH_UNITS + PAGE_ROOM):
+        """The research run, unless a batch's shared budget can no longer pay for it."""
+        if not self.gateway.affords(RESEARCH_UNITS):
             return Outcome()
         return await self.gateway.research(self.domain)
 
@@ -120,6 +118,6 @@ class BuildResearch:
     async def _render(self, urls: list[str]) -> list[PageText]:
         if not urls or not self.gateway.may_gather():
             return []
-        outcomes = await asyncio.gather(*(self.gateway.render(u, keep=LINEAGE_ROOM) for u in urls))
+        outcomes = await asyncio.gather(*(self.gateway.render(u) for u in urls))
         return [PageText.from_served(url, PROVIDER, outcome.value, self.domain)
                 for url, outcome in zip(urls, outcomes) if outcome.answered and outcome.value]

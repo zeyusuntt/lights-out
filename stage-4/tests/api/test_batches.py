@@ -97,3 +97,13 @@ def test_native_export_import_keeps_batches(api, ada, bob, mock):
     replay = api.post("/batches", headers=headers, json=body)
     assert replay.status_code == 200 and replay.json() == first
     assert len(mock.calls()) == calls
+
+
+def test_batch_runs_affordable_research_for_research_only_evidence(api, ada, mock):
+    data = api.post("/batches", headers={**ada, **key()},
+                    json={"domains": ["corvid-security.test"], "budget_units": 54}).json()
+    done = wait_batch(api, ada, data["batch_id"])
+    assert done["spent_units"] <= 54
+    assert sum(c["method"] == "research" for c in mock.calls()) == 1
+    body = api.get("/dossiers/corvid-security.test", headers=ada).json()
+    assert body["fields"]["headcount_range"]["value"] == "1001-5000"

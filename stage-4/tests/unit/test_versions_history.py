@@ -86,3 +86,20 @@ def test_history_feed_and_as_of():
     later = datetime(2026, 4, 1, tzinfo=timezone.utc)
     assert d.values("2025-02-01", later)["ceo"]["value"] == "Lee Park"
     assert d.values("2025-02-01", moment)["ceo"]["value"] == "Lee Park"
+
+
+def test_corroborated_since_restarts_with_a_new_selected_value():
+    def ceo(value, *origins):
+        return [Version(f"https://{o}/p", None, {"ceo": [Candidate(value, f"https://{o}/p", "x", "nimble", "news",
+                                                                    None, "t", None, None, o)]}) for o in origins]
+    d = Dossier("d_1", "acme.test")
+    times = ["2026-03-0%dT09:00:00+00:00" % n for n in (1, 5, 8, 9)]
+    plan = [ceo("Dana Ruiz", "a.test"), ceo("Dana Ruiz", "b.test"), ceo("Sam Ortiz", "c.test", "d.test"),
+            ceo("Sam Ortiz", "c.test")]
+    for time, versions in zip(times, plan):
+        build = d.begin_build(time)
+        build.versions = versions
+        d.complete(build, True)
+    since = [d.fields_at(i)["ceo"]["corroborated_since"] for i in range(4)]
+    assert since == [None, times[1], times[2], times[2]]
+    assert d.fields_at(3)["ceo"]["origins"] == ["c.test"] and d.fields_at(3)["ceo"]["corroborated"] is False

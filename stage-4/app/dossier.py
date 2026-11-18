@@ -10,7 +10,7 @@ from .builds import Build, holding_on
 from .candidates import (ALL_FIELDS, EXECUTIVES, INVESTORS, Candidate, fields_view, member_groups,
                          ranked, same_value, unknown_view, values_view)
 from .clock import parse_rfc3339
-from .support import TITLES
+from .support import FIELDS, TITLES
 
 
 @dataclass
@@ -125,15 +125,19 @@ class Dossier:
 
     def _corroborated_since(self, name: str, index: int) -> str | None:
         """The time of the first ready build of the run, ending at `index`, after each of which
-        every member had two or more standing origins (R4-4)."""
+        every member had two or more standing origins (R4-4). A new selected value of a scalar
+        field starts a new run, with no standing origins."""
         standing: dict[str, set[str]] = {}
         since: str | None = None
         for build in self.builds[:index + 1]:
             if not build.ready:
                 continue
             groups = member_groups(name, build.candidates()[name])
-            standing = {self._key(key): standing.get(self._key(key), set()) | {c.source for c in cands}
-                        for key, cands in groups}
+            keys = [self._key(key) for key, _ in groups]
+            if name in FIELDS and keys != list(standing):
+                since = None
+            standing = {k: standing.get(k, set()) | {c.source for c in cands}
+                        for k, (_, cands) in zip(keys, groups)}
             holds = bool(standing) and all(len(origins) >= 2 for origins in standing.values())
             since = (since or build.time) if holds else None
         return since

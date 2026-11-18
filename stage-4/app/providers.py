@@ -129,11 +129,11 @@ class Gateway:
     def may_gather(self) -> bool:
         return self.elapsed() < self._timing.gather_window_s
 
-    async def _call(self, units: int, make_call, retry_lost: bool = False, keep: int = 0) -> Outcome:
+    async def _call(self, units: int, make_call, retry_lost: bool = False) -> Outcome:
         """Make a call: reserve its units and record them durably first, then settle them."""
         outcome = Outcome()
         for attempt in range(MAX_ATTEMPTS):
-            if not self._budget.reserve(units, keep):
+            if not self._budget.reserve(units):
                 outcome.errors.append("budget")
                 return outcome
             await self._record()
@@ -167,7 +167,7 @@ class Gateway:
                     for r in response.results]
         return await self._call(COST[(PROVIDER, "search", "lite")], call, retry_lost=exact_domain)
 
-    async def _extract(self, url: str, render: bool, keep: int = 0) -> Outcome:
+    async def _extract(self, url: str, render: bool) -> Outcome:
         async def call() -> str | None:
             options = {"provider_options": {"render": True}} if render else {}
             try:
@@ -177,13 +177,12 @@ class Gateway:
                     return None
                 raise
             return next((d.content for d in response.documents if d.url == url and d.content), None)
-        return await self._call(COST[(PROVIDER, "render" if render else "extract", None)], call,
-                                keep=keep)
+        return await self._call(COST[(PROVIDER, "render" if render else "extract", None)], call)
 
-    async def render(self, url: str, keep: int = 0) -> Outcome:
+    async def render(self, url: str) -> Outcome:
         """The text a browser shows once the page has loaded, or an answered outcome with None
-        when there is no page. `keep` units of the build's limit stay unspent."""
-        return await self._extract(url, True, keep)
+        when there is no page."""
+        return await self._extract(url, True)
 
     async def served_text(self, url: str) -> Outcome:
         """The page's served text without loading it in a browser, for its header lines."""

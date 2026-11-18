@@ -52,9 +52,8 @@ class BuildBudget:
         """Whether the shared budget, if any, still has room for these units."""
         return self._shared is None or self._shared.affords(units)
 
-    def reserve(self, units: int, keep: int = 0) -> bool:
-        """Reserve units, leaving `keep` units of this build's own limit unspent."""
-        if units + keep > self.remaining():
+    def reserve(self, units: int) -> bool:
+        if units > self.remaining():
             return False
         if self._shared is not None and not self._shared.admits(units):
             return False

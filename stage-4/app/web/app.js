@@ -388,6 +388,12 @@ function originsLine(f) {
     f.origins.length === 1 ? `Single source: ${list}` : `Sources not yet independent for every member: ${list}`);
 }
 
+function memberOrigins(candidates) {
+  const origins = [...new Set(candidates.map((c) => c.origin))].sort();
+  return h("p", { class: origins.length >= 2 ? "member-origins corroborated" : "member-origins", "data-origins": origins.join(" ") },
+    origins.length >= 2 ? `Corroborated by ${origins.length} independent sources: ${origins.join(", ")}` : `Single source: ${origins.join(", ")}`);
+}
+
 function timesLine(f) {
   if (f.value === null || f.value === undefined) return null;
   return h("p", { class: "times" },
@@ -424,10 +430,11 @@ function executivesRow(domain, f, pendingFirst) {
     h("div", {},
       members.length
         ? h("ul", { class: "members" }, members.map((m) => h("li", { "data-title": m.title, "data-value": m.name },
-          h("span", { class: "member-title" }, TITLE_LABEL[m.title]), h("span", { class: "member-name" }, m.name))))
+          h("span", { class: "member-title" }, TITLE_LABEL[m.title]), h("span", { class: "member-name" }, m.name),
+          memberOrigins(f.candidates.filter((c) => c.title === m.title && c.value === m.name)))))
         : h("div", { class: "value none" }, pendingFirst ? "Research in progress" : "No chief financial, operating or technology officer found in sources"),
       statusLine(domain, "executives", f, `sources disagree on ${contestedTitles.map((t) => t.toUpperCase()).join(", ")}`, pendingFirst, null),
-      timesLine(f), originsLine(f)),
+      timesLine(f)),
     plainCitations(f.citations));
 }
 
@@ -443,11 +450,12 @@ function investorsRow(domain, f, pendingFirst) {
     h("div", { class: "label" }, "Investors"),
     h("div", {},
       names.length
-        ? h("ul", { class: "members" }, names.map((n) => h("li", { "data-value": n }, h("span", { class: "member-name" }, n))))
+        ? h("ul", { class: "members" }, names.map((n) => h("li", { "data-value": n }, h("span", { class: "member-name" }, n),
+          memberOrigins(f.candidates.filter((c) => c.value === n)))))
         : h("div", { class: "value none" }, pendingFirst ? "Research in progress" : "No investor confirmed by a company site, a filing or two independent sources"),
       f.status === "known" ? h("div", { class: "status known" }, `Known — ${names.length} ${names.length === 1 ? "investor" : "investors"}`) : h("div", { class: "status unknown" }, pendingFirst ? "Not researched yet" : "Unknown"),
       others.length ? h("p", { class: "times" }, `Also mentioned by a single source: ${others.join(", ")}. `, h("a", { href: `/dossiers/${domain}/evidence#evidence-investors` }, "See sources")) : null,
-      timesLine(f), originsLine(f)),
+      timesLine(f)),
     plainCitations(f.citations));
 }
 
