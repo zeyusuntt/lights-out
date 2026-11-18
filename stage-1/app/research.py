@@ -6,7 +6,7 @@ import asyncio
 from dataclasses import dataclass, field
 from urllib.parse import urlparse
 
-from .pages import PageText, prose_of
+from .pages import PageText, is_header_line, prose_of
 from .providers import Gateway, ResearchClaim, SearchHit, is_live
 from .support import FIELDS, STATEMENT_PHRASES, company_name, find_phrase, supported_value
 
@@ -86,7 +86,7 @@ class BuildResearch:
         if outcome.answered:
             self._claims = outcome.value
         self._evaluate()
-        await self._extract(self._claim_urls_to_verify() + self._truncated_hits())
+        await self._extract(self._truncated_hits())
         self._evaluate()
         missing = self.findings.missing()
         if missing and self.gateway.may_gather():
@@ -118,30 +118,13 @@ class BuildResearch:
     def _snippet_complete(hit: SearchHit) -> bool:
         return not is_live() and len(hit.snippet) < SNIPPET_LIMIT - SNIPPET_MARGIN
 
-    def _unresolved(self) -> list[str]:
-        pending = {c.field for c in self._pending_claims()}
-        return [f for f in self.findings.missing() if f not in pending]
-
     def _truncated_hits(self) -> list[str]:
-        if not self._unresolved():
+        if not self.findings.missing():
             return []
         return [url for url, hit in self._hits.items()
                 if not self._evidence[url].complete and url not in self._fetched
                 and (names_company(f"{hit.title} {hit.snippet}", self.domain)
                      or self.domain.split(".")[0] in url.lower())]
-
-    def _claim_urls_to_verify(self) -> list[str]:
-        urls = []
-        for claim in self._pending_claims():
-            page = self._evidence.get(claim.url)
-            if not (page and page.contains(claim.excerpt)) and claim.url not in urls:
-                urls.append(claim.url)
-        return urls
-
-    def _pending_claims(self) -> list[ResearchClaim]:
-        return [c for c in self._claims
-                if not self.findings.values[c.field] and c.url not in self._fetched
-                and self._claim_value(c) is not None]
 
     def _claim_value(self, claim: ResearchClaim) -> object | None:
         value = supported_value(claim.excerpt, claim.field, self.domain)
@@ -169,9 +152,17 @@ class BuildResearch:
                         self.findings.add(name, value, Citation(page.url, excerpt))
         for claim in self._claims:
             value = self._claim_value(claim)
-            page = self._evidence.get(claim.url) or self._fetched.get(claim.url)
-            if value is not None and page and page.contains(claim.excerpt):
+            page = self._evidence.get(claim.url)
+            if value is not None and _from_prose(claim.excerpt, page):
                 self.findings.add(claim.field, value, Citation(claim.url, " ".join(claim.excerpt.split())))
+
+
+def _from_prose(excerpt: str, page: PageText | None) -> bool:
+    """A research excerpt is cited as served unless it reads as a header line, or the
+    page's full prose, already gathered in this build, does not contain it."""
+    if is_header_line(excerpt.strip()):
+        return False
+    return page is None or not page.complete or page.contains(excerpt)
 
 
 def _same_claim(value: object, claimed: object) -> bool:

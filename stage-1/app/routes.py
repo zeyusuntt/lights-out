@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import re
 import secrets
+from urllib.parse import unquote
 
 from starlette.applications import Starlette
 from starlette.exceptions import HTTPException
@@ -23,6 +24,7 @@ from .web import (ApiError, bearer_token, error_response, invalid, json_object, 
 
 _EMAIL = re.compile(r"[^@\s]+@[^@\s]+")
 _DIGITS = re.compile(r"[0-9]+")
+MAX_ID = 64
 
 
 def build_app(service: Service) -> Starlette:
@@ -57,6 +59,8 @@ def build_app(service: Service) -> Starlette:
                 raise malformed("each user must be an object")
             uid, email, password, name = (typed(entry, k, str) for k in
                                           ("id", "email", "password", "display_name"))
+            if not 1 <= len(uid) <= MAX_ID:
+                raise invalid("a user id must be 1 to 64 characters")
             if uid in state.users or state.user_by_email(email) is not None:
                 raise invalid("two users share an id or an email")
             state.users[uid] = User(uid, email, name, password)
@@ -123,21 +127,29 @@ def build_app(service: Service) -> Starlette:
 
         return run_once(service.state, user_id, request, key, compared, create)
 
-    async def get_dossier(request: Request) -> Response:
+    async def dossier_path(request: Request) -> Response:
+        segments = _dossier_segments(request)
+        if request.method == "GET" and len(segments) == 1:
+            return await get_dossier(request, segments[0])
+        if request.method == "POST" and len(segments) == 2 and segments[1] == "refresh":
+            return await refresh_dossier(request, segments[0])
+        raise not_found()
+
+    async def get_dossier(request: Request, raw_domain: str) -> Response:
         user_of(request)
-        dossier = service.state.dossiers.get(domain_of(request.path_params["domain"]))
+        dossier = service.state.dossiers.get(domain_of(raw_domain))
         if dossier is None:
             raise not_found("no dossier for that domain")
         return json_response(dossier.view())
 
-    async def refresh_dossier(request: Request) -> Response:
+    async def refresh_dossier(request: Request, raw_domain: str) -> Response:
         user_id = user_of(request)
         key = idempotency_key(request)
         await request.body()
         user_id = user_of(request)
 
         def refresh() -> tuple[int, dict]:
-            dossier = service.state.dossiers.get(domain_of(request.path_params["domain"]))
+            dossier = service.state.dossiers.get(domain_of(raw_domain))
             if dossier is None:
                 raise not_found("no dossier for that domain")
             if dossier.state != "building":
@@ -191,11 +203,18 @@ def build_app(service: Service) -> Starlette:
         Route("/auth/login", login, methods=["POST"]),
         Route("/dossiers", create_dossier, methods=["POST"]),
         Route("/dossiers", list_dossiers, methods=["GET"]),
-        Route("/dossiers/{domain}", get_dossier, methods=["GET"]),
-        Route("/dossiers/{domain}/refresh", refresh_dossier, methods=["POST"]),
+        Route("/dossiers/{rest:path}", dossier_path, methods=["GET", "POST"]),
     ]
     return Starlette(routes=routes, exception_handlers={
         ApiError: on_api_error, HTTPException: on_http_error, Exception: on_crash})
+
+
+def _dossier_segments(request: Request) -> list[str]:
+    """The path segments after /dossiers/, each decoded on its own so that an encoded
+    slash stays inside its segment."""
+    raw = request.scope.get("raw_path") or request.url.path.encode()
+    rest = raw.split(b"?", 1)[0][len(b"/dossiers/"):]
+    return [unquote(part.decode("latin-1")) for part in rest.split(b"/")]
 
 
 def _moment(body: dict, name: str):

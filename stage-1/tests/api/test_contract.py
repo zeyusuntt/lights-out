@@ -220,3 +220,20 @@ def test_import_rejects_bad_documents_without_change(api, ada):
         assert r.status_code == 422, bad
     assert api.post("/_test/import", content=b"{oops").status_code == 400
     assert api.get("/dossiers/corvid-security.test", headers=ada).status_code == 200
+
+
+def test_encoded_slash_in_path_domain_is_validated(api, ada):
+    for raw in ("https%3A%2F%2Fvalid.test", "valid.test%2Fpath"):
+        r = api.get(f"/dossiers/{raw}", headers=ada)
+        assert r.status_code == 422 and error_code(r) == "validation_failed", raw
+        r = api.post(f"/dossiers/{raw}/refresh", headers={**ada, **key()})
+        assert r.status_code == 422 and error_code(r) == "validation_failed", raw
+    assert api.get("/dossiers/a.test/extra", headers=ada).status_code == 404
+
+
+def test_fixture_user_id_longer_than_64_is_rejected(api, ada):
+    user = {**FIXTURE["users"][0]}
+    assert api.post("/_test/reset", json={"now": NOW, "users": [{**user, "id": "u" * 65}]}).status_code == 422
+    assert api.get("/dossiers", headers=ada).status_code == 200
+    assert api.post("/_test/reset", json={"now": NOW, "users": [{**user, "id": "u" * 64}]}).status_code == 204
+    assert login(api)

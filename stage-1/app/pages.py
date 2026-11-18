@@ -11,7 +11,7 @@ _HEADER_LINE = re.compile(r"[^\W\d_][^\W\d_]+(?:-[^\W\d_][^\W\d_]+)*:(?: |$)")
 MAX_EXCERPT = 500
 
 
-def _is_header_line(line: str) -> bool:
+def is_header_line(line: str) -> bool:
     m = _HEADER_LINE.match(line)
     if not m:
         return False
@@ -22,7 +22,7 @@ def _is_header_line(line: str) -> bool:
 def prose_of(served_text: str) -> str:
     """The prose of a served text: everything after the header, if it has one."""
     lines = served_text.split("\n")
-    if not lines or not _is_header_line(lines[0].rstrip("\r")):
+    if not lines or not is_header_line(lines[0].rstrip("\r")):
         return served_text
     for i, line in enumerate(lines):
         if not line.strip():

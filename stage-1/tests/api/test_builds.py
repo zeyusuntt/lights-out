@@ -52,6 +52,9 @@ def test_spent_units_match_provider_log_and_one_exact_domain_search(api, ada, mo
     research = [c for c in calls if c["method"] == "research"]
     assert len(research) == 1 and domain in research[0]["query"]
     assert research[0]["fields"] == sorted(body["fields"])
+    research_urls = {item["url"] for item in research[0]["served"] or []}
+    extracted = {u for c in calls if c["method"] == "extract" for u in c["urls"]}
+    assert not research_urls & extracted
 
 
 def test_reads_make_no_provider_call(api, ada, mock):
