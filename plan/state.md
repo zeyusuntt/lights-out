@@ -1,7 +1,9 @@
 # Run state
 
 - Stage: 1
-- Phase: ledger ready (976ad55b8fc5504eb2071ec26279aa305d76fd36); rulings committed (rulings/stage-1.md, R1-1..R1-4)
+- Phase: building. Ledger 976ad55; seal sha256:c968ad43d6861ae9e0d1e6030855c688026f612b2fae296d9947c8b4531fa7a9 (169 tests); rulings R1-1..R1-5 at bf40ab2.
+- Opened to builder + product-user with plan/stage-1-note.md; ledger+rulings sent to verifier.
 - Round: 0
 - Candidate: none
-- Outstanding: SEALED 1 (verifier). On SEALED: open stage 1 to builder + product-user with --note, send ledger+rulings paths to verifier.
+- Outstanding: CANDIDATE 1 (builder). Possible SEAL AMENDED (verifier).
+- UI: stage 1 is API only -> accept-check --no-ui unless a UI ships.
