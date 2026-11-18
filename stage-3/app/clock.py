@@ -34,3 +34,10 @@ class Clock:
 
     def iso(self) -> str:
         return self.now().isoformat()
+
+    def saved(self) -> str | None:
+        """The clock's setting to keep across a restart: None while it follows system time."""
+        return self._fixed.isoformat() if self._fixed else None
+
+    def restore(self, saved: str | None) -> None:
+        self._fixed = parse_rfc3339(saved) if saved else None

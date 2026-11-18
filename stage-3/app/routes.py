@@ -5,10 +5,13 @@ from __future__ import annotations
 import asyncio
 import re
 import secrets
+from datetime import datetime
 from urllib.parse import unquote
 
 from starlette.applications import Starlette
 from starlette.exceptions import HTTPException
+from starlette.middleware import Middleware
+from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import Response
 from starlette.routing import Route
@@ -17,9 +20,12 @@ from .clock import parse_rfc3339
 from .domains import normalise
 from .idempotency import idempotency_key, run_once
 from .passwords import hash_password, verify_password
+from .dossier import Dossier
+from .pages import valid_date
 from .screens import asset, shell, wants_html
 from .service import Service
-from .state import Dossier, InvalidState, State, User, from_export
+from .state import State, User, from_export
+from .validate import InvalidState
 from .web import (ApiError, bearer_token, error_response, invalid, json_object, json_response,
                   malformed, no_content, not_found, parse_json, typed, unauthenticated)
 
@@ -139,16 +145,53 @@ def build_app(service: Service) -> Starlette:
             return shell()
         if request.method == "GET" and len(segments) == 1:
             return await get_dossier(request, segments[0])
+        if request.method == "GET" and len(segments) == 2 and segments[1] == "values":
+            return await dossier_values(request, segments[0])
+        if request.method == "GET" and len(segments) == 2 and segments[1] == "history":
+            return await dossier_history(request, segments[0])
         if request.method == "POST" and len(segments) == 2 and segments[1] == "refresh":
             return await refresh_dossier(request, segments[0])
         raise not_found()
 
-    async def get_dossier(request: Request, raw_domain: str) -> Response:
+    def dossier_of(request: Request, raw_domain: str) -> Dossier:
         user_of(request)
         dossier = service.state.dossiers.get(domain_of(raw_domain))
         if dossier is None:
             raise not_found("no dossier for that domain")
-        return json_response(dossier.view())
+        return dossier
+
+    async def get_dossier(request: Request, raw_domain: str) -> Response:
+        if "as_of" not in request.query_params:
+            return json_response(dossier_of(request, raw_domain).view())
+        user_of(request)
+        domain = domain_of(raw_domain)
+        moment = _instant(request, "as_of", None)
+        dossier = dossier_of(request, domain)
+        view = dossier.view_as_of(moment)
+        if view is None:
+            raise not_found("no build of this dossier was ready by then")
+        return json_response(view)
+
+    async def dossier_values(request: Request, raw_domain: str) -> Response:
+        user_of(request)
+        domain = domain_of(raw_domain)
+        day = _date(request, "true_at")
+        moment = _instant(request, "as_of", service.clock.now())
+        values = dossier_of(request, domain).values(day, moment)
+        if values is None:
+            raise not_found("no build of this dossier was ready by then")
+        return json_response({"domain": domain, "true_at": day,
+                              "as_of": request.query_params.get("as_of") or service.clock.iso(),
+                              "fields": values})
+
+    async def dossier_history(request: Request, raw_domain: str) -> Response:
+        return json_response(dossier_of(request, raw_domain).history_json())
+
+    async def list_changes(request: Request) -> Response:
+        user_of(request)
+        since = _count(request, "since", 0, 0, None)
+        limit = _count(request, "limit", 50, 1, 200)
+        return json_response(service.state.changes(since, limit))
 
     async def refresh_dossier(request: Request, raw_domain: str) -> Response:
         user_id = user_of(request)
@@ -171,11 +214,10 @@ def build_app(service: Service) -> Starlette:
         limit = _count(request, "limit", 50, 1, 200)
         offset = _count(request, "offset", 0, 0, None)
         q = request.query_params.get("q", "").casefold()
-        matches = [d for _, d in sorted(service.state.dossiers.items())
-                   if not q or q in d.domain.casefold()
-                   or q in (d.fields["legal_name"]["value"] or "").casefold()]
-        page = matches[offset:offset + limit]
-        return json_response({"dossiers": [d.listing() for d in page],
+        listed = [d.listing() for _, d in sorted(service.state.dossiers.items())]
+        matches = [d for d in listed if not q or q in d["domain"].casefold()
+                   or q in (d["legal_name"] or "").casefold()]
+        return json_response({"dossiers": matches[offset:offset + limit],
                               "has_more": offset + limit < len(matches)})
 
     async def export_state(request: Request) -> Response:
@@ -213,12 +255,20 @@ def build_app(service: Service) -> Starlette:
         Route("/_test/export", export_state, methods=["GET"]),
         Route("/_test/import", import_state, methods=["POST"]),
         Route("/auth/signup", signup, methods=["POST"]),
+        Route("/changes", list_changes, methods=["GET"]),
         Route("/auth/login", login, methods=["POST"]),
         Route("/dossiers", create_dossier, methods=["POST"]),
         Route("/dossiers", list_dossiers, methods=["GET"]),
         Route("/dossiers/{rest:path}", dossier_path, methods=["GET", "POST"]),
     ]
-    return Starlette(routes=routes, exception_handlers={
+    async def persist_writes(request: Request, call_next) -> Response:
+        response = await call_next(request)
+        if request.method not in ("GET", "HEAD"):
+            await service.persist()
+        return response
+
+    return Starlette(routes=routes, middleware=[Middleware(BaseHTTPMiddleware, dispatch=persist_writes)],
+                     exception_handlers={
         ApiError: on_api_error, HTTPException: on_http_error, Exception: on_crash})
 
 
@@ -228,6 +278,23 @@ def _dossier_segments(request: Request) -> list[str]:
     raw = request.scope.get("raw_path") or request.url.path.encode()
     rest = raw.split(b"?", 1)[0][len(b"/dossiers/"):]
     return [unquote(part.decode("latin-1")) for part in rest.split(b"/")]
+
+
+def _instant(request: Request, name: str, default: datetime | None) -> datetime:
+    raw = request.query_params.get(name)
+    if raw is None and default is not None:
+        return default
+    moment = parse_rfc3339(raw or "")
+    if moment is None:
+        raise invalid(f"{name} must be an RFC 3339 timestamp with an offset")
+    return moment
+
+
+def _date(request: Request, name: str) -> str:
+    day = valid_date(request.query_params.get(name))
+    if day is None:
+        raise invalid(f"{name} must be a date written YYYY-MM-DD")
+    return day
 
 
 def _moment(body: dict, name: str):

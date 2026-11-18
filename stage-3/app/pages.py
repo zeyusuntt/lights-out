@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
+from datetime import date, timezone
 from urllib.parse import urlparse
 
 from .candidates import KINDS
@@ -11,6 +12,7 @@ from .clock import parse_rfc3339
 from .domains import normalise
 from .support import collapse, split_line
 
+_DATE = re.compile(r"\d{4}-\d{2}-\d{2}")
 _HEADER_LINE = re.compile(r"[^\W\d_][^\W\d_]+(?:-[^\W\d_][^\W\d_]+)*:(?: |$)")
 
 
@@ -51,6 +53,25 @@ def published_at(lines: list[str]) -> str | None:
     return moment.isoformat() if moment else None
 
 
+def valid_date(text: str | None) -> str | None:
+    """A YYYY-MM-DD calendar date, or None."""
+    if not text or not _DATE.fullmatch(text):
+        return None
+    try:
+        return date.fromisoformat(text).isoformat()
+    except ValueError:
+        return None
+
+
+def true_from(lines: list[str]) -> str | None:
+    """The Effective date, else the UTC date of the publication time, else None."""
+    effective = valid_date(_header(lines, "Effective"))
+    if effective:
+        return effective
+    moment = parse_rfc3339(_header(lines, "Published") or "")
+    return moment.astimezone(timezone.utc).date().isoformat() if moment else None
+
+
 def sentences(prose: str) -> list[str]:
     """Each sentence of the prose, whitespace collapsed."""
     return [c for line in prose.splitlines() for c in map(collapse, split_line(line)) if c]
@@ -65,11 +86,13 @@ class PageText:
     prose: str
     kind: str
     published_at: str | None
+    true_from: str | None
 
     @classmethod
     def from_served(cls, url: str, provider: str, served_text: str, domain: str) -> PageText:
         lines, prose = split_served(served_text)
-        return cls(url, provider, prose, page_kind(lines, url, domain), published_at(lines))
+        return cls(url, provider, prose, page_kind(lines, url, domain), published_at(lines),
+                   true_from(lines))
 
     def excerpts(self) -> list[str]:
         return sentences(self.prose)

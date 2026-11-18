@@ -7,6 +7,8 @@ from dataclasses import dataclass
 from functools import lru_cache
 
 FIELDS = ("legal_name", "hq_city", "ceo", "founded_year", "headcount_range", "funding_total")
+TITLES = ("cfo", "coo", "cto")
+PERSON_FIELDS = ("ceo",) + TITLES
 
 STATEMENT_PHRASES = {
     "legal_name": ("legal name", "registered name", "registered as", "registered company",
@@ -14,6 +16,9 @@ STATEMENT_PHRASES = {
     "hq_city": ("headquartered in", "headquarters in", "head office in", "based in",
                 "registered office in", "registered seat in"),
     "ceo": ("chief executive officer", "chief executive", "CEO"),
+    "cfo": ("chief financial officer", "CFO"),
+    "coo": ("chief operating officer", "COO"),
+    "cto": ("chief technology officer", "CTO"),
     "founded_year": ("founded", "founding", "established", "incorporated"),
     "headcount_range": ("employs", "employees", "staff", "people", "headcount", "workforce"),
     "funding_total": ("raised", "funding", "invested", "investment"),
@@ -247,9 +252,10 @@ def _cities(text: str) -> list[Found]:
     return values
 
 
-def _people(text: str, domain: str) -> list[Found]:
+def _people(text: str, domain: str, field: str) -> list[Found]:
+    """People's names, after taking out the company's name and the field's statement phrases."""
     masked = list(text)
-    for start, end in _name_spans(text, domain) + _phrase_spans(text, "ceo"):
+    for start, end in _name_spans(text, domain) + _phrase_spans(text, field):
         masked[start:end] = "\x00" * (end - start)
     plain = "".join(masked)
     return [(s, e, text[s:e]) for s, e, count in _runs(plain, _words(plain, upper_too=False), " ")
@@ -273,8 +279,8 @@ def found_values(field: str, text: str, domain: str) -> list[Found]:
         return _legal_names(text, domain)
     if field == "hq_city":
         return _cities(text)
-    if field == "ceo":
-        return _people(text, domain)
+    if field in PERSON_FIELDS:
+        return _people(text, domain, field)
     if field == "founded_year":
         return [(s, e, int(v)) for s, e, v in numbers(text)
                 if e - s == 4 and isinstance(v, int) and 1800 <= v <= 2099]

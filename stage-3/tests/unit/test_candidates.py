@@ -1,4 +1,8 @@
-from app.candidates import Candidate, field_view
+from app.candidates import Candidate, field_view as _field_view
+
+
+def field_view(cands):
+    return _field_view("ceo", cands, lambda *_: None)
 
 T = "2026-03-01T09:00:00+00:00"
 
