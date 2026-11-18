@@ -6,4 +6,5 @@
 - FIX 1 3 sent (plan/fix-1-3.md). R1-7 issued.
 - BLOCK count stage 1: 3 (fifth BLOCK stops the line)
 - Round 4 candidate: a8789dcd65a18ca385d968116c51d23590913c33. Foreman check: claimed stage 1 (checks/foreman-s1-r4/report.json).
-- Outstanding: VERDICT verifier + second-reader on a8789dcd (VERIFY sent)
+- verifier PASS on a8789dcd (41f2aff), 186/186, 86/86 fields. Notes: scrypt on loop; "$0M" normalises to 0.
+- Outstanding: VERDICT second-reader on a8789dcd
