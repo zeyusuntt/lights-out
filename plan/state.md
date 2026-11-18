@@ -6,4 +6,5 @@
 - Round 2 candidate: b9d46b6fd9eabedd13ecc8fb09aa6247ad1fcf17 (F1, F2 fixed; research excerpts cited as served without re-extract)
 - Foreman check: clean clone, isolated -> claimed stage: 1 (checks/foreman-s1-r2/report.json)
 - BLOCK count stage 1: 1
-- Outstanding: VERDICT verifier + second-reader on b9d46b6f (VERIFY sent)
+- verifier PASS on b9d46b6f (f606136); SEAL AMENDED sha256:1aebc59fe83f9c5bf3606c1aa035f143921a2aba41db08817ff0100024822038. Notes: research excerpts not capped at 500 in code; scrypt on loop (builder disputes).
+- Outstanding: VERDICT second-reader on b9d46b6f
