@@ -43,3 +43,15 @@ def test_long_sentences_are_cited_by_spans_within_500(edge):
     assert fields["founded_year"]["value"] == 2014
     for field in fields.values():
         assert all(1 <= len(c["excerpt"]) <= 500 for c in field["citations"])
+
+
+def test_supporting_span_at_the_end_of_a_long_research_sentence(edge):
+    ceo = built(edge, "edge-tail.test")["fields"]["ceo"]
+    assert ceo["value"] == "Dana Ruiz"
+    assert ceo["citations"][0]["excerpt"] == "Edge Tail CEO: Dana Ruiz."
+
+
+def test_supporting_span_late_in_a_long_page_sentence(edge):
+    year = built(edge, "edge-late.test")["fields"]["founded_year"]
+    assert year["value"] == 1952
+    assert all(len(c["excerpt"]) <= 500 for c in year["citations"])

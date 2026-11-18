@@ -56,8 +56,10 @@ A build makes, at most, in this order:
 3. only for fields still unsupported: one `lite` search per field with the company's name
    and that field's statement phrases, then extracts of new truncated results naming it.
 
-A supporting sentence longer than 500 characters is cited by the longest run of its whole
-words, at most 500 characters, that supports the value on its own.
+A sentence of at most 500 characters is judged and cited whole. A longer one is cited by the
+shortest span of at most 500 characters that covers a value with the nearest company name and
+statement phrase on either side of it, cuts no word, amount or run of capitalised words, and
+supports that value on its own. There is no search cap.
 
 Units are reserved before every call and a build never exceeds 80. Refused calls (429,
 5xx) cost nothing and are retried after a pause; calls that time out are charged.

@@ -201,14 +201,17 @@ def company_name(domain: str) -> str:
     return domain.split(".")[0].replace("-", " ")
 
 
-def _legal_names(text: str, domain: str) -> list[str]:
+Found = tuple[int, int, object]
+
+
+def _legal_names(text: str, domain: str) -> list[Found]:
     values = []
     words = {s: e for s, e in _words(text, upper_too=True)}
     for start, pos in _name_spans(text, domain):
         while True:
             end = _suffix_end(text, pos)
             if end is not None:
-                values.append(text[start:end])
+                values.append((start, end, text[start:end]))
                 break
             if pos < len(text) and text[pos] == " " and pos + 1 in words:
                 pos = words[pos + 1]
@@ -230,23 +233,26 @@ def _suffix_end(text: str, pos: int) -> int | None:
     return best
 
 
-def _cities(text: str) -> list[str]:
-    runs = {start: end for start, end, _ in _runs(text, _words(text, upper_too=False), " -")}
+def _capitalised_runs(text: str) -> list[tuple[int, int, int]]:
+    return _runs(text, _words(text, upper_too=False), " -")
+
+
+def _cities(text: str) -> list[Found]:
+    runs = {start: end for start, end, _ in _capitalised_runs(text)}
     values = []
     for phrase in STATEMENT_PHRASES["hq_city"]:
         for _, end in find_phrase(text, phrase):
             if end < len(text) and text[end] == " " and end + 1 in runs:
-                values.append(text[end + 1:runs[end + 1]])
+                values.append((end + 1, runs[end + 1], text[end + 1:runs[end + 1]]))
     return values
 
 
-def _people(text: str, domain: str) -> list[str]:
+def _people(text: str, domain: str) -> list[Found]:
     masked = list(text)
-    for start, end in _name_spans(text, domain) + [
-            span for phrase in STATEMENT_PHRASES["ceo"] for span in find_phrase(text, phrase)]:
+    for start, end in _name_spans(text, domain) + _phrase_spans(text, "ceo"):
         masked[start:end] = "\x00" * (end - start)
     plain = "".join(masked)
-    return [text[s:e] for s, e, count in _runs(plain, _words(plain, upper_too=False), " ")
+    return [(s, e, text[s:e]) for s, e, count in _runs(plain, _words(plain, upper_too=False), " ")
             if count in (2, 3)]
 
 
@@ -257,8 +263,12 @@ def _headcount_bucket(n: int) -> str:
     return "10001+"
 
 
-def values_in_format(field: str, text: str, domain: str) -> list[str | int]:
-    """Every value in the field's format that the text contains, normalised (A.5)."""
+def _phrase_spans(text: str, field: str) -> list[tuple[int, int]]:
+    return [span for phrase in STATEMENT_PHRASES[field] for span in find_phrase(text, phrase)]
+
+
+def found_values(field: str, text: str, domain: str) -> list[Found]:
+    """Every value in the field's format that the text contains, normalised (A.5), with its span."""
     if field == "legal_name":
         return _legal_names(text, domain)
     if field == "hq_city":
@@ -266,13 +276,18 @@ def values_in_format(field: str, text: str, domain: str) -> list[str | int]:
     if field == "ceo":
         return _people(text, domain)
     if field == "founded_year":
-        return [int(v) for s, e, v in numbers(text)
+        return [(s, e, int(v)) for s, e, v in numbers(text)
                 if e - s == 4 and isinstance(v, int) and 1800 <= v <= 2099]
     if field == "headcount_range":
-        return [_headcount_bucket(v) for _, _, v in numbers(text) if isinstance(v, int) and v >= 1]
+        return [(s, e, _headcount_bucket(v)) for s, e, v in numbers(text)
+                if isinstance(v, int) and v >= 1]
     if field == "funding_total":
-        return [a.dollars for a in amounts(text) if a.dollars is not None]
+        return [(a.start, a.end, a.dollars) for a in amounts(text) if a.dollars is not None]
     raise ValueError(field)
+
+
+def values_in_format(field: str, text: str, domain: str) -> list[object]:
+    return [v for _, _, v in found_values(field, text, domain)]
 
 
 # A.2 the rule --------------------------------------------------------------------
@@ -284,7 +299,7 @@ def supported_value(excerpt: str, field: str, domain: str) -> str | int | None:
         return None
     if not _name_spans(text, domain):
         return None
-    if not any(find_phrase(text, p) for p in STATEMENT_PHRASES[field]):
+    if not _phrase_spans(text, field):
         return None
     if any(find_phrase(text, p) for p in NEGATING_PHRASES):
         return None
@@ -300,39 +315,63 @@ def supports(excerpt: str, field: str, domain: str, value: str | int) -> bool:
 
 
 MAX_CITATION = 500
-MAX_SPAN_CHECKS = 2000
 
 
-def _word_bounds(text: str) -> tuple[list[int], list[int]]:
-    starts = [i for i in range(len(text)) if text[i] != " " and (i == 0 or text[i - 1] == " ")]
-    ends = [i + 1 for i in range(len(text)) if text[i] != " " and (i + 1 == len(text) or text[i + 1] == " ")]
-    return starts, ends
+
+
+def _edges(text: str) -> tuple[list[int], list[int]]:
+    """For each position, the furthest a citation edge there must move left or right so as
+    not to cut a word, an amount or a run of capitalised words."""
+    protected = [m.span() for m in re.finditer(r"\S+", text)]
+    protected += [(a.start, a.end) for a in amounts(text)]
+    protected += [(s, e) for s, e, _ in _capitalised_runs(text)]
+    left, right = list(range(len(text) + 1)), list(range(len(text) + 1))
+    for s, e in protected:
+        for i in range(s + 1, e):
+            left[i], right[i] = min(left[i], s), max(right[i], e)
+    return left, right
+
+
+def _widen(start: int, end: int, left: list[int], right: list[int]) -> tuple[int, int]:
+    while (left[start], right[end]) != (start, end):
+        start, end = left[start], right[end]
+    return start, end
+
+
+def _nearest(spans: list[tuple[int, int]], start: int, end: int) -> list[tuple[int, int]]:
+    """The occurrences closest to a value on each side, and any overlapping it. A farther
+    occurrence on the same side only widens the span around these, adding text, so it can
+    support the value only if one of these does."""
+    before = max((s for s in spans if s[1] <= start), key=lambda s: s[1], default=None)
+    after = min((s for s in spans if s[0] >= end), key=lambda s: s[0], default=None)
+    overlapping = [s for s in spans if s[0] < end and start < s[1]]
+    return [s for s in dict.fromkeys([before, after, *overlapping]) if s is not None]
 
 
 @lru_cache(maxsize=8192)
 def citable(excerpt: str, field: str, domain: str, want: object | None = None) -> tuple[object, str] | None:
-    """(value, citation text) for a sentence: the sentence itself when it fits in 500
-    characters, else the longest span of whole words of it, at most 500 characters,
-    that on its own supports a value (the wanted one, when given)."""
+    """(value, citation text) for a sentence (R1-6, R1-7). A sentence of at most 500
+    characters is judged and cited whole. A longer one is cited by the shortest span of at
+    most 500 characters that covers a value with one of the nearest names and statement
+    phrases on either side of it, cuts no word, amount or capitalised run, and supports that
+    value on its own."""
     text = collapse(excerpt)
     if len(text) <= MAX_CITATION:
         value = supported_value(text, field, domain)
         return (value, text) if value is not None and want in (None, value) else None
-    if not _name_spans(text, domain) or not any(find_phrase(text, p) for p in STATEMENT_PHRASES[field]):
+    if not is_single_sentence(text):
         return None
-    starts, ends = _word_bounds(text)
+    names, phrases = _name_spans(text, domain), _phrase_spans(text, field)
+    values = [v for v in found_values(field, text, domain) if want in (None, v[2])]
+    left, right = _edges(text)
     best: tuple[object, str] | None = None
-    checks = 0
-    for start in starts:
-        fitting = [e for e in ends if start < e <= start + MAX_CITATION]
-        for end in reversed(fitting):
-            if best is not None and end - start <= len(best[1]):
-                break
-            checks += 1
-            if checks > MAX_SPAN_CHECKS:
-                return best
-            value = supported_value(text[start:end], field, domain)
-            if value is not None and want in (None, value):
-                best = (value, text[start:end])
-                break
+    for vs, ve, value in values:
+        for ns, ne in _nearest(names, vs, ve):
+            for ps, pe in _nearest(phrases, vs, ve):
+                start, end = _widen(min(vs, ns, ps), max(ve, ne, pe), left, right)
+                if end - start > MAX_CITATION or (best and end - start >= len(best[1])):
+                    continue
+                span = text[start:end].strip()
+                if supported_value(span, field, domain) == value:
+                    best = (value, span)
     return best

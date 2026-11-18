@@ -84,3 +84,29 @@ def test_long_sentence_is_cited_by_a_supporting_span():
     assert citable(sentence, "ceo", D, want="Sam Ortiz") is None
     far = "Acme Robotics" + " and partners" * 60 + " named Dana Ruiz as CEO."
     assert citable(far, "ceo", D) is None
+
+
+def test_long_sentence_spans_are_found_anywhere():
+    from app.support import citable
+    tail = "context " * 150 + "Acme Robotics CEO: Dana Ruiz."
+    assert citable(tail, "ceo", D) == ("Dana Ruiz", "Acme Robotics CEO: Dana Ruiz.")
+    middle = "words " * 120 + "Acme Robotics CEO: Dana Ruiz" + " and more" * 120 + "."
+    assert citable(middle, "ceo", D) == ("Dana Ruiz", "Acme Robotics CEO: Dana Ruiz")
+    late = "Over the decades the workshop " + "grew and changed and " * 36 + \
+        "Acme Robotics was founded in 1952 by two sisters."
+    value, span = citable(late, "founded_year", D)
+    assert value == 1952 and span.startswith("Acme Robotics was founded in 1952") and len(span) <= 500
+
+
+def test_span_edges_do_not_cut_runs_or_amounts():
+    from app.support import citable
+    sentence = "filler " * 80 + "Big Acme Robotics raised $12 million" + " later" * 80 + "."
+    value, span = citable(sentence, "funding_total", D)
+    assert value == 12_000_000 and span.startswith("Big Acme Robotics") and "$12 million" in span
+    cut = "filler " * 80 + "Acme Robotics hired Dana Ruiz Smith as CEO" + " later" * 80 + "."
+    assert citable(cut, "ceo", D) == ("Dana Ruiz Smith", "Acme Robotics hired Dana Ruiz Smith as CEO")
+
+
+def test_short_sentences_are_never_cut():
+    from app.support import citable
+    assert citable("Acme Robotics did not name Dana Ruiz as CEO.", "ceo", D) is None

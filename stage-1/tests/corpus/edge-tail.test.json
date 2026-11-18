@@ -1,0 +1,36 @@
+{
+ "domain": "edge-tail.test",
+ "names": [
+  "Edge Tail"
+ ],
+ "pages": [
+  {
+   "url": "https://edge-tail.test/page-0",
+   "kind": "own",
+   "epochs": [
+    0
+   ],
+   "searchable": false,
+   "title": "Edge Tail",
+   "text": "context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context Edge Tail CEO: Dana Ruiz.",
+   "facts": {},
+   "lineage": {
+    "canonical": null,
+    "first_published_by": null,
+    "registrant": "edge-tail.test"
+   }
+  }
+ ],
+ "research": {
+  "nimble": {
+   "0": [
+    {
+     "field": "ceo",
+     "value": "Dana Ruiz",
+     "url": "https://edge-tail.test/page-0",
+     "excerpt": "context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context context Edge Tail CEO: Dana Ruiz."
+    }
+   ]
+  }
+ }
+}
