@@ -10,7 +10,8 @@
 - Ledger READY 3 6777747. Rulings R3-1..R3-4 committed.
 - SEAL AMENDED 3 sha256:65b7f98961390255f965e21544d569f1caa1c81c917d6e198b136c81a26fd2cb (267, no code seen; R3-1..R3-4, phase C mid-build kill).
 - product-user PASS on cd24f51f (5e4db6e); notes: doubled quote mark, exec row baseline, tap targets <44px.
-- Outstanding: VERDICT verifier, second-reader on cd24f51f
+- second-reader PASS on cd24f51f (cf4b2a4), 246/246, audit exit 0. R3-5 issued.
+- Outstanding: VERDICT verifier on cd24f51f
 - UI: yes (stage-2 screens persist) -> accept-check --ui.
 - Watch: the stage-2 export keeps only the current dossier view (last-ready candidates with kind/published_at), with no build history, Effective lines or per-build spending. The stage-3 "Upgrades" sentences about stage-2 builds will need a ruling (a stage-2 limitation).
 - Known stage-1 limitation (final report): stage-1 export keeps only citations (R2-5).
