@@ -35,3 +35,9 @@ After a restart that interrupted a build:
 - Every completed operation survives: accounts, tokens, other dossiers, the clock and completed idempotent responses. The 202 that started the interrupted build stays replayable as recorded.
 - `spent_units` is at least the pre-build value. Spending durably recorded for the interrupted build may be kept (it was really incurred). Tests accept either the pre-build value or that value plus what the interrupted build recorded, at most 80.
 - Writes must be crash-atomic: write a temporary file, fsync, then rename, or use an equivalent transactional store, so that a kill mid-write never leaves corrupt or half-written state. State lives in the container's filesystem, not on a mounted volume.
+
+## R3-5 — S3-150 versus R1-1: a restart before any reset or clock call (second-reader DISPUTE)
+
+Readings: (a) the restart freezes the clock at the last time it read; (b) the pre-reset system-time mode survives the restart.
+Chosen: **(b)**. Basis: **SILENT → assumption**. The sentence is ruled not to reach this input.
+Why: "The clock reads the time it read before the stop until reset or `POST /_test/clock` moves it" describes a standing clock, which is the clock after a reset or a valid clock call (R1-1). Before either, the clock "follows the system time" (stage-1 §3.4). The restart guarantee is that the service "answers after the restart exactly as it did before the stop", and a clock in system-time mode was answering with the system time. Freezing it at an arbitrary last read would also require a durable write on every read, which nothing else asks for. So after a restart that comes before any reset or clock call, the clock still follows system time. Once the clock is standing, a restart preserves its exact time (S3-150), and that case is required.
