@@ -8,6 +8,7 @@
 - Opened to builder + product-user with plan/stage-2-note.md; ledger + rulings sent to verifier.
 - Round: 0. BLOCK count: 0.
 - Candidate: none
-- Outstanding: CANDIDATE 2 (builder); possible SEAL AMENDED (verifier, B5 per R2-5)
+- SEAL AMENDED 2 sha256:5e65df495d997ee6ef6380094df32116a4f96308ba5ab5bec548f5eff9e48b8c (220, no code seen).
+- Outstanding: CANDIDATE 2 (builder)
 - UI: yes -> VERIFY to verifier, second-reader, product-user; accept-check --ui.
 - Known stage-1 limitation (final report): stage-1 export keeps only citations; upgrade candidates are limited to exported excerpts (R2-5).
