@@ -1,0 +1,8 @@
+STAGE: 3
+ACCEPTED: cd24f51fb21b312aac2398adff8813a1b6276b57
+Rounds: 1 (no BLOCK)
+Verdicts: verifier PASS (verdicts/stage-3/verifier-cd24f51fb21b.md, 271 tests incl. post-seal, seal sha256:c64bd8a7860af2af0737859db7ff9daf450e165d2f335ad5151dfba75ccbb5be); second-reader PASS (verdicts/stage-3/second-reader-cd24f51fb21b.md, 246/246, ledger audit exit 0); product-user PASS (verdicts/stage-3/product-user-cd24f51fb21b.md, journey/stage-3/cd24f51fb21b/)
+Foreman check: clean clone, isolated -> claimed stage: 3 (checks/foreman-s3-r1/report.json)
+accept-check 3 cd24f51f... --ui --report checks/foreman-s3-r1/report.json -> exit 0
+Rulings: R3-1..R3-5 (rulings/stage-3.md)
+Open notes (non-blocking): whole state rewritten per write; heaviest build 70/80 units; 11.8 units per correct field; UI: doubled quote mark on quoted excerpts, executives row baseline at desktop, tap targets <44px; stage-2 export lacks build history (R3-3 limitation, lives in stage-2/).
