@@ -101,3 +101,16 @@ The header puts the domain and the actions on one line. Below 760 px each row st
 value with status, then sources. Actions wrap into full-width buttons, and the navigation stays
 in one line with the user name truncated. Long URLs and excerpts wrap (`overflow-wrap:
 anywhere`), so nothing scrolls sideways at 375 px.
+
+## Stage 3 additions
+
+- **Executives** is a seventh row in the register, after the six fields. Each member is listed
+  with its title in words ("Chief financial officer") and the name at value size. The row uses
+  the same status rule and the same quoted sources column. It carries `data-field` markup rather
+  than the six fields' test identifiers.
+- **Two times per value**: under each value's status, one muted line reads "Holds from
+  14 Jun 2025. Learned 1 Mar 2026, 09:00 (UTC+00:00)". When no date is stated, it reads "Start
+  date not stated". On the evidence screen each candidate adds "Holds from" and "First learned"
+  next to "Published" and "Retrieved".
+- On the evidence screen, executives candidates are grouped by title under small headings, with
+  the selected one marked as in the other fields.

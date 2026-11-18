@@ -8,6 +8,7 @@ const FIELDS = [
   ["headcount_range", "Employees"],
   ["funding_total", "Total funding"],
 ];
+const TITLE_LABEL = { cfo: "Chief financial officer", coo: "Chief operating officer", cto: "Chief technology officer" };
 const KIND_LABEL = { own: "Company site", filing: "Filing registry", news: "News report", aggregator: "Data aggregator" };
 const PROVIDER_LABEL = { nimble: "Nimble", tavily: "Tavily", kernel: "Kernel", browserbase: "Browserbase" };
 const STATE_LABEL = { building: "Researching", ready: "Ready", failed: "Research failed" };
@@ -107,6 +108,15 @@ function formatTime(rfc3339) {
   if (!m) return rfc3339 || "";
   const offset = m[6].toUpperCase() === "Z" ? "+00:00" : m[6];
   return `${Number(m[3])} ${MONTHS[Number(m[2]) - 1]} ${m[1]}, ${m[4]}:${m[5]} (UTC${offset})`;
+}
+
+function formatDate(day) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(day || "");
+  return m ? `${Number(m[3])} ${MONTHS[Number(m[2]) - 1]} ${m[1]}` : day || "";
+}
+
+function dateElement(day) {
+  return h("time", { datetime: day, "data-value": day }, formatDate(day));
 }
 
 function timeElement(rfc3339) {
@@ -362,6 +372,21 @@ function citationList(fieldName, citations) {
       sourceMeta(c.url, c.provider))));
 }
 
+function timesLine(f) {
+  if (f.value === null || f.value === undefined) return null;
+  return h("p", { class: "times" },
+    f.true_from ? ["Holds from ", dateElement(f.true_from)] : "Start date not stated",
+    f.learned_at ? [". Learned ", h("time", { datetime: f.learned_at }, formatTime(f.learned_at))] : null);
+}
+
+function statusLine(domain, anchor, f, distinct, pendingFirst, testid) {
+  if (f.status === "contested") {
+    return h("div", { class: "status contested", testid }, `Contested — ${distinct}`, h("a", { href: `/dossiers/${domain}/evidence#evidence-${anchor}` }, "Compare sources"));
+  }
+  const sources = `${f.citations.length} ${f.citations.length === 1 ? "source" : "sources"}`;
+  return h("div", { class: `status ${f.status}` }, f.status === "known" ? `Known — ${sources}` : pendingFirst ? "Not researched yet" : "Unknown");
+}
+
 function fieldRow(domain, [name, label], f, pendingFirst) {
   const distinct = new Set(f.candidates.map((c) => JSON.stringify(typeof c.value === "string" ? c.value.trim() : c.value))).size;
   const known = f.value !== null && f.value !== undefined;
@@ -370,10 +395,25 @@ function fieldRow(domain, [name, label], f, pendingFirst) {
     h("div", {},
       known ? h("div", { class: "value", testid: `field-value-${name}`, "data-value": dataValue(f.value) }, formatValue(name, f.value))
         : h("div", { class: "value none" }, pendingFirst ? "Research in progress" : "Not found in sources"),
-      f.status === "contested"
-        ? h("div", { class: "status contested", testid: `field-contested-${name}` }, `Contested — ${distinct} values`, h("a", { href: `/dossiers/${domain}/evidence#evidence-${name}` }, "Compare sources"))
-        : h("div", { class: `status ${f.status}` }, f.status === "known" ? `Known — ${f.citations.length} ${f.citations.length === 1 ? "source" : "sources"}` : pendingFirst ? "Not researched yet" : "Unknown")),
+      statusLine(domain, name, f, `${distinct} values`, pendingFirst, `field-contested-${name}`),
+      timesLine(f)),
     citationList(name, f.citations));
+}
+
+function executivesRow(domain, f, pendingFirst) {
+  const members = f.value || [];
+  const contestedTitles = Object.keys(TITLE_LABEL).filter((t) => new Set(f.candidates.filter((c) => c.title === t).map((c) => c.value)).size > 1);
+  return h("div", { class: "row", id: "executives", "data-field": "executives", "data-status": f.status },
+    h("div", { class: "label" }, "Executives"),
+    h("div", {},
+      members.length
+        ? h("ul", { class: "members" }, members.map((m) => h("li", { "data-title": m.title, "data-value": m.name },
+          h("span", { class: "member-title" }, TITLE_LABEL[m.title]), h("span", { class: "value" }, m.name))))
+        : h("div", { class: "value none" }, pendingFirst ? "Research in progress" : "No chief financial, operating or technology officer found in sources"),
+      statusLine(domain, "executives", f, `sources disagree on ${contestedTitles.map((t) => t.toUpperCase()).join(", ")}`, pendingFirst, null),
+      timesLine(f)),
+    h("ol", { class: "sources" }, f.citations.map((c) => h("li", { "data-provider": c.provider },
+      h("blockquote", { class: "quote" }, c.excerpt), sourceMeta(c.url, c.provider)))));
 }
 
 function dossierScreen(main, raw, token) {
@@ -457,7 +497,8 @@ function dossierScreen(main, raw, token) {
           h("a", { href: `/dossiers/${d.domain}/evidence`, class: "button secondary", testid: "dossier-evidence-link" }, "All evidence"))),
       h("div", { "aria-live": "polite" }, feedback),
       status,
-      h("div", { class: "register" }, FIELDS.map((f) => fieldRow(d.domain, f, d.fields[f[0]], d.state === "building" && !d.researched_at)))));
+      h("div", { class: "register" }, FIELDS.map((f) => fieldRow(d.domain, f, d.fields[f[0]], d.state === "building" && !d.researched_at)),
+        d.fields.executives ? executivesRow(d.domain, d.fields.executives, d.state === "building" && !d.researched_at) : null)));
   }
 
   load();
@@ -490,16 +531,38 @@ function evidenceScreen(main, raw, token) {
             ? h("ol", { class: "candidates", testid: `evidence-${name}` }, f.candidates.map((c, i) =>
               h("li", { class: "candidate", testid: `candidate-${name}-${i + 1}`, "data-value": dataValue(c.value), "data-provider": c.provider,
                 "data-kind": c.kind === null ? "" : c.kind, "data-url": c.url, "data-published-at": c.published_at || "", "data-selected": c.selected ? "true" : "false" },
-                h("div", { class: "cvalue" }, c.selected ? h("span", { class: "tag selected" }, "Selected") : null, formatValue(name, c.value)),
-                h("blockquote", { class: "quote" }, c.excerpt),
-                h("dl", { class: "facts" },
-                  h("div", {}, h("dt", {}, "Source"), h("dd", {}, c.kind ? KIND_LABEL[c.kind] : "Imported, kind not recorded")),
-                  h("div", {}, h("dt", {}, "Published"), h("dd", {}, c.published_at ? timeElement(c.published_at) : "date not stated")),
-                  h("div", {}, h("dt", {}, "Retrieved"), h("dd", {}, timeElement(c.retrieved_at)))),
-                sourceMeta(c.url, c.provider))))
+                candidateBody(name, c))))
             : h("ol", { class: "candidates", testid: `evidence-${name}` }, h("li", { class: "empty", testid: `evidence-empty-${name}` }, "No source supports a value for this field.")));
-      })));
+      }),
+      d.fields.executives ? executivesEvidence(d.fields.executives) : null));
   })();
+}
+
+function candidateBody(name, c) {
+  return [
+    h("div", { class: "cvalue" }, c.selected ? h("span", { class: "tag selected" }, "Selected") : null, formatValue(name, c.value)),
+    h("blockquote", { class: "quote" }, c.excerpt),
+    h("dl", { class: "facts" },
+      h("div", {}, h("dt", {}, "Source"), h("dd", {}, c.kind ? KIND_LABEL[c.kind] : "Imported, kind not recorded")),
+      h("div", {}, h("dt", {}, "Published"), h("dd", {}, c.published_at ? timeElement(c.published_at) : "date not stated")),
+      h("div", {}, h("dt", {}, "Holds from"), h("dd", {}, c.true_from ? dateElement(c.true_from) : "not stated")),
+      h("div", {}, h("dt", {}, "First learned"), h("dd", {}, c.learned_at ? timeElement(c.learned_at) : "not recorded")),
+      h("div", {}, h("dt", {}, "Retrieved"), h("dd", {}, timeElement(c.retrieved_at)))),
+    sourceMeta(c.url, c.provider),
+  ];
+}
+
+function executivesEvidence(f) {
+  return h("section", { class: "evidence-field", id: "evidence-executives", "data-field": "executives" },
+    h("h2", {}, "Executives", h("span", { class: `status ${f.status}` }, f.status === "contested" ? "Contested" : f.status === "known" ? "Known" : "Unknown")),
+    f.candidates.length
+      ? Object.keys(TITLE_LABEL).map((title) => {
+        const mine = f.candidates.filter((c) => c.title === title);
+        return mine.length ? h("div", { class: "title-group", "data-title": title },
+          h("h3", {}, TITLE_LABEL[title]),
+          h("ol", { class: "candidates" }, mine.map((c) => h("li", { class: "candidate", "data-title": title, "data-value": c.value, "data-selected": c.selected ? "true" : "false" }, candidateBody("ceo", c))))) : null;
+      })
+      : h("p", { class: "empty" }, "No source names a chief financial, operating or technology officer."));
 }
 
 /* ---------- contested ---------- */

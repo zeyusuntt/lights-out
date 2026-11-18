@@ -174,5 +174,13 @@ input:focus-visible { outline: 3px solid var(--action); outline-offset: 1px; }
 .list-item .pill { align-self: start; }
 .sheet > .page-title + .stack { margin-top: var(--s4); }
 
-.source-meta a, .status a { display: inline-flex; align-items: center; min-height: 44px; }
+.source-meta a, .status a { display: inline; padding: 13px 0; }
 .nav[hidden] { display: none; }
+
+.times { margin: var(--s1) 0 0; font-size: 13px; color: var(--muted); }
+.times time { color: var(--ink); font-weight: 500; }
+.members { list-style: none; margin: 0; padding: 0; }
+.members li { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--s1) var(--s3); }
+.members li + li { margin-top: var(--s2); }
+.member-title { font-size: 13px; font-weight: 600; color: var(--muted); min-width: 12em; }
+.title-group h3 { font-size: 15px; margin: var(--s4) 0 0; color: var(--muted); }
