@@ -4,7 +4,7 @@
 
 ## Stage 2
 - Opened to second-reader + verifier.
-- stage-2/ created in the working tree by stage-copy from a8789dcd. It is uncommitted: the builder owns it and must commit it on its own as the first stage-2 commit.
+- stage-2/ committed by builder as fd99d6f400ecbfe58166ebd42af066f560db793a: pure copy of a8789dcd, before seal. seal excludes pure-copy commits from product_commits, so ordering is valid.
 - Round: 0
 - Candidate: none
 - Outstanding: LEDGER READY 2 (second-reader), SEALED 2 (verifier)
