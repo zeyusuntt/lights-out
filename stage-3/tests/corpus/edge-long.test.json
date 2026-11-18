@@ -1,0 +1,51 @@
+{
+ "domain": "edge-long.test",
+ "names": [
+  "Edge Long"
+ ],
+ "pages": [
+  {
+   "url": "https://edge-long.test/page-0",
+   "kind": "own",
+   "epochs": [
+    0
+   ],
+   "searchable": false,
+   "title": "Edge Long",
+   "text": "Edge Long CEO: Dana Ruiz with published company background with published company background with published company background with published company background with published company background with published company background with published company background with published company background with published company background with published company background with published company background with published company background with published company background with published company background with published company background with published company background with published company background with published company background with published company background with published company background with published company background with published company background with published company background with published company background with published company background with published company background with published company background with published company background with published company background with published company background.",
+   "facts": {},
+   "lineage": {
+    "canonical": null,
+    "first_published_by": null,
+    "registrant": "edge-long.test"
+   }
+  },
+  {
+   "url": "https://edge-long.test/about",
+   "kind": "own",
+   "epochs": [
+    0
+   ],
+   "title": "About Edge Long",
+   "text": "Edge Long was founded in 2014 together with many partners and friends together with many partners and friends together with many partners and friends together with many partners and friends together with many partners and friends together with many partners and friends together with many partners and friends together with many partners and friends together with many partners and friends together with many partners and friends together with many partners and friends together with many partners and friends together with many partners and friends together with many partners and friends together with many partners and friends.",
+   "facts": {},
+   "lineage": {
+    "canonical": null,
+    "first_published_by": null,
+    "registrant": "edge-long.test"
+   }
+  }
+ ],
+ "research": {
+  "nimble": {
+   "0": [
+    {
+     "field": "ceo",
+     "value": "Dana Ruiz",
+     "url": "https://edge-long.test/page-0",
+     "excerpt": "Edge Long CEO: Dana Ruiz with published company background with published company background with published company background with published company background with published company background with published company background with published company background with published company background with published company background with published company background with published company background with published company background with published company background with published company background with published company background with published company background with published company background with published company background with published company background with published company background with published company background with published company background with published company background with published company background with published company background with published company background with published company background with published company background with published company background with published company background."
+    }
+   ]
+  }
+ }
+}

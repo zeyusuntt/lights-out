@@ -1,0 +1,38 @@
+{
+ "domain": "edge-header.test",
+ "names": [
+  "Edge Header"
+ ],
+ "pages": [
+  {
+   "url": "https://edge-header.test/page-0",
+   "kind": "own",
+   "epochs": [
+    0
+   ],
+   "searchable": false,
+   "title": "Edge Header",
+   "text": "Edge Header makes things.",
+   "facts": {
+    "ceo": "Edge Header CEO Sam Ortiz."
+   },
+   "lineage": {
+    "canonical": null,
+    "first_published_by": null,
+    "registrant": "edge-header.test"
+   }
+  }
+ ],
+ "research": {
+  "nimble": {
+   "0": [
+    {
+     "field": "ceo",
+     "value": "Sam Ortiz",
+     "url": "https://edge-header.test/page-0",
+     "excerpt": "Facts: {\"ceo\": \"Edge Header CEO Sam Ortiz.\"}"
+    }
+   ]
+  }
+ }
+}

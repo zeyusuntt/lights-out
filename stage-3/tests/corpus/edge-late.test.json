@@ -1,0 +1,28 @@
+{
+ "domain": "edge-late.test",
+ "names": [
+  "Edge Late"
+ ],
+ "pages": [
+  {
+   "url": "https://edge-late.test/story",
+   "kind": "own",
+   "epochs": [
+    0
+   ],
+   "title": "Edge Late story",
+   "text": "Over the decades the workshop grew and changed and grew and changed and grew and changed and grew and changed and grew and changed and grew and changed and grew and changed and grew and changed and grew and changed and grew and changed and grew and changed and grew and changed and grew and changed and grew and changed and grew and changed and grew and changed and grew and changed and grew and changed and grew and changed and grew and changed and grew and changed and grew and changed and grew and changed and grew and changed and grew and changed and grew and changed and grew and changed and grew and changed and grew and changed and grew and changed and grew and changed and grew and changed and grew and changed and grew and changed and grew and changed and grew and changed and Edge Late was founded in 1952 by two sisters.",
+   "facts": {},
+   "lineage": {
+    "canonical": null,
+    "first_published_by": null,
+    "registrant": "edge-late.test"
+   }
+  }
+ ],
+ "research": {
+  "nimble": {
+   "0": []
+  }
+ }
+}
