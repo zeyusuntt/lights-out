@@ -20,7 +20,8 @@
 - Builder committed a7228733 early (R4-9 fix), held pending verifier verdict on 010b35ad.
 - verifier BLOCK on 010b35ad (6006491): V4-2 (same root as S4-F5). SEAL AMENDED sha256:b53596ffbf945ef6dbbaa522437702a7e0c348b3a176d835540a7d599adc2828. FIX 4 2 (plan/fix-4-2.md).
 - Round 3 candidate: a7228733bd425af053de0063ec2a3fc1ef68d873. Foreman check: claimed stage 4 (checks/foreman-s4-r3/report.json).
-- Outstanding: VERDICT verifier, second-reader, product-user on a7228733 (VERIFY sent)
+- product-user PASS on a7228733 (4cb5c50).
+- Outstanding: VERDICT verifier, second-reader on a7228733
 - UI: yes -> accept-check --ui.
 - Watch: stage-4 Restarts supersedes R3-4 rollback-without-spend: billed units must be counted durably, and running builds end ready/failed within 10 s after health. The stage-3 export does keep builds (schema 3), so the 3->4 upgrade should be exact.
 - Known limitations for final report: stage-1 export citations only (R2-5); stage-2 export lacks build history and Effective (R3-3).
