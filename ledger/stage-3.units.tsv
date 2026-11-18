@@ -1,0 +1,150 @@
+S3-001	# Dossier — Stage 3: change over time
+S3-002	The requirements from stages 1 and 2 continue to apply, with the additions below.
+S3-003	Numbered section references such as §4 and §8 refer to `stage-1.md`.
+S3-004	Companies change, and the web changes with them: a refresh may be served pages that earlier builds were not, and may no longer be served pages they were.
+S3-005	Sources also correct themselves.
+S3-006	A dossier now keeps the history of each field, answers as it stood at an earlier time, and publishes its changes in a feed.
+S3-007	It also names the company's executives.
+S3-008	The following applies to all operations, in addition to the earlier lists:
+S3-009	Every change to a selected value appears exactly once in the change feed, at the time this stage assigns to it.
+S3-010	## Two times per value
+S3-011	Every candidate and every selected value now has two times:
+S3-012	**`true_from`**: the date from which the evidence says the value holds.
+S3-013	A page states it in the header line `Effective: <YYYY-MM-DD>`.
+S3-014	A page with no valid `Effective` line takes the date part, in UTC, of its `published_at`; with neither, `true_from` is null.
+S3-015	**`learned_at`**: when this service first had the value.
+S3-016	For a candidate, it is the time (§8, Builds) of the first build that gathered a candidate with the same field, value, URL and provider.
+S3-017	For a selected value, it is the time of the build that made it the selected value.
+S3-018	Candidates gain `true_from` and `learned_at`.
+S3-019	`retrieved_at` (stage 2) stays the time of the build that gathered the candidate in the current candidate set.
+S3-020	A selected value's `true_from` is that of its selected candidate.
+S3-021	Each field of `GET /dossiers/{domain}` also carries the selected value's `true_from` and `learned_at`.
+S3-022	Both are null when the field is `unknown`.
+S3-023	In an `as_of` response these describe the selected value at that snapshot, using no later history.
+S3-024	The selection rule in `stage-2.md` is unchanged.
+S3-025	## Executives
+S3-026	A dossier has a seventh field, `executives`.
+S3-027	The `fields` of every response that lists a dossier's fields hold it, after the six fields of §4.
+S3-028	A research run (§4) still asks for the six fields of §4 only.
+S3-029	Its value is an array with one object `{ "title":
+S3-030	T, "name":
+S3-031	N }` for each title below that has a selected person, in the order `cfo`, `coo`, `cto`.
+S3-032	These objects are the field's **members**.
+S3-033	When no title has a selected person, the value is null and the field is `unknown`.
+S3-034	For Appendix A, each title is a field with these statement phrases and with the format and normalisation of `ceo` (A.4, A.5), the title's own statement phrases taking the place of those for `ceo`:
+S3-035	| `cfo` | `chief financial officer`, `CFO` |  [columns: | Title | Statement phrases |]
+S3-036	| `coo` | `chief operating officer`, `COO` |  [columns: | Title | Statement phrases |]
+S3-037	| `cto` | `chief technology officer`, `CTO` |  [columns: | Title | Statement phrases |]
+S3-038	A candidate of `executives` is a candidate of one title: it carries `title` beside `value`, and its `value` is the person's name.
+S3-039	A research claim is never a candidate of `executives`.
+S3-040	```json / { "value": [ { "title": "cfo", "name": "Ana Silva" }, { "title": "cto", "name": "Ben Okafor" } ], /   "status": "known", "true_from": "2025-09-01", "learned_at": "2026-03-01T09:00:00+00:00", /   "citations": [ { "url": "https://acme-robotics.test/team", /                    "excerpt": "Ana Silva is the chief financial officer of Acme Robotics.", /                    "provider": "nimble" }, /                  { "url": "https://bizdata.test/acme-robotics", /                    "excerpt": "Acme Robotics CTO: Ben Okafor.", "provider": "tavily" } ], /   "candidates": [ { "title": "cfo", "value": "Ana Silva", "...": "...", "selected": true }, /                   { "title": "cto", "value": "Ben Okafor", "...": "...", "selected": true } ] }
+S3-041	The selection rule in `stage-2.md` runs separately over the candidates of each title.
+S3-042	`selected` is true on the highest-ranked candidate of each title that has candidates, and false on the others.
+S3-043	`candidates` lists every candidate by title, in the order above, then in rank order.
+S3-044	`citations` are, for each member in order, the `url`, `excerpt` and `provider` of every candidate with the member's title and name, in rank order.
+S3-045	`status` is `unknown` when the value is null, `contested` when the candidates of some title carry two or more different names, and `known` otherwise.
+S3-046	A candidate's `learned_at` is the time of the first build that gathered a candidate with the same title, name, URL and provider.
+S3-047	A member's `true_from` is that of its title's selected candidate.
+S3-048	The field's `true_from` is the latest of its members' `true_from`, or null when any member's is null.
+S3-049	`GET /dossiers/{domain}/values` chooses each title's person from the candidates at `true_at` and gives the value, `true_from` and `citations` from them by these rules.
+S3-050	A history and feed entry for `executives` is typed by title, in place of the table in Changes and corrections.
+S3-051	A title **differs** between the earlier and the new value when exactly one of them has a member with that title, or both have one and their names differ.
+S3-052	A differing title counts as a correction when both values have a member with that title, both members' `true_from` are not null, and the new member's is on or before the earlier member's.
+S3-053	The entry is `correction` when every differing title counts as a correction, and `change` otherwise.
+S3-054	The `data-testid` attributes of the screens in `stage-2.md` name only the six fields of §4:
+S3-055	`executives` takes none of them, and a screen that shows it does so with other markup.
+S3-056	On `/contested`, "no field is contested" means none of those six fields is.
+S3-057	## Changes and corrections
+S3-058	When a build completes `ready`, each field whose selected value differs from its selected value before the build gets one history entry, and one feed entry, of one of two types:
+S3-059	| `correction` | Both the earlier and the new value are not null, and the new value's `true_from` is on or before the earlier value's `true_from` |  [columns: | Type | When |]
+S3-060	| `change` | Every other difference, including a value appearing where there was none, a value disappearing, and either `true_from` being null |  [columns: | Type | When |]
+S3-061	A field's first selected value, set by the dossier's first build that completes `ready`, gets a history entry of type `initial` and no feed entry.
+S3-062	A field that is `unknown` after that build gets its first entry when it first gets a value, and that entry is a `change`.
+S3-063	A build that completes with the same selected value for a field adds nothing for it, even when its candidates, citations or `true_from` differ.
+S3-064	A `failed` build adds nothing.
+S3-065	Concurrent refreshes of one dossier run one build (§8) and so add each entry once.
+S3-066	## `GET /dossiers/{domain}?as_of=`
+S3-067	```http / GET /dossiers/acme-robotics.test?as_of=2026-03-15T00:00:00+00:00
+S3-068	Returns the dossier as this service had it at `as_of`: the fields, candidates and `researched_at` of the latest build that completed `ready` and whose time is at or before `as_of`, decided by `learned_at`, never by `true_from`.
+S3-069	`state` is `ready`.
+S3-070	`spent_units` is the total of the builds whose time is at or before `as_of`.
+S3-071	When several ready builds have the same time, return the last of them in build order.
+S3-072	This also applies when equivalent RFC 3339 timestamps use different offsets.
+S3-073	The clock need not advance between builds.
+S3-074	| `as_of` is not an RFC 3339 timestamp with an explicit offset | 422 `validation_failed` |  [columns: | Case | Response |]
+S3-075	| No build of the dossier completed `ready` with a time at or before `as_of` | 404 `not_found` |  [columns: | Case | Response |]
+S3-076	| No dossier for the domain | 404 `not_found` |  [columns: | Case | Response |]
+S3-077	Without `as_of`, `GET /dossiers/{domain}` is unchanged.
+S3-078	## `GET /dossiers/{domain}/values?true_at=`
+S3-079	```http / GET /dossiers/acme-robotics.test/values?true_at=2025-06-01&as_of=2026-04-01T09:00:00+00:00
+S3-080	Returns, for each field, the value that the evidence this service had at `as_of` says held on the date `true_at`.
+S3-081	`as_of` defaults to the current time (§8).
+S3-082	A **page version** is what one ready build gathered from one URL: its candidates and its `true_from`.
+S3-083	The versions of a URL known at `as_of` are those gathered by ready builds whose time is at or before `as_of`, taken in build order.
+S3-084	Each version holds from its `true_from`.
+S3-085	When a later version of the same URL is gathered, it replaces every earlier version of that URL whose `true_from` is on or after its own.
+S3-086	The latest earlier version that it does not replace stops holding on the later version's `true_from`.
+S3-087	A version whose `true_from` is null holds from no date, and a later version with a null `true_from` replaces every earlier version of its URL.
+S3-088	A gathered version with no candidates still replaces or ends earlier versions by this rule.
+S3-089	The candidates **at `true_at`** are those of every version that holds on that date.
+S3-090	Each field's value is chosen from them by the selection rule in `stage-2.md`, and its `true_from` is that of the chosen candidate.
+S3-091	```json / { "domain": "acme-robotics.test", "true_at": "2025-06-01", /   "as_of": "2026-04-01T09:00:00+00:00", /   "fields": { "ceo": { "value": "Dana Ruiz", "true_from": "2021-04-01", /                        "citations": [ { "url": "...", "excerpt": "...", "provider": "nimble" } ] }, /               "...": "..." } }
+S3-092	A field with no candidate at `true_at` has `"value": null`, `"true_from": null`, `"citations":
+S3-093	[]`.
+S3-094	Citations are those of the candidates at `true_at` with the chosen value.
+S3-095	| `true_at` missing or not a `YYYY-MM-DD` date, or `as_of` not an RFC 3339 timestamp with an explicit offset | 422 `validation_failed` |  [columns: | Case | Response |]
+S3-096	| No dossier for the domain, or no build of it completed `ready` with a time at or before `as_of` | 404 `not_found` |  [columns: | Case | Response |]
+S3-097	For state imported from an export, the builds and versions are those Upgrades gives.
+S3-098	## `GET /dossiers/{domain}/history`
+S3-099	```json / { /   "domain": "acme-robotics.test", /   "fields": { /     "ceo": [ /       { "type": "initial", "value": "Dana Ruiz", "true_from": "2021-04-01", /         "learned_at": "2026-03-01T09:00:00+00:00", /         "citations": [ { "url": "...", "excerpt": "...", "provider": "nimble" } ] }, /       { "type": "change", "value": "Lee Park", "true_from": "2026-03-20", /         "learned_at": "2026-04-01T09:00:00+00:00", /         "citations": [ { "url": "...", "excerpt": "...", "provider": "tavily" } ] } /     ], /     "legal_name": [ { "...": "..." } ], /     "hq_city": [], /     "founded_year": [ { "...": "..." } ], /     "headcount_range": [ { "...": "..." } ], /     "funding_total": [ { "...": "..." } ], /     "executives": [ { "...": "..." } ] /   } / }
+S3-100	`fields` holds all seven fields.
+S3-101	Each list is in the order the entries were added, oldest first.
+S3-102	An entry's `value`, `true_from`, `learned_at` and `citations` are those of the selected value it records.
+S3-103	An entry whose value is null has `"true_from": null` and `"citations":
+S3-104	[]`.
+S3-105	No dossier for the domain is 404 `not_found`.
+S3-106	## `GET /changes`
+S3-107	```http / GET /changes?since=0&limit=50
+S3-108	```json / { /   "changes": [ /     { "seq": 1, "domain": "acme-robotics.test", "field": "ceo", "type": "change", /       "from": "Dana Ruiz", "to": "Lee Park", "true_from": "2026-03-20", /       "learned_at": "2026-04-01T09:00:00+00:00" } /   ], /   "has_more": false / }
+S3-109	The feed holds every `change` and `correction` entry of every dossier.
+S3-110	`seq` is a positive integer, unique across the feed, and larger for every later entry.
+S3-111	Entries added by one build are numbered in the order of the fields in `stage-1.md` §4, then `executives`.
+S3-112	`from` and `to` are the earlier and the new selected value, either of which may be null.
+S3-113	`true_from` is the new value's.
+S3-114	`learned_at` is the time of the build that added the entry.
+S3-115	`since` defaults to 0 and lists only entries whose `seq` is greater than it.
+S3-116	It is an integer, 0 or more.
+S3-117	Entries are ordered by `seq` ascending.
+S3-118	`limit` defaults to 50, range 1 to 200.
+S3-119	`has_more` is true when entries exist beyond the last one returned.
+S3-120	## Upgrades
+S3-121	A stage-3 service must accept an export produced by the same team's stage-1 or stage-2 service.
+S3-122	Every imported field that has a value gets one history entry of type `initial`, with `learned_at` the dossier's `researched_at` and `true_from` null unless the exported state records the dates that give it.
+S3-123	The feed starts empty; the first build after import compares its selected values with the imported ones.
+S3-124	Existing tokens, dossiers and completed idempotent responses survive the import as in `stage-1.md` §10, and the history and feed of a stage-3 export survive a stage-3 import unchanged.
+S3-125	So do its builds: after a stage-3 import, `?as_of=` and `/values` answer as they did in the exporting service.
+S3-126	State imported from a stage-1 export counts as one build that completed `ready` at the dossier's `researched_at`, and each imported candidate's URL as one version gathered by it; imported candidates have `learned_at` equal to their `retrieved_at`.
+S3-127	An `as_of` at or after that time and before the next build returns the imported fields, and an earlier `as_of` is 404 `not_found`.
+S3-128	An imported dossier whose `researched_at` is null answers every `as_of` with 404 `not_found` until a build completes.
+S3-129	State imported from a stage-2 export keeps the builds that the stage-2 service made, each with its time, its outcome and its spending.
+S3-130	Each of them that completed `ready` keeps the candidates it gathered and, for each URL it gathered, one page version whose `true_from` follows from that page's `Effective` and `Published` lines as that build gathered them (Two times per value).
+S3-131	State that the stage-2 service had itself imported counts as one build that completed `ready` at the dossier's `researched_at`.
+S3-132	`?as_of=`, `/values` and each candidate's `learned_at` then answer as if this service had made those builds.
+S3-133	History is still one `initial` entry per field that has a value, as above, and an `as_of` response takes each field's `learned_at` and `true_from` from that history (Two times per value).
+S3-134	An export of a stage-1 or stage-2 service has no `executives` candidates.
+S3-135	After its import, `executives` is `unknown`, in the imported state and in every build kept from the export, and has no history entry; the first build that completes `ready` with a value for it adds a `change`, or an `initial` entry when it is the dossier's first build that completes `ready`.
+S3-136	## Concurrency
+S3-137	Concurrent refreshes and reads must produce the same results as executing them one at a time in some order.
+S3-138	No change appears twice in the feed, and none is missing from it.
+S3-139	## Restarts
+S3-140	This row replaces the Disk row of the resource limits in `stage-1.md` §2:
+S3-141	| Disk | the container's filesystem; it survives a container restart |  [columns: | Limit | Value |]
+S3-142	The container may be stopped abruptly at any time, with no warning and no time to finish what the service is doing, and then started again.
+S3-143	The sentence "State need not survive an abrupt container restart" in `stage-1.md` §10 no longer applies.
+S3-144	When no build is running at the stop, the service answers after the restart exactly as it did before the stop:
+S3-145	Every account signs in with its password, and every bearer token is valid.
+S3-146	Every dossier answers `GET /dossiers/{domain}`, with and without `as_of`, `GET /dossiers/{domain}/values` and `GET /dossiers/{domain}/history` as before, and `GET /dossiers` lists the same dossiers.
+S3-147	The change feed holds the same entries with the same `seq`.
+S3-148	An entry added after the restart has a larger `seq` than every entry before it.
+S3-149	A replay of a completed idempotent request answers as §7 requires.
+S3-150	The clock reads the time it read before the stop until reset or `POST /_test/clock` moves it.
