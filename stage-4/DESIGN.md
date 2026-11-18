@@ -114,3 +114,18 @@ anywhere`), so nothing scrolls sideways at 375 px.
   next to "Published" and "Retrieved".
 - On the evidence screen, executives candidates are grouped by title under small headings, with
   the selected one marked as in the other fields.
+
+## Stage 4 additions
+
+- **Sources behind a value**: under each value, one line names its independent origins. In the
+  known colour it reads "Corroborated by 2 independent sources: a.test, b.test, since <time>";
+  in muted text it reads "Single source: a.test". Copies of one article count once, which is
+  why one value can show three citations and one source.
+- **Investors** is the eighth register row, after executives, and uses the same member list.
+  Names that only one source mentions are listed in a muted line with a link to their sources,
+  so a reader sees why they are not counted.
+- **Evidence**: every candidate shows its origin. Investors candidates are marked "Investor"
+  when the name counts.
+- **Polish**: source links and in-row links have a 44 px tap target. Quote marks are added only
+  when the excerpt does not already start with one. Executive titles and names share a baseline
+  in a two-column grid that stacks on phones.

@@ -231,6 +231,10 @@ function statePill(state) {
   return h("span", { class: `pill ${state}` }, STATE_LABEL[state] || state);
 }
 
+function quote(text) {
+  return h("blockquote", { class: "quote" }, /^["“'‘]/.test(text) ? text : `“${text}”`);
+}
+
 function sourceMeta(url, provider, extra) {
   return h("div", { class: "source-meta" }, extra, h("a", { href: url, target: "_blank", rel: "noopener" }, url),
     ` — served by ${PROVIDER_LABEL[provider] || provider}`);
@@ -368,8 +372,20 @@ function listScreen(main, _arg, token) {
 function citationList(fieldName, citations) {
   return h("ol", { class: "sources", testid: `field-citations-${fieldName}` }, citations.map((c, i) =>
     h("li", { testid: `citation-${fieldName}-${i + 1}`, "data-provider": c.provider },
-      h("blockquote", { class: "quote" }, c.excerpt),
+      quote(c.excerpt),
       sourceMeta(c.url, c.provider))));
+}
+
+function originsLine(f) {
+  if (f.value === null || f.value === undefined || !f.origins || !f.origins.length) return null;
+  const list = f.origins.join(", ");
+  if (f.corroborated) {
+    return h("p", { class: "origins corroborated", "data-origins": f.origins.join(" ") },
+      `Corroborated by ${f.origins.length} independent sources: ${list}`,
+      f.corroborated_since ? [", since ", h("time", { datetime: f.corroborated_since }, formatTime(f.corroborated_since))] : null);
+  }
+  return h("p", { class: "origins single", "data-origins": f.origins.join(" ") },
+    f.origins.length === 1 ? `Single source: ${list}` : `Sources not yet independent for every member: ${list}`);
 }
 
 function timesLine(f) {
@@ -396,7 +412,7 @@ function fieldRow(domain, [name, label], f, pendingFirst) {
       known ? h("div", { class: "value", testid: `field-value-${name}`, "data-value": dataValue(f.value) }, formatValue(name, f.value))
         : h("div", { class: "value none" }, pendingFirst ? "Research in progress" : "Not found in sources"),
       statusLine(domain, name, f, `${distinct} values`, pendingFirst, `field-contested-${name}`),
-      timesLine(f)),
+      timesLine(f), originsLine(f)),
     citationList(name, f.citations));
 }
 
@@ -408,12 +424,31 @@ function executivesRow(domain, f, pendingFirst) {
     h("div", {},
       members.length
         ? h("ul", { class: "members" }, members.map((m) => h("li", { "data-title": m.title, "data-value": m.name },
-          h("span", { class: "member-title" }, TITLE_LABEL[m.title]), h("span", { class: "value" }, m.name))))
+          h("span", { class: "member-title" }, TITLE_LABEL[m.title]), h("span", { class: "member-name" }, m.name))))
         : h("div", { class: "value none" }, pendingFirst ? "Research in progress" : "No chief financial, operating or technology officer found in sources"),
       statusLine(domain, "executives", f, `sources disagree on ${contestedTitles.map((t) => t.toUpperCase()).join(", ")}`, pendingFirst, null),
-      timesLine(f)),
-    h("ol", { class: "sources" }, f.citations.map((c) => h("li", { "data-provider": c.provider },
-      h("blockquote", { class: "quote" }, c.excerpt), sourceMeta(c.url, c.provider)))));
+      timesLine(f), originsLine(f)),
+    plainCitations(f.citations));
+}
+
+function plainCitations(citations) {
+  return h("ol", { class: "sources" }, citations.map((c) => h("li", { "data-provider": c.provider },
+    quote(c.excerpt), sourceMeta(c.url, c.provider))));
+}
+
+function investorsRow(domain, f, pendingFirst) {
+  const names = f.value || [];
+  const others = [...new Set(f.candidates.filter((c) => !c.selected).map((c) => c.value))];
+  return h("div", { class: "row", id: "investors", "data-field": "investors", "data-status": f.status },
+    h("div", { class: "label" }, "Investors"),
+    h("div", {},
+      names.length
+        ? h("ul", { class: "members" }, names.map((n) => h("li", { "data-value": n }, h("span", { class: "member-name" }, n))))
+        : h("div", { class: "value none" }, pendingFirst ? "Research in progress" : "No investor confirmed by a company site, a filing or two independent sources"),
+      f.status === "known" ? h("div", { class: "status known" }, `Known — ${names.length} ${names.length === 1 ? "investor" : "investors"}`) : h("div", { class: "status unknown" }, pendingFirst ? "Not researched yet" : "Unknown"),
+      others.length ? h("p", { class: "times" }, `Also mentioned by a single source: ${others.join(", ")}. `, h("a", { href: `/dossiers/${domain}/evidence#evidence-investors` }, "See sources")) : null,
+      timesLine(f), originsLine(f)),
+    plainCitations(f.citations));
 }
 
 function dossierScreen(main, raw, token) {
@@ -498,7 +533,8 @@ function dossierScreen(main, raw, token) {
       h("div", { "aria-live": "polite" }, feedback),
       status,
       h("div", { class: "register" }, FIELDS.map((f) => fieldRow(d.domain, f, d.fields[f[0]], d.state === "building" && !d.researched_at)),
-        d.fields.executives ? executivesRow(d.domain, d.fields.executives, d.state === "building" && !d.researched_at) : null)));
+        d.fields.executives ? executivesRow(d.domain, d.fields.executives, d.state === "building" && !d.researched_at) : null,
+        d.fields.investors ? investorsRow(d.domain, d.fields.investors, d.state === "building" && !d.researched_at) : null)));
   }
 
   load();
@@ -534,20 +570,22 @@ function evidenceScreen(main, raw, token) {
                 candidateBody(name, c))))
             : h("ol", { class: "candidates", testid: `evidence-${name}` }, h("li", { class: "empty", testid: `evidence-empty-${name}` }, "No source supports a value for this field.")));
       }),
-      d.fields.executives ? executivesEvidence(d.fields.executives) : null));
+      d.fields.executives ? executivesEvidence(d.fields.executives) : null,
+      d.fields.investors ? investorsEvidence(d.fields.investors) : null));
   })();
 }
 
 function candidateBody(name, c) {
   return [
-    h("div", { class: "cvalue" }, c.selected ? h("span", { class: "tag selected" }, "Selected") : null, formatValue(name, c.value)),
-    h("blockquote", { class: "quote" }, c.excerpt),
+    h("div", { class: "cvalue" }, c.selected ? h("span", { class: "tag selected" }, name === "investors" ? "Investor" : "Selected") : null, formatValue(name, c.value)),
+    quote(c.excerpt),
     h("dl", { class: "facts" },
       h("div", {}, h("dt", {}, "Source"), h("dd", {}, c.kind ? KIND_LABEL[c.kind] : "Imported, kind not recorded")),
       h("div", {}, h("dt", {}, "Published"), h("dd", {}, c.published_at ? timeElement(c.published_at) : "date not stated")),
       h("div", {}, h("dt", {}, "Holds from"), h("dd", {}, c.true_from ? dateElement(c.true_from) : "not stated")),
       h("div", {}, h("dt", {}, "First learned"), h("dd", {}, c.learned_at ? timeElement(c.learned_at) : "not recorded")),
-      h("div", {}, h("dt", {}, "Retrieved"), h("dd", {}, timeElement(c.retrieved_at)))),
+      h("div", {}, h("dt", {}, "Retrieved"), h("dd", {}, timeElement(c.retrieved_at))),
+      h("div", {}, h("dt", {}, "Origin"), h("dd", {}, c.origin))),
     sourceMeta(c.url, c.provider),
   ];
 }
@@ -563,6 +601,15 @@ function executivesEvidence(f) {
           h("ol", { class: "candidates" }, mine.map((c) => h("li", { class: "candidate", "data-title": title, "data-value": c.value, "data-selected": c.selected ? "true" : "false" }, candidateBody("ceo", c))))) : null;
       })
       : h("p", { class: "empty" }, "No source names a chief financial, operating or technology officer."));
+}
+
+function investorsEvidence(f) {
+  return h("section", { class: "evidence-field", id: "evidence-investors", "data-field": "investors" },
+    h("h2", {}, "Investors", h("span", { class: `status ${f.status}` }, f.status === "known" ? "Known" : "Unknown")),
+    h("p", { class: "lede" }, "A name counts as an investor when a company site or filing states it, or two independent sources do."),
+    f.candidates.length
+      ? h("ol", { class: "candidates" }, f.candidates.map((c) => h("li", { class: "candidate", "data-value": c.value, "data-selected": c.selected ? "true" : "false" }, candidateBody("investors", c))))
+      : h("p", { class: "empty" }, "No source names an investor."));
 }
 
 /* ---------- contested ---------- */
