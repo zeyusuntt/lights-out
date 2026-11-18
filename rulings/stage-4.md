@@ -44,3 +44,9 @@ Chosen: **(a)**. Basis: **IMPLIED** (stage-1 §10 says import "atomically replac
 - A stage-4 export holds every batch: id, owner, domains, `budget_units`, its builds and `spent_units`. A running build in it is settled as in R1-4: the dossier as before that build. In the exported batch that build counts as not having run, so the batch's `spent_units` is the spending of its completed builds, and its state is `done` once none of its builds is still to run after import.
 - Import makes no provider call and resumes nothing. After import every imported batch is `done`, and `GET /batches/{id}` answers for its owner (404 for others). The original `POST /batches` replays its original 202 body (D7).
 - Stage-1, 2 and 3 exports hold no batches.
+
+## R4-8 — S4-109 / S4-118: refused attempts whose refund was not yet durable at a kill (second-reader DISPUTE)
+
+Readings: (a) a call already answered with an error before the stop is not in flight, so its units must not be counted after the restart; (b) its durable reservation may be counted until a settlement is recorded.
+Chosen: **(a)**. Basis: **EXPLICIT**.
+Why: stage-4 Restarts allows counting only calls "that were in flight at the stop and that no provider billed". A call the provider has already answered with an error status is complete, and it "costs nothing" (§9, stage-4 Provider failure). The restart rules also require everything else to be "answered as before the stop": a dossier showing `spent_units` 0 before the kill must not show 35 after it, merely because a refund lived only in memory. Builder: record a call's settlement (refund on refusal, or final cost) durably no later than the moment it becomes visible in any response. Equivalently, do not expose a refund in memory before it is persisted. Only reservations for calls that had no answer at the stop may be counted after a restart.
