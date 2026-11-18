@@ -5,4 +5,5 @@
 - Round 1 on 52f4f877: verifier PASS, second-reader BLOCK (F1, F2). FIX 1 1.
 - Round 2 on b9d46b6f: verifier PASS, second-reader BLOCK (F3 header-shaped research prose left unknown; F4 1056-char research citation). FIX 1 2 sent (plan/fix-1-2.md). R1-6 issued.
 - BLOCK count stage 1: 2
-- Outstanding: CANDIDATE 1 (builder)
+- Round 3 candidate: d07442da2a5016e26e55e3f8b32a76e3d731c0dd. Foreman check: claimed stage 1 (checks/foreman-s1-r3/report.json).
+- Outstanding: VERDICT verifier + second-reader on d07442da (VERIFY sent)
