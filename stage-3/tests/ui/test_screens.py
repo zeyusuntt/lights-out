@@ -173,3 +173,20 @@ def test_first_build_fields_read_as_in_progress(page, mock):
     expect(page.get_by_test_id("field-ceo")).to_contain_text("Research in progress")
     expect(page.get_by_test_id("field-ceo")).to_have_attribute("data-status", "unknown")
     expect(page.get_by_test_id("dossier-state")).to_have_text("ready", timeout=20000)
+
+
+def test_executives_and_times_on_dossier_and_evidence(page, mock):
+    sign_in(page)
+    page.fill("[data-testid=research-domain]", "quillmate.test")
+    page.click("[data-testid=research-submit]")
+    expect(page.get_by_test_id("dossier-state")).to_have_text("ready", timeout=15000)
+    row = page.locator("[data-field=executives]")
+    expect(row).to_contain_text("Chief financial officer")
+    expect(row.locator("[data-title=cfo]")).to_have_attribute("data-value", "Mateo Jessop")
+    expect(page.locator("[data-testid^=field-value-]")).to_have_count(5)
+    expect(page.get_by_test_id("field-founded_year")).to_contain_text("Learned")
+    no_horizontal_scroll(page)
+    page.click("[data-testid=dossier-evidence-link]")
+    expect(page.locator("#evidence-executives [data-title=cto] .candidate").first).to_have_attribute("data-selected", "true")
+    expect(page.locator("[data-testid^=evidence-]").filter(has_not=page.locator("[data-testid^=evidence-empty-]"))).to_have_count(6)
+    no_horizontal_scroll(page)

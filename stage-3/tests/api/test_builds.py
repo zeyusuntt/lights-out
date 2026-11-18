@@ -33,19 +33,22 @@ def test_ready_builds_cite_served_supporting_prose(api, ada, mock):
         assert 0 < body["spent_units"] <= 80
         for name, field in body["fields"].items():
             assert (field["value"] is None) == (field["status"] == "unknown") == (not field["citations"])
-            assert sum(c["selected"] for c in field["candidates"]) == (1 if field["candidates"] else 0)
+            titles = {c.get("title") for c in field["candidates"]}
+            assert sum(c["selected"] for c in field["candidates"]) == len(titles)
             for candidate in field["candidates"]:
                 assert any(candidate["excerpt"] in text for text in served[candidate["url"]])
-                assert supported_value(candidate["excerpt"], name, body["domain"]) == candidate["value"]
+                rule = candidate.get("title") or name
+                assert supported_value(candidate["excerpt"], rule, body["domain"]) == candidate["value"]
                 assert candidate["kind"] in ("own", "filing", "news", "aggregator")
                 assert candidate["retrieved_at"] == body["researched_at"]
             for citation in field["citations"]:
                 assert citation["provider"] == "nimble"
                 assert 1 <= len(citation["excerpt"]) <= 500
                 assert any(citation["excerpt"] in text for text in served[citation["url"]])
-                assert supported_value(citation["excerpt"], name, body["domain"]) == field["value"]
+                if name != "executives":
+                    assert supported_value(citation["excerpt"], name, body["domain"]) == field["value"]
     known = {b["domain"]: sum(f["status"] != "unknown" for f in b["fields"].values()) for b in bodies}
-    assert known["corvid-security.test"] == 6 and known["getferncliff-foods.test"] == 0
+    assert known["corvid-security.test"] == 7 and known["getferncliff-foods.test"] == 0
 
 
 def test_spent_units_match_provider_log_and_one_exact_domain_search(api, ada, mock):
@@ -58,7 +61,7 @@ def test_spent_units_match_provider_log_and_one_exact_domain_search(api, ada, mo
     assert len(exact) == 1
     research = [c for c in calls if c["method"] == "research"]
     assert len(research) == 1 and domain in research[0]["query"]
-    assert research[0]["fields"] == sorted(body["fields"])
+    assert research[0]["fields"] == sorted(f for f in body["fields"] if f != "executives")
     research_urls = {item["url"] for item in research[0]["served"] or []}
     rendered = {u for c in calls if c["method"] == "extract" for u in c["urls"]}
     assert research_urls <= rendered
@@ -106,7 +109,7 @@ def test_throttled_provider_still_builds(api, ada, mock):
     body = wait_settled(api, ada, "corvid-security.test")
     assert time.monotonic() - started < 10
     assert body["state"] == "ready"
-    assert sum(f["status"] != "unknown" for f in body["fields"].values()) == 6
+    assert sum(f["status"] != "unknown" for f in body["fields"].values()) == 7
     calls = mock.calls()
     assert body["spent_units"] == sum(c["cost"] for c in calls)
     exact = [c for c in calls if c["method"] == "search" and c["query"] == "corvid-security.test"
@@ -164,7 +167,7 @@ def test_throttled_render_after_slow_research_is_retried(api, ada, mock):
     create(api, ada, "corvid-security.test")
     body = wait_settled(api, ada, "corvid-security.test", timeout=40)
     assert body["state"] == "ready"
-    assert sum(f["status"] != "unknown" for f in body["fields"].values()) == 6
+    assert sum(f["status"] != "unknown" for f in body["fields"].values()) == 7
     renders = [c for c in mock.calls() if c["method"] == "extract"]
     assert any(c["status"] == 429 for c in renders) and any(c["status"] == 200 for c in renders)
     assert body["spent_units"] == sum(c["cost"] for c in mock.calls())
