@@ -7,13 +7,14 @@
 ## Stage 4 (last)
 - stage-4/ copy committed by builder 1949353 (pure copy).
 - Ledger bbd3904 (125 units). Rulings R4-0..R4-7. Opened to builder + product-user with plan/stage-4-note.md; rulings sent to verifier + second-reader.
-- Round: 1. BLOCK count: 0. Candidate: b928822534e8f8b9b7ce8dbf555bfbda1a42deab. Foreman check: claimed stage 4 (checks/foreman-s4-r1/report.json).
+- Round: 1. BLOCK count: 1. Candidate: b928822534e8f8b9b7ce8dbf555bfbda1a42deab. Foreman check: claimed stage 4 (checks/foreman-s4-r1/report.json).
 - SEALED 4 sha256:9363e05a0c20b9f7879889ef7e30f65e28b58befd8e7b6ea2cd86d5b700410c2 (296, 0 product commits). Readings D1-D7.
 - SEAL AMENDED 4 sha256:d996aff2c3bd07ce52ea3b9d2c65a5d1a85bc9ba64db4a5db679645f7775747e (300, no code seen).
 - product-user PASS on b9288225 (fa0052f); notes: nav <44px, exec name wrap/baseline, per-field single-source line.
 - verifier BLOCK on b9288225 (5be490c): V4-1 batch research gated on 25+30 page room, skipped though affordable (tarnwick, budget 49 -> founded_year unknown). SEAL AMENDED sha256:438bf8f9fcdc2e8cdc1558abcb243c180dc31e4db48e5acbfbd956482d1506ec.
 - Builder committed 79b12c07 early (R4-8 fix only, not verified). Told to wait for FIX 4 1.
-- Outstanding: VERDICT second-reader on b9288225, then FIX 4 1 (V4-1 + R4-8 + any)
+- second-reader BLOCK on b9288225 (fb02ed7): F1 corroborated_since stint reset, F2 lineage reserve, F3 R4-8 refunds, F4 = V4-1. FIX 4 1 sent (plan/fix-4-1.md).
+- Outstanding: CANDIDATE 4 (builder)
 - UI: yes -> accept-check --ui.
 - Watch: stage-4 Restarts supersedes R3-4 rollback-without-spend: billed units must be counted durably, and running builds end ready/failed within 10 s after health. The stage-3 export does keep builds (schema 3), so the 3->4 upgrade should be exact.
 - Known limitations for final report: stage-1 export citations only (R2-5); stage-2 export lacks build history and Effective (R3-3).
