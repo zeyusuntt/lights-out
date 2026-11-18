@@ -8,7 +8,8 @@
 - Seal sha256:10ad55f8793831fa22b63fe4e674fcb4ca9f7387865e0ff145c487b4705916de (262, 0 product commits). Opened to builder + product-user with plan/stage-3-note.md; rulings sent to verifier.
 - Round: 0. BLOCK count: 0. Candidate: none.
 - Ledger READY 3 6777747. Rulings R3-1..R3-4 committed.
-- Outstanding: CANDIDATE 3 (builder); possible SEAL AMENDED (verifier)
+- SEAL AMENDED 3 sha256:65b7f98961390255f965e21544d569f1caa1c81c917d6e198b136c81a26fd2cb (267, no code seen; R3-1..R3-4, phase C mid-build kill).
+- Outstanding: CANDIDATE 3 (builder)
 - UI: yes (stage-2 screens persist) -> accept-check --ui.
 - Watch: the stage-2 export keeps only the current dossier view (last-ready candidates with kind/published_at), with no build history, Effective lines or per-build spending. The stage-3 "Upgrades" sentences about stage-2 builds will need a ruling (a stage-2 limitation).
 - Known stage-1 limitation (final report): stage-1 export keeps only citations (R2-5).
