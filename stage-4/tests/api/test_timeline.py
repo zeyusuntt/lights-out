@@ -67,7 +67,7 @@ def test_as_of_answers_with_the_earlier_build(api, ada, mock):
 def test_values_by_true_date(api, ada, mock):
     two_builds(api, ada)
     body = api.get(f"/dossiers/{DOMAIN}/values?true_at=2030-01-01", headers=ada).json()
-    assert body["domain"] == DOMAIN and body["true_at"] == "2030-01-01" and len(body["fields"]) == 7
+    assert body["domain"] == DOMAIN and body["true_at"] == "2030-01-01" and len(body["fields"]) == 8
     for field in body["fields"].values():
         assert set(field) == {"value", "true_from", "citations"}
         assert (field["value"] is None) == (field["citations"] == [])

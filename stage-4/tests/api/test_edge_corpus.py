@@ -64,3 +64,21 @@ def test_page_cited_by_an_unsupported_claim_is_still_read(edge):
     assert year["value"] == 1990
     assert year["candidates"][0]["kind"] == "news"
     assert year["candidates"][0]["published_at"] == "2025-05-01T10:00:00+02:00"
+
+
+def test_origins_follow_lineage(edge):
+    fields = built(edge, "edge-lineage.test")["fields"]
+    year = fields["founded_year"]
+    assert year["value"] == 2010
+    assert year["origins"] == ["edge-lineage.test", "origin-three.test"] and year["corroborated"] is True
+    assert year["corroborated_since"] is not None
+    assert {c["url"] for c in year["candidates"]} == {"https://edge-lineage.test/about", "https://copy-one.test/a"}
+    ceo = fields["ceo"]
+    assert ceo["origins"] == ["edge-lineage.test", "newsx.test"]
+    lookalike = next(c for c in ceo["candidates"] if "official" in c["url"])
+    assert lookalike["kind"] == "aggregator" and lookalike["origin"] == "edge-lineage.test"
+    investors = fields["investors"]
+    assert investors["value"] == ["Oak Hill Ventures"] and investors["status"] == "known"
+    rejected = [c for c in investors["candidates"] if c["value"] == "General Atlantic"]
+    assert len(rejected) == 2 and not any(c["selected"] for c in rejected)
+    assert {c["origin"] for c in rejected} == {"wire-one.test"}

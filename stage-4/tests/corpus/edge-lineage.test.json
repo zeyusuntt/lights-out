@@ -1,0 +1,149 @@
+{
+ "domain": "edge-lineage.test",
+ "names": [
+  "Edge Lineage"
+ ],
+ "pages": [
+  {
+   "url": "https://edge-lineage.test/about",
+   "kind": "own",
+   "epochs": [
+    0
+   ],
+   "searchable": true,
+   "published_at": null,
+   "title": "Edge Lineage edge-lineage.test",
+   "text": "Edge Lineage was founded in 2010.\nEdge Lineage is backed by Oak Hill Ventures.",
+   "facts": {},
+   "lineage": {
+    "canonical": null,
+    "first_published_by": null,
+    "registrant": "edge-lineage.test"
+   }
+  },
+  {
+   "url": "https://copy-one.test/a",
+   "kind": "news",
+   "epochs": [
+    0
+   ],
+   "searchable": true,
+   "published_at": "2025-01-01T00:00:00Z",
+   "title": "Edge Lineage copy-one.test",
+   "text": "Edge Lineage was founded in 2010.",
+   "facts": {},
+   "lineage": {
+    "canonical": "https://copy-two.test/b",
+    "first_published_by": null,
+    "registrant": "copy-one.test"
+   }
+  },
+  {
+   "url": "https://copy-two.test/b",
+   "kind": "news",
+   "epochs": [
+    0
+   ],
+   "searchable": false,
+   "published_at": null,
+   "title": "Edge Lineage copy-two.test",
+   "text": "Edge Lineage was founded in 2010.",
+   "facts": {},
+   "lineage": {
+    "canonical": "https://origin-three.test/c",
+    "first_published_by": null,
+    "registrant": "copy-two.test"
+   }
+  },
+  {
+   "url": "https://origin-three.test/c",
+   "kind": "news",
+   "epochs": [
+    0
+   ],
+   "searchable": false,
+   "published_at": null,
+   "title": "Edge Lineage origin-three.test",
+   "text": "Edge Lineage was founded in 2010.",
+   "facts": {},
+   "lineage": {
+    "canonical": null,
+    "first_published_by": null,
+    "registrant": "origin-three.test"
+   }
+  },
+  {
+   "url": "https://edge-lineage-official.test/x",
+   "kind": "own",
+   "epochs": [
+    0
+   ],
+   "searchable": true,
+   "published_at": null,
+   "title": "Edge Lineage edge-lineage-official.test",
+   "text": "Edge Lineage CEO: Pat Lee.",
+   "facts": {},
+   "lineage": {
+    "canonical": null,
+    "first_published_by": null,
+    "registrant": "parked.test"
+   }
+  },
+  {
+   "url": "https://newsx.test/ceo",
+   "kind": "news",
+   "epochs": [
+    0
+   ],
+   "searchable": true,
+   "published_at": null,
+   "title": "Edge Lineage newsx.test",
+   "text": "Edge Lineage CEO: Pat Lee.",
+   "facts": {},
+   "lineage": {
+    "canonical": null,
+    "first_published_by": null,
+    "registrant": "newsx.test"
+   }
+  },
+  {
+   "url": "https://wire-one.test/round",
+   "kind": "news",
+   "epochs": [
+    0
+   ],
+   "searchable": true,
+   "published_at": null,
+   "title": "Edge Lineage wire-one.test",
+   "text": "Edge Lineage raised $5M in a round led by General Atlantic.",
+   "facts": {},
+   "lineage": {
+    "canonical": null,
+    "first_published_by": null,
+    "registrant": "wire-one.test"
+   }
+  },
+  {
+   "url": "https://wire-copy.test/round",
+   "kind": "news",
+   "epochs": [
+    0
+   ],
+   "searchable": true,
+   "published_at": null,
+   "title": "Edge Lineage wire-copy.test",
+   "text": "Edge Lineage raised $5M in a round led by General Atlantic.",
+   "facts": {},
+   "lineage": {
+    "canonical": null,
+    "first_published_by": "wire-one.test",
+    "registrant": "wire-copy.test"
+   }
+  }
+ ],
+ "research": {
+  "nimble": {
+   "0": []
+  }
+ }
+}

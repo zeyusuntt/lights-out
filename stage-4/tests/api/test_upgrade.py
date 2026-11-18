@@ -1,16 +1,22 @@
-"""Import of a stage-1 export (STAGE1_URL: the accepted stage-1 service on the same mock web)."""
+"""Imports of exports from the accepted stage-1, stage-2 and stage-3 services (STAGE1_URL,
+STAGE2_URL, STAGE3_URL), running on the same mock web."""
 
 import os
+import sys
+from pathlib import Path
 
 import httpx
 import pytest
 
-from conftest import FIXTURE, key, wait_settled
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+from app.domains import host_of  # noqa: E402
+
+from conftest import ADMIN, FIXTURE, MOCK, key, wait_settled
 
 STAGE1 = os.environ.get("STAGE1_URL")
-pytestmark = pytest.mark.skipif(not STAGE1, reason="stage-1 service not running")
 
 
+@pytest.mark.skipif(not STAGE1, reason="stage-1 service not running")
 def test_stage1_export_imports_with_candidates_tokens_and_replays(api, mock):
     old = httpx.Client(base_url=STAGE1, timeout=10)
     assert old.post("/_test/reset", json=FIXTURE).status_code == 204
@@ -84,4 +90,42 @@ def test_stage2_export_imports_as_one_ready_build(api, mock):
     api.post("/dossiers/halvorsen-robotics.test/refresh", headers={**auth, **key()})
     wait_settled(api, auth, "halvorsen-robotics.test")
     feed = api.get("/changes", headers=auth).json()["changes"]
-    assert [c["field"] for c in feed] == ["executives"] and feed[0]["type"] == "change"
+    assert [c["field"] for c in feed][:1] == ["executives"] and all(c["type"] == "change" for c in feed)
+    assert {c["field"] for c in feed} <= {"executives", "investors"}
+
+
+STAGE3 = os.environ.get("STAGE3_URL")
+
+
+@pytest.mark.skipif(not STAGE3, reason="stage-3 service not running")
+def test_stage3_export_keeps_builds_history_and_feed(api, mock):
+    old = httpx.Client(base_url=STAGE3, timeout=10)
+    assert old.post("/_test/reset", json=FIXTURE).status_code == 204
+    token = old.post("/auth/login", json={"email": "ada@example.com", "password": "correct horse"}).json()["token"]
+    auth = {"Authorization": f"Bearer {token}"}
+    old.post("/dossiers", headers={**auth, **key()}, json={"domain": "halvorsen-robotics.test"})
+    first = wait_settled(old, auth, "halvorsen-robotics.test")
+    httpx.post(f"{MOCK}/_mock/epoch", json={"epoch": 1}, headers=ADMIN)
+    old.post("/_test/clock", json={"now": "2026-04-01T09:00:00+00:00"})
+    old.post("/dossiers/halvorsen-robotics.test/refresh", headers={**auth, **key()})
+    wait_settled(old, auth, "halvorsen-robotics.test")
+    document = old.get("/_test/export").json()
+    feed = old.get("/changes", headers=auth).json()
+    history = old.get("/dossiers/halvorsen-robotics.test/history", headers=auth).json()
+    early = old.get("/dossiers/halvorsen-robotics.test", params={"as_of": "2026-03-15T00:00:00Z"}, headers=auth).json()
+
+    assert api.post("/_test/import", json=document).status_code == 204
+    assert api.get("/changes", headers=auth).json() == feed
+    mine = api.get("/dossiers/halvorsen-robotics.test/history", headers=auth).json()
+    assert {k: v for k, v in mine["fields"].items() if k != "investors"} == history["fields"]
+    assert mine["fields"]["investors"] == []
+    snapshot = api.get("/dossiers/halvorsen-robotics.test", params={"as_of": "2026-03-15T00:00:00Z"}, headers=auth).json()
+    assert snapshot["researched_at"] == first["researched_at"] == early["researched_at"]
+    for name, field in early["fields"].items():
+        assert snapshot["fields"][name]["value"] == field["value"]
+        assert snapshot["fields"][name]["learned_at"] == field["learned_at"]
+        expected = sorted({host_of(c["url"]) for c in field["candidates"]
+                           if c["value"] == field["value"] or c.get("selected")})
+        if name in ("legal_name", "hq_city", "ceo", "founded_year", "headcount_range", "funding_total"):
+            assert snapshot["fields"][name]["origins"] == (expected if field["value"] is not None else [])
+    assert snapshot["fields"]["investors"]["status"] == "unknown"

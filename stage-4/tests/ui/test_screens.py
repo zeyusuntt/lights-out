@@ -190,3 +190,16 @@ def test_executives_and_times_on_dossier_and_evidence(page, mock):
     expect(page.locator("#evidence-executives [data-title=cto] .candidate").first).to_have_attribute("data-selected", "true")
     expect(page.locator("[data-testid^=evidence-]").filter(has_not=page.locator("[data-testid^=evidence-empty-]"))).to_have_count(6)
     no_horizontal_scroll(page)
+
+
+def test_investors_and_sources_read_for_people(page, mock):
+    sign_in(page)
+    page.fill("[data-testid=research-domain]", "corvid-security.test")
+    page.click("[data-testid=research-submit]")
+    expect(page.get_by_test_id("dossier-state")).to_have_text("ready", timeout=15000)
+    expect(page.locator("[data-field=investors]")).to_contain_text("Northwind Ventures")
+    expect(page.get_by_test_id("field-founded_year").locator(".origins")).to_contain_text("corvid-security.test")
+    assert page.locator("blockquote.quote").first.inner_text().count("“") <= 1
+    box = page.get_by_test_id("citation-ceo-1").locator("a").bounding_box()
+    assert box["height"] >= 44
+    no_horizontal_scroll(page)

@@ -57,15 +57,17 @@ def test_idle_restart_keeps_everything(api, ada, mock):
     assert wait_settled(api, ada, "quillmate.test")["researched_at"] == "2026-03-01T11:30:00+02:00"
 
 
-def test_restart_during_a_build_rolls_it_back(api, ada, mock):
+def test_restart_during_a_build_ends_it_and_keeps_its_spending(api, ada, mock):
     create(api, ada, "corvid-security.test")
     ready = wait_settled(api, ada, "corvid-security.test")
-    mock.fault(["research"], "delay", seconds=5)
+    mock.fault(["extract"], "delay", seconds=5)
     assert api.post("/dossiers/corvid-security.test/refresh", headers={**ada, **key()}).status_code == 202
-    time.sleep(0.5)
+    time.sleep(1.5)
     kill_and_start()
-    after = api.get("/dossiers/corvid-security.test", headers=ada).json()
-    assert after["state"] == "ready" and after["fields"] == ready["fields"]
-    assert after["spent_units"] == ready["spent_units"]
+    started = time.monotonic()
+    after = wait_settled(api, ada, "corvid-security.test", timeout=10)
+    assert time.monotonic() - started < 10
+    assert after["state"] in ("ready", "failed") and after["fields"] == ready["fields"]
+    assert sum(c["cost"] for c in mock.calls()) <= after["spent_units"] <= 2 * 80
     assert api.post("/dossiers/corvid-security.test/refresh", headers={**ada, **key()}).status_code == 202
     time.sleep(5)
