@@ -56,7 +56,7 @@ class Service:
 
         gateway = Gateway(self.router, BuildBudget(charge), Timing.for_environment())
         try:
-            fields = await BuildResearch(gateway, dossier.domain).run()
+            fields = await BuildResearch(gateway, dossier.domain, build_time).run()
         except asyncio.CancelledError:
             raise
         except Exception:

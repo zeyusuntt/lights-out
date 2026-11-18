@@ -10,7 +10,7 @@ COST = {
     ("nimble", "search", "lite"): 1,
     ("nimble", "search", "fast"): 5,
     ("nimble", "search", "deep"): 15,
-    ("nimble", "extract", None): 1,
+    ("nimble", "render", None): 3,
     ("nimble", "research", None): 25,
 }
 

@@ -18,7 +18,7 @@ from .support import FIELDS
 PROVIDER = "nimble"
 LIVE_HOST = "sdk.nimbleway.com"
 RETRY_PAUSE_S = 1.1
-MAX_ATTEMPTS = 4
+MAX_ATTEMPTS = 5
 
 
 def is_live() -> bool:
@@ -68,22 +68,24 @@ class Outcome:
     errors: list[str] = field(default_factory=list)
 
 
-class _Refused(Exception):
-    def __init__(self, retryable: bool) -> None:
-        self.retryable = retryable
+@dataclass(frozen=True)
+class Failure:
+    charged: bool
+    retryable: bool
+    throttled: bool = False
 
 
-def _classify(exc: BaseException) -> tuple[bool, bool]:
-    """(charged, retryable) for a failed call."""
+def _classify(exc: BaseException) -> Failure:
     if isinstance(exc, ConfigurationError):
-        return False, False
+        return Failure(charged=False, retryable=False)
     original = getattr(exc, "original", None) or exc.__cause__
     if isinstance(original, nimble_python.APIStatusError):
         status = original.status_code
-        return False, status == 429 or status >= 500
+        return Failure(charged=False, retryable=status == 429 or status >= 500,
+                       throttled=status == 429)
     if isinstance(original, (nimble_python.APITimeoutError, nimble_python.APIConnectionError)):
-        return True, True
-    return True, False
+        return Failure(charged=True, retryable=True)
+    return Failure(charged=True, retryable=False)
 
 
 class Gateway:
@@ -94,10 +96,29 @@ class Gateway:
         self._budget = budget
         self._timing = timing
         self._started = time.monotonic()
+        self._throttled_wait = 0.0
+        self._waiting = 0
+        self._waiting_since = 0.0
         self.succeeded = False
 
+    async def _pause(self, throttled: bool) -> None:
+        """Wait before calling again; while any wait after a 429 is pending, the time is not counted."""
+        if not throttled:
+            await asyncio.sleep(RETRY_PAUSE_S)
+            return
+        if self._waiting == 0:
+            self._waiting_since = time.monotonic()
+        self._waiting += 1
+        try:
+            await asyncio.sleep(RETRY_PAUSE_S)
+        finally:
+            self._waiting -= 1
+            if self._waiting == 0:
+                self._throttled_wait += time.monotonic() - self._waiting_since
+
     def elapsed(self) -> float:
-        return time.monotonic() - self._started
+        """Time the build has run, less the time it spent waiting out 429 answers."""
+        return time.monotonic() - self._started - self._throttled_wait
 
     def may_gather(self) -> bool:
         return self.elapsed() < self._timing.gather_window_s
@@ -111,14 +132,14 @@ class Gateway:
             try:
                 outcome.value = await make_call()
             except (WebRouterError, nimble_python.NimbleError, OSError, ValueError) as exc:
-                charged, retryable = _classify(exc)
-                self._budget.settle(units, charged)
+                failure = _classify(exc)
+                self._budget.settle(units, failure.charged)
                 outcome.errors.append(type(exc).__name__)
-                if not retryable or (charged and not retry_lost):
+                if not failure.retryable or (failure.charged and not retry_lost):
                     return outcome
                 if attempt + 1 == MAX_ATTEMPTS or self.elapsed() > self._timing.retry_window_s:
                     return outcome
-                await asyncio.sleep(RETRY_PAUSE_S)
+                await self._pause(failure.throttled)
                 continue
             self._budget.settle(units, True)
             outcome.answered = True
@@ -134,17 +155,19 @@ class Gateway:
                     for r in response.results]
         return await self._call(COST[(PROVIDER, "search", "lite")], call, retry_lost=exact_domain)
 
-    async def extract(self, url: str) -> Outcome:
-        """The served text of the page, or an answered outcome with None when it has no page."""
+    async def render(self, url: str) -> Outcome:
+        """The text a browser shows once the page has loaded, or an answered outcome with None
+        when there is no page."""
         async def call() -> str | None:
             try:
-                response = await self._router.extract([url], provider=PROVIDER)
+                response = await self._router.extract(
+                    [url], provider=PROVIDER, provider_options={"render": True})
             except ProviderError as exc:
-                if _classify(exc) == (True, False):
+                if _classify(exc) == Failure(charged=True, retryable=False):
                     return None
                 raise
             return next((d.content for d in response.documents if d.url == url and d.content), None)
-        return await self._call(COST[(PROVIDER, "extract", None)], call)
+        return await self._call(COST[(PROVIDER, "render", None)], call)
 
     async def research(self, domain: str) -> Outcome:
         async def call() -> list[ResearchClaim]:

@@ -1,5 +1,5 @@
 from app.domains import normalise
-from app.pages import PageText, prose_of
+from app.pages import PageText, page_kind, published_at, split_served
 
 
 def test_normalise():
@@ -13,13 +13,23 @@ def test_normalise():
 
 
 def test_header_and_prose():
-    text = 'Kind: news\nFirst-Published-By: wire.test\nFacts: {"ceo": "X"}\n\nAcme raised $1M.\nMore.'
-    assert prose_of(text) == "Acme raised $1M.\nMore."
-    assert prose_of("Acme Robotics: the story\n\nBody.") == "Acme Robotics: the story\n\nBody."
-    assert prose_of("Plain text.") == "Plain text."
+    text = 'Kind: news\nPublished: 2026-02-20T00:00:00Z\nFacts: {"ceo": "X"}\n\nAcme raised $1M.\nMore.'
+    page = PageText.from_served("https://wire.test/a", "nimble", text, "acme.test")
+    assert page.prose == "Acme raised $1M.\nMore."
+    assert (page.kind, page.published_at) == ("news", "2026-02-20T00:00:00+00:00")
+    assert split_served("Acme Robotics: the story\n\nBody.") == ([], "Acme Robotics: the story\n\nBody.")
+    assert PageText.from_served("u", "nimble", "A b.  C   d.", "a.test").excerpts() == ["A b.", "C d."]
 
 
-def test_truncated_text_drops_its_cut_sentence():
-    page = PageText("u", "One whole. Two whole.\nThree is cut at Acme raised $8", complete=False)
-    assert page.excerpts() == ["One whole.", "Two whole."]
-    assert PageText("u", "A b.  C   d.", complete=True).excerpts() == ["A b.", "C d."]
+def test_kind_falls_back_to_the_host():
+    for url, kind in (("https://WWW.Acme.test./about", "own"), ("https://acme.test/x", "own"),
+                      ("https://shop.acme.test/x", "aggregator"), ("https://news.test/acme", "aggregator")):
+        assert page_kind([], url, "acme.test") == kind, url
+    assert page_kind(["Kind: Filing"], "https://acme.test/", "acme.test") == "own"
+    assert page_kind(["Kind: filing"], "https://registry.test/", "acme.test") == "filing"
+
+
+def test_bad_publication_time_is_none():
+    assert published_at(["Published: 2026-02-20"]) is None
+    assert published_at(["Published: soon"]) is None
+    assert published_at([]) is None

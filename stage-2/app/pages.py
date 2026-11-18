@@ -4,7 +4,11 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
+from urllib.parse import urlparse
 
+from .candidates import KINDS
+from .clock import parse_rfc3339
+from .domains import normalise
 from .support import collapse, split_line
 
 _HEADER_LINE = re.compile(r"[^\W\d_][^\W\d_]+(?:-[^\W\d_][^\W\d_]+)*:(?: |$)")
@@ -18,35 +22,54 @@ def is_header_line(line: str) -> bool:
     return all(part[0].isupper() and part[1:].islower() for part in name.split("-"))
 
 
-def prose_of(served_text: str) -> str:
-    """The prose of a served text: everything after the header, if it has one."""
+def split_served(served_text: str) -> tuple[list[str], str]:
+    """(header lines, prose) of a served text (§4, Pages)."""
     lines = served_text.split("\n")
     if not lines or not is_header_line(lines[0].rstrip("\r")):
-        return served_text
+        return [], served_text
     for i, line in enumerate(lines):
         if not line.strip():
-            return "\n".join(lines[i + 1:])
-    return ""
+            return lines[:i], "\n".join(lines[i + 1:])
+    return lines, ""
+
+
+def _header(lines: list[str], name: str) -> str | None:
+    prefix = name + ":"
+    return next((l[len(prefix):].strip() for l in lines if l.startswith(prefix)), None)
+
+
+def page_kind(lines: list[str], url: str, domain: str) -> str:
+    kind = _header(lines, "Kind")
+    if kind in KINDS:
+        return kind
+    host = normalise(urlparse(url).hostname or "")
+    return "own" if host == domain else "aggregator"
+
+
+def published_at(lines: list[str]) -> str | None:
+    moment = parse_rfc3339(_header(lines, "Published") or "")
+    return moment.isoformat() if moment else None
+
+
+def sentences(prose: str) -> list[str]:
+    """Each sentence of the prose, whitespace collapsed."""
+    return [c for line in prose.splitlines() for c in map(collapse, split_line(line)) if c]
 
 
 @dataclass
 class PageText:
-    """Text a provider served for one URL, as prose to cite from."""
+    """The browser text a provider served for one URL, with its kind and publication time."""
 
     url: str
+    provider: str
     prose: str
-    complete: bool
+    kind: str
+    published_at: str | None
+
+    @classmethod
+    def from_served(cls, url: str, provider: str, served_text: str, domain: str) -> PageText:
+        lines, prose = split_served(served_text)
+        return cls(url, provider, prose, page_kind(lines, url, domain), published_at(lines))
 
     def excerpts(self) -> list[str]:
-        """Each complete sentence of the prose, whitespace collapsed."""
-        lines = self.prose.splitlines()
-        result = []
-        for index, line in enumerate(lines):
-            sentences = split_line(line)
-            if not self.complete and index == len(lines) - 1:
-                sentences = sentences[:-1]
-            result.extend(c for c in map(collapse, sentences) if c)
-        return result
-
-    def contains(self, excerpt: str) -> bool:
-        return collapse(excerpt) in collapse(self.prose)
+        return sentences(self.prose)
