@@ -19,7 +19,7 @@ import uuid
 
 ROOT = Path(__file__).resolve().parent
 STAGE = Path(sys.argv[1]).resolve()
-KIT = Path(os.environ.get('DOSSIER_KIT', '/Users/sunzeyu/dev/band-factory/vendor/sf-buildathon-2026'))
+KIT = Path(os.environ.get('DOSSIER_KIT', '/Users/[REDACTED]/dev/band-factory/vendor/sf-buildathon-2026'))
 PREFIX = 'second-reader-audit-' + uuid.uuid4().hex[:8]
 RUN_ROOT=ROOT.parent/'runs-stage-2'
 RUN_ROOT.mkdir(exist_ok=True)

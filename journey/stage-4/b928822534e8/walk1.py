@@ -1,6 +1,6 @@
 import json, httpx, sys
 from playwright.sync_api import sync_playwright
-B="http://127.0.0.1:21001"; O="/Users/sunzeyu/dev/band-factory/work/result/journey/stage-4/b928822534e8/"
+B="http://127.0.0.1:21001"; O="/Users/[REDACTED]/dev/band-factory/work/result/journey/stage-4/b928822534e8/"
 httpx.post(B+"/_test/reset",json={"now":"2026-03-01T09:00:00+00:00","users":[{"id":"u_ada","email":"ada@example.com","password":"correct horse","display_name":"Ada"}]})
 def probe(p,name,pg):
     m=pg.evaluate("()=>({sw:document.documentElement.scrollWidth,iw:innerWidth})")

@@ -24,7 +24,7 @@ Each eligible excerpt names the company, contains CEO, contains no negator, and 
 Reproduce the minimal case from a clean clone of this revision:
 
 ```sh
-SECOND_READER_ONLY=bounded-supporting-span-reader-tail-span.test /Users/sunzeyu/dev/band-factory/work/second-reader/probes/stage-1/run.sh <clean-clone>/stage-1
+SECOND_READER_ONLY=bounded-supporting-span-reader-tail-span.test /Users/[REDACTED]/dev/band-factory/work/second-reader/probes/stage-1/run.sh <clean-clone>/stage-1
 ```
 
 Run all three variants plus the control by setting SECOND_READER_ONLY to:
@@ -39,11 +39,11 @@ The finding is established by independent HTTP/provider-fixture probes. The prod
 
 ## Retests and exact-revision commands
 
-- `fclone d07442da2a5016e26e55e3f8b32a76e3d731c0dd /Users/sunzeyu/dev/band-factory/work/second-reader/clones/stage-1-d07442da2a50` — exit 0; clone clean.
-- `BUILDX_CONFIG=/Users/sunzeyu/dev/band-factory/work/second-reader/buildx fserve d07442da2a5016e26e55e3f8b32a76e3d731c0dd 1 20010 --container-port 8097` — exit 0; health 200 on nondefault port.
+- `fclone d07442da2a5016e26e55e3f8b32a76e3d731c0dd /Users/[REDACTED]/dev/band-factory/work/second-reader/clones/stage-1-d07442da2a50` — exit 0; clone clean.
+- `BUILDX_CONFIG=/Users/[REDACTED]/dev/band-factory/work/second-reader/buildx fserve d07442da2a5016e26e55e3f8b32a76e3d731c0dd 1 20010 --container-port 8097` — exit 0; health 200 on nondefault port.
 - Retested F3/F4 first with `SECOND_READER_ONLY=research-header-shaped-prose-is-evidence,research-header-citation-is-not-prose,research-excerpt-length-limit .../probes/stage-1/run.sh <clone>/stage-1` — **4 passed, 0 failed**, including the public sample. Genuine Profile-prefixed prose is known; an actual Facts header stays unknown; the former 1,056-character citation now yields a supported, served contiguous span of at most 500 characters, with CEO known.
-- Complete suite: `SECOND_READER_FIRST=research-header-shaped-prose-is-evidence,research-header-citation-is-not-prose,research-excerpt-length-limit /Users/sunzeyu/dev/band-factory/work/second-reader/probes/stage-1/run.sh /Users/sunzeyu/dev/band-factory/work/second-reader/clones/stage-1-d07442da2a50/stage-1` — **166 passed, 3 failed**, exit 1, F5 only. The initial-clock prerequisite runs before cases that reset the fresh process.
-- Isolated check, from the kit directory: `BUILDX_CONFIG=/Users/sunzeyu/dev/band-factory/work/second-reader/buildx with-slot .venv/bin/python -m harness run --track dossier --repo /Users/sunzeyu/dev/band-factory/work/second-reader/clones/stage-1-d07442da2a50 --stage 1 --mode isolated --out /Users/sunzeyu/dev/band-factory/work/checks/second-reader-s1-d07442da-round3` — exit 0, **claimed stage: 1**. The sample check is further evidence, not a stage verdict.
+- Complete suite: `SECOND_READER_FIRST=research-header-shaped-prose-is-evidence,research-header-citation-is-not-prose,research-excerpt-length-limit /Users/[REDACTED]/dev/band-factory/work/second-reader/probes/stage-1/run.sh /Users/[REDACTED]/dev/band-factory/work/second-reader/clones/stage-1-d07442da2a50/stage-1` — **166 passed, 3 failed**, exit 1, F5 only. The initial-clock prerequisite runs before cases that reset the fresh process.
+- Isolated check, from the kit directory: `BUILDX_CONFIG=/Users/[REDACTED]/dev/band-factory/work/second-reader/buildx with-slot .venv/bin/python -m harness run --track dossier --repo /Users/[REDACTED]/dev/band-factory/work/second-reader/clones/stage-1-d07442da2a50 --stage 1 --mode isolated --out /Users/[REDACTED]/dev/band-factory/work/checks/second-reader-s1-d07442da-round3` — exit 0, **claimed stage: 1**. The sample check is further evidence, not a stage verdict.
 
 All previous probes were rerun, including F1/F2, concurrency, retry precedence, reset/import while builds run, cross-process transfer and source stop/restart after export, clocks, exact-domain search counting, budgeting/transport faults, all legal suffixes/negators, field formats, Unicode, and amount/headcount boundaries. No new failure outside F5 was observed.
 

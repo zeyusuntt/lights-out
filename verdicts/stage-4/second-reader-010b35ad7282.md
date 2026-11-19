@@ -18,7 +18,7 @@ R4-9 resolves the interpretation explicitly: when the remainder cannot pay the w
 Reproduce on this exact revision, exits 1:
 
 ```sh
-SECOND_READER_ONLY=stage4-shared-budget-boundaries-and-affordable-evidence SECOND_READER_NO_BROWSER=1 /Users/sunzeyu/dev/band-factory/work/second-reader/probes/stage-4/run.sh /Users/sunzeyu/dev/band-factory/work/second-reader/clones/stage-4-010b35ad7282/stage-4
+SECOND_READER_ONLY=stage4-shared-budget-boundaries-and-affordable-evidence SECOND_READER_NO_BROWSER=1 /Users/[REDACTED]/dev/band-factory/work/second-reader/probes/stage-4/run.sh /Users/[REDACTED]/dev/band-factory/work/second-reader/clones/stage-4-010b35ad7282/stage-4
 ```
 
 The runner builds and starts the supplied folder and documented mock itself. Its one required argument can be any clean copy's `stage-4` folder. The focused reproduction passes the public sample, then independently repeats this failure. The full run and focused run both report budget 30, spent 30, ready, and eight unknown fields. The earlier ceiling/billing assertions in this same case pass for all thirteen two-company budgets and the 14/20-unit completeness controls; the failure is the final completeness assertion at 30. Ledger rows for those successful ceiling subphases identify them separately, rather than describing a budget overrun.
@@ -26,10 +26,10 @@ The runner builds and starts the supplied folder and documented mock itself. Its
 ## Previous findings, retested first
 
 ```sh
-SECOND_READER_ONLY=stage4-scalar-standing-origins-and-selection-reset,stage4-lineage-reserve-keeps-affordable-evidence-complete,stage4-refused-call-refunds-survive-interrupted-retry-wait,stage4-affordable-research-only-evidence-in-batch SECOND_READER_NO_BROWSER=1 /Users/sunzeyu/dev/band-factory/work/second-reader/probes/stage-4/run.sh /Users/sunzeyu/dev/band-factory/work/second-reader/clones/stage-4-010b35ad7282/stage-4
+SECOND_READER_ONLY=stage4-scalar-standing-origins-and-selection-reset,stage4-lineage-reserve-keeps-affordable-evidence-complete,stage4-refused-call-refunds-survive-interrupted-retry-wait,stage4-affordable-research-only-evidence-in-batch SECOND_READER_NO_BROWSER=1 /Users/[REDACTED]/dev/band-factory/work/second-reader/probes/stage-4/run.sh /Users/[REDACTED]/dev/band-factory/work/second-reader/clones/stage-4-010b35ad7282/stage-4
 ```
 
-Exit 0: sample plus all four reproductions pass. Private work directory: `/Users/sunzeyu/dev/band-factory/work/second-reader/probes/runs-stage-4/second-reader-audit-9d5726d8-zne4shxj/`.
+Exit 0: sample plus all four reproductions pass. Private work directory: `/Users/[REDACTED]/dev/band-factory/work/second-reader/probes/runs-stage-4/second-reader-audit-9d5726d8-zne4shxj/`.
 
 - F1: scalar selection changes reset `corroborated_since`, including the following return to a former selected value. Same-time selection stints also pass.
 - F2: all 15 searched supporting pages are gathered without the unused six-unit hold, within 80 units.
@@ -40,11 +40,11 @@ Each also passes in the complete run. No earlier finding remains open.
 
 ## Exact-revision commands and results
 
-- `fclone 010b35ad7282e9b4018daee982a1846a5af8301e /Users/sunzeyu/dev/band-factory/work/second-reader/clones/stage-4-010b35ad7282` — exit 0; clone remains clean.
-- `BUILDX_CONFIG=/Users/sunzeyu/dev/band-factory/work/second-reader/buildx fserve 010b35ad7282e9b4018daee982a1846a5af8301e 4 20010 --container-port 8097` — exit 0, health 200. Exact owned container stopped with `fstop` after verification.
-- `/Users/sunzeyu/dev/band-factory/work/second-reader/probes/stage-4/run.sh /Users/sunzeyu/dev/band-factory/work/second-reader/clones/stage-4-010b35ad7282/stage-4` — exit 1, **303 passed, 1 failed**. Private artifacts: `/Users/sunzeyu/dev/band-factory/work/second-reader/probes/runs-stage-4/second-reader-audit-6ea21b2e-mhmplycp/`.
-- Focused F5 reproduction above — exit 1, sample passes and F5 fails. Private artifacts: `/Users/sunzeyu/dev/band-factory/work/second-reader/probes/runs-stage-4/second-reader-audit-2d083a5c-kpjxhryh/`.
-- From `/Users/sunzeyu/dev/band-factory/vendor/sf-buildathon-2026`: `BUILDX_CONFIG=/Users/sunzeyu/dev/band-factory/work/second-reader/buildx with-slot .venv/bin/python -m harness run --track dossier --repo /Users/sunzeyu/dev/band-factory/work/second-reader/clones/stage-4-010b35ad7282 --stage 4 --mode isolated --out /Users/sunzeyu/dev/band-factory/work/checks/second-reader-s4-010b35ad-round2` — exit 0, claimed stage 4. The sample does not invalidate the independent counterexample.
+- `fclone 010b35ad7282e9b4018daee982a1846a5af8301e /Users/[REDACTED]/dev/band-factory/work/second-reader/clones/stage-4-010b35ad7282` — exit 0; clone remains clean.
+- `BUILDX_CONFIG=/Users/[REDACTED]/dev/band-factory/work/second-reader/buildx fserve 010b35ad7282e9b4018daee982a1846a5af8301e 4 20010 --container-port 8097` — exit 0, health 200. Exact owned container stopped with `fstop` after verification.
+- `/Users/[REDACTED]/dev/band-factory/work/second-reader/probes/stage-4/run.sh /Users/[REDACTED]/dev/band-factory/work/second-reader/clones/stage-4-010b35ad7282/stage-4` — exit 1, **303 passed, 1 failed**. Private artifacts: `/Users/[REDACTED]/dev/band-factory/work/second-reader/probes/runs-stage-4/second-reader-audit-6ea21b2e-mhmplycp/`.
+- Focused F5 reproduction above — exit 1, sample passes and F5 fails. Private artifacts: `/Users/[REDACTED]/dev/band-factory/work/second-reader/probes/runs-stage-4/second-reader-audit-2d083a5c-kpjxhryh/`.
+- From `/Users/[REDACTED]/dev/band-factory/vendor/sf-buildathon-2026`: `BUILDX_CONFIG=/Users/[REDACTED]/dev/band-factory/work/second-reader/buildx with-slot .venv/bin/python -m harness run --track dossier --repo /Users/[REDACTED]/dev/band-factory/work/second-reader/clones/stage-4-010b35ad7282 --stage 4 --mode isolated --out /Users/[REDACTED]/dev/band-factory/work/checks/second-reader-s4-010b35ad-round2` — exit 0, claimed stage 4. The sample does not invalidate the independent counterexample.
 - `ledger-check 4 --phase audit --revision 010b35ad7282e9b4018daee982a1846a5af8301e` — exit 1 for S4-002 and S4-098; no missing evidence among 106 required rows.
 
 ## Inherited contract

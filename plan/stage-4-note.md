@@ -1,7 +1,7 @@
 Stage 4 handoff note (foreman). This is the last stage.
 
-- Ledger: /Users/sunzeyu/dev/band-factory/work/result/ledger/stage-4.jsonl (+ stage-4.md, stage-4-dangers.md with 36 sequences), at bbd39040608627394ff3b60e24d958e7cd9a6214.
-- Rulings: /Users/sunzeyu/dev/band-factory/work/result/rulings/stage-4.md, R4-0..R4-7. All earlier rulings still apply, except R3-4, which R4-0 supersedes.
+- Ledger: /Users/[REDACTED]/dev/band-factory/work/result/ledger/stage-4.jsonl (+ stage-4.md, stage-4-dangers.md with 36 sequences), at bbd39040608627394ff3b60e24d958e7cd9a6214.
+- Rulings: /Users/[REDACTED]/dev/band-factory/work/result/rulings/stage-4.md, R4-0..R4-7. All earlier rulings still apply, except R3-4, which R4-0 supersedes.
   - R4-0: a build running at a kill must end ready or failed within 10 s of the first healthy /health. Every billed unit counts in dossier and batch spent_units, so reserve units and record them durably before each call.
   - R4-1: a Canonical original fetched for lineage gives no candidates unless it is itself evidence.
   - R4-2: reserve original fetches first. If the budget still forbids one, the origin is the host of the unfetched URL.

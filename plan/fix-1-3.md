@@ -11,7 +11,7 @@ Reproduce: verifier suite `run.sh <clone>/stage-1 -k ironvale` (the verifier run
 
 Second-reader F5: reader-tail-span.test and reader-middle-span.test end ready at 33u with CEO unknown, and reader-search-span.test ends ready at 34u with CEO unknown. Each is a single sentence of about 1.2 to 1.7 KB. The tail case is "context " repeated 150 times, followed by "Reader Tail Span CEO: Dana Ruiz.". The middle and searchable-page variants contain "Reader Middle Span CEO: Dana Ruiz" and "Reader Search Span CEO: Dana Ruiz", which are valid 33-character spans. A control case, with company and value more than 500 characters apart and no eligible span, correctly stays unknown.
 Reproduce:
-  SECOND_READER_ONLY=bounded-supporting-span-reader-tail-span.test /Users/sunzeyu/dev/band-factory/work/second-reader/probes/stage-1/run.sh <clean-clone>/stage-1
+  SECOND_READER_ONLY=bounded-supporting-span-reader-tail-span.test /Users/[REDACTED]/dev/band-factory/work/second-reader/probes/stage-1/run.sh <clean-clone>/stage-1
   (also ...-reader-middle-span.test, ...-reader-search-span.test)
 
 ## Direction (both seats agree)

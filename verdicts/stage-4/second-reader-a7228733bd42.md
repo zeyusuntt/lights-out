@@ -8,10 +8,10 @@ No blocking findings or evidence gaps. The five prior findings pass their first 
 ## Retested first
 
 ```sh
-SECOND_READER_ONLY=stage4-shared-budget-boundaries-and-affordable-evidence,stage4-affordable-research-only-evidence-in-batch,stage4-scalar-standing-origins-and-selection-reset,stage4-lineage-reserve-keeps-affordable-evidence-complete,stage4-refused-call-refunds-survive-interrupted-retry-wait SECOND_READER_FIRST=stage4-shared-budget-boundaries-and-affordable-evidence SECOND_READER_NO_BROWSER=1 /Users/sunzeyu/dev/band-factory/work/second-reader/probes/stage-4/run.sh /Users/sunzeyu/dev/band-factory/work/second-reader/clones/stage-4-a7228733bd42/stage-4
+SECOND_READER_ONLY=stage4-shared-budget-boundaries-and-affordable-evidence,stage4-affordable-research-only-evidence-in-batch,stage4-scalar-standing-origins-and-selection-reset,stage4-lineage-reserve-keeps-affordable-evidence-complete,stage4-refused-call-refunds-survive-interrupted-retry-wait SECOND_READER_FIRST=stage4-shared-budget-boundaries-and-affordable-evidence SECOND_READER_NO_BROWSER=1 /Users/[REDACTED]/dev/band-factory/work/second-reader/probes/stage-4/run.sh /Users/[REDACTED]/dev/band-factory/work/second-reader/clones/stage-4-a7228733bd42/stage-4
 ```
 
-Exit 0, **6 passed, 0 failed**: sample plus all five reported findings. Private work directory: `/Users/sunzeyu/dev/band-factory/work/second-reader/probes/runs-stage-4/second-reader-audit-6809182f-k7zy6qiz/`.
+Exit 0, **6 passed, 0 failed**: sample plus all five reported findings. Private work directory: `/Users/[REDACTED]/dev/band-factory/work/second-reader/probes/runs-stage-4/second-reader-audit-6809182f-k7zy6qiz/`.
 
 - F5: batch-reader-aa stays complete at budget 30, as at 14 and 20. All thirteen shared-budget ceiling/billing controls pass under R4-6/R4-9.
 - F4: hidden-cedar's research-only CEO is known in the affordable 49-unit batch. Fixing F5 does not lose research-only evidence.
@@ -23,10 +23,10 @@ All five pass again in the full run.
 
 ## Exact-revision commands and results
 
-- `fclone a7228733bd425af053de0063ec2a3fc1ef68d873 /Users/sunzeyu/dev/band-factory/work/second-reader/clones/stage-4-a7228733bd42` — exit 0, clean clone.
-- `BUILDX_CONFIG=/Users/sunzeyu/dev/band-factory/work/second-reader/buildx fserve a7228733bd425af053de0063ec2a3fc1ef68d873 4 20010 --container-port 8097` — exit 0, health 200. The exact owned container was removed with `fstop` afterwards.
-- `SECOND_READER_FIRST=stage4-unconfirmed-investor-still-needs-affordable-research /Users/sunzeyu/dev/band-factory/work/second-reader/probes/stage-4/run.sh /Users/sunzeyu/dev/band-factory/work/second-reader/clones/stage-4-a7228733bd42/stage-4` — exit 0, **305 passed, 0 failed**. FIRST changes order only; all probes run. Private artifacts: `/Users/sunzeyu/dev/band-factory/work/second-reader/probes/runs-stage-4/second-reader-audit-1270bb22-y2r9jzps/`.
-- From `/Users/sunzeyu/dev/band-factory/vendor/sf-buildathon-2026`: `BUILDX_CONFIG=/Users/sunzeyu/dev/band-factory/work/second-reader/buildx with-slot .venv/bin/python -m harness run --track dossier --repo /Users/sunzeyu/dev/band-factory/work/second-reader/clones/stage-4-a7228733bd42 --stage 4 --mode isolated --out /Users/sunzeyu/dev/band-factory/work/checks/second-reader-s4-a7228733-round3` — exit 0, **claimed stage 4**. This is a sample, separate from the independent evidence.
+- `fclone a7228733bd425af053de0063ec2a3fc1ef68d873 /Users/[REDACTED]/dev/band-factory/work/second-reader/clones/stage-4-a7228733bd42` — exit 0, clean clone.
+- `BUILDX_CONFIG=/Users/[REDACTED]/dev/band-factory/work/second-reader/buildx fserve a7228733bd425af053de0063ec2a3fc1ef68d873 4 20010 --container-port 8097` — exit 0, health 200. The exact owned container was removed with `fstop` afterwards.
+- `SECOND_READER_FIRST=stage4-unconfirmed-investor-still-needs-affordable-research /Users/[REDACTED]/dev/band-factory/work/second-reader/probes/stage-4/run.sh /Users/[REDACTED]/dev/band-factory/work/second-reader/clones/stage-4-a7228733bd42/stage-4` — exit 0, **305 passed, 0 failed**. FIRST changes order only; all probes run. Private artifacts: `/Users/[REDACTED]/dev/band-factory/work/second-reader/probes/runs-stage-4/second-reader-audit-1270bb22-y2r9jzps/`.
+- From `/Users/[REDACTED]/dev/band-factory/vendor/sf-buildathon-2026`: `BUILDX_CONFIG=/Users/[REDACTED]/dev/band-factory/work/second-reader/buildx with-slot .venv/bin/python -m harness run --track dossier --repo /Users/[REDACTED]/dev/band-factory/work/second-reader/clones/stage-4-a7228733bd42 --stage 4 --mode isolated --out /Users/[REDACTED]/dev/band-factory/work/checks/second-reader-s4-a7228733-round3` — exit 0, **claimed stage 4**. This is a sample, separate from the independent evidence.
 - `ledger-check 4 --phase audit --revision a7228733bd425af053de0063ec2a3fc1ef68d873` — exit 0, all 125 units accounted for and all 106 required rows evidenced.
 
 The one-argument root runner builds and starts the supplied folder, the documented public mock sample, private authored corpora, and real accepted legacy services. Services use 2 vCPU and 3 GiB. Builds/browser work use `with-slot`; Chromium runs in df-harness-runner. No product module runs on the host. The runner cleans up its owned containers/networks and prints counts.

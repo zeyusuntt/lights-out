@@ -23,5 +23,5 @@ with sync_playwright() as p:
     pg.click('[data-testid=dossier-refresh]'); 
     for s in (3,8,15):
         pg.wait_for_timeout(s*1000 if s==3 else 5000); print("t+",s,"uncertain",pg.locator('[data-testid=refresh-uncertain]').count(),"err",pg.locator('[data-testid=refresh-error]').count(),"btn disabled",pg.is_disabled('[data-testid=dossier-refresh]'))
-    pg.screenshot(path="/Users/sunzeyu/dev/band-factory/work/result/journey/stage-2/bc19abf8cbde/m-23-refresh-hang.png")
+    pg.screenshot(path="/Users/[REDACTED]/dev/band-factory/work/result/journey/stage-2/bc19abf8cbde/m-23-refresh-hang.png")
     br.close()

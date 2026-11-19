@@ -1,7 +1,7 @@
 Stage 2 handoff note (foreman).
 
-- Ledger: /Users/sunzeyu/dev/band-factory/work/result/ledger/stage-2.jsonl (readable: stage-2.md; danger sequences: stage-2-dangers.md), at a519e123341479a80d07696c91c075f76ed40257.
-- Rulings: /Users/sunzeyu/dev/band-factory/work/result/rulings/stage-2.md, R2-1..R2-5. Stage-1 rulings R1-1..R1-7 still apply. Key points:
+- Ledger: /Users/[REDACTED]/dev/band-factory/work/result/ledger/stage-2.jsonl (readable: stage-2.md; danger sequences: stage-2-dangers.md), at a519e123341479a80d07696c91c075f76ed40257.
+- Rulings: /Users/[REDACTED]/dev/band-factory/work/result/rulings/stage-2.md, R2-1..R2-5. Stage-1 rulings R1-1..R1-7 still apply. Key points:
   - R2-2: browser routes, and /dossiers/{domain} with Accept containing text/html, are served as HTML without a bearer header. JSON behaviour without text/html is unchanged.
   - R2-3: dossier-researched-at shows a people-first format in the timestamp's own offset, plus the exact RFC 3339 string.
   - R2-4: the browser session is only its bearer token.

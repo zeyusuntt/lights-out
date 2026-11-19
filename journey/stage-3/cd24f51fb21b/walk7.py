@@ -1,5 +1,5 @@
 from playwright.sync_api import sync_playwright
-B="http://127.0.0.1:21001"; O="/Users/sunzeyu/dev/band-factory/work/result/journey/stage-3/cd24f51fb21b/"
+B="http://127.0.0.1:21001"; O="/Users/[REDACTED]/dev/band-factory/work/result/journey/stage-3/cd24f51fb21b/"
 with sync_playwright() as p:
     br=p.chromium.launch()
     for w,h,t in [(375,812,"m"),(1440,900,"d")]:

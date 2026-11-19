@@ -1,7 +1,7 @@
 Stage 3 handoff note (foreman).
 
-- Ledger: /Users/sunzeyu/dev/band-factory/work/result/ledger/stage-3.jsonl (+ stage-3.md, stage-3-dangers.md), at 6777747b1a684cca8890d7ed968da7e3a89a60dc.
-- Rulings: /Users/sunzeyu/dev/band-factory/work/result/rulings/stage-3.md, R3-1..R3-4. Stage-1 and stage-2 rulings still apply.
+- Ledger: /Users/[REDACTED]/dev/band-factory/work/result/ledger/stage-3.jsonl (+ stage-3.md, stage-3-dangers.md), at 6777747b1a684cca8890d7ed968da7e3a89a60dc.
+- Rulings: /Users/[REDACTED]/dev/band-factory/work/result/rulings/stage-3.md, R3-1..R3-4. Stage-1 and stage-2 rulings still apply.
   - R3-1: as_of spent_units includes the in-flight spending of qualifying builds.
   - R3-2: a null-valued history entry's learned_at is the time of the build that made the transition.
   - R3-3: a stage-2 export imports as one ready build at researched_at, holding all exported spending. It gathered one version per candidate URL, with true_from = the UTC date of that page's published_at, or null. Candidates' learned_at = retrieved_at. History has one initial entry per valued field, with true_from = the selected candidate's true_from. The feed is empty and executives is unknown. A stage-3 export must keep every build, every version (including candidate-free ones), history, feed and seq, so that stage-3 -> stage-3 is exact.

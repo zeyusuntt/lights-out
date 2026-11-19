@@ -18,7 +18,7 @@ Actual new field: value Sam Ortiz; origins reader-standing.test and standing-e.t
 Reproduce, exits1:
 
 ```sh
-SECOND_READER_ONLY=stage4-scalar-standing-origins-and-selection-reset SECOND_READER_NO_BROWSER=1 /Users/sunzeyu/dev/band-factory/work/second-reader/probes/stage-4/run.sh <clean-clone>/stage-4
+SECOND_READER_ONLY=stage4-scalar-standing-origins-and-selection-reset SECOND_READER_NO_BROWSER=1 /Users/[REDACTED]/dev/band-factory/work/second-reader/probes/stage-4/run.sh <clean-clone>/stage-4
 ```
 
 ## S4-F2 — Unused lineage headroom hides two affordable evidence pages
@@ -37,7 +37,7 @@ Source corroboration, read after the independent probes: app/research.py keeps L
 Reproduce, exits1 and prints searched15/candidates13/spent74/remaining6:
 
 ```sh
-SECOND_READER_ONLY=stage4-lineage-reserve-keeps-affordable-evidence-complete SECOND_READER_NO_BROWSER=1 /Users/sunzeyu/dev/band-factory/work/second-reader/probes/stage-4/run.sh <clean-clone>/stage-4
+SECOND_READER_ONLY=stage4-lineage-reserve-keeps-affordable-evidence-complete SECOND_READER_NO_BROWSER=1 /Users/[REDACTED]/dev/band-factory/work/second-reader/probes/stage-4/run.sh <clean-clone>/stage-4
 ```
 
 ## S4-F3 — Completed refused calls reappear as35 charged units after restart
@@ -55,7 +55,7 @@ Source corroboration: Gateway._call durably records the reservation before sendi
 Reproduce, exits1 and prints before_stop_spent0/billed0/after_restart_spent35/refused_calls11:
 
 ```sh
-SECOND_READER_ONLY=stage4-refused-call-refunds-survive-interrupted-retry-wait SECOND_READER_NO_BROWSER=1 /Users/sunzeyu/dev/band-factory/work/second-reader/probes/stage-4/run.sh <clean-clone>/stage-4
+SECOND_READER_ONLY=stage4-refused-call-refunds-survive-interrupted-retry-wait SECOND_READER_NO_BROWSER=1 /Users/[REDACTED]/dev/band-factory/work/second-reader/probes/stage-4/run.sh <clean-clone>/stage-4
 ```
 
 ## S4-F4 — A49-unit batch skips research that a38-unit build completes
@@ -71,16 +71,16 @@ Source corroboration: BuildResearch._research requires RESEARCH_UNITS+PAGE_ROOM,
 Reproduce, exits1 and prints unbatched38/budget49/batch_spent10/CEO null/research_calls0:
 
 ```sh
-SECOND_READER_ONLY=stage4-affordable-research-only-evidence-in-batch SECOND_READER_NO_BROWSER=1 /Users/sunzeyu/dev/band-factory/work/second-reader/probes/stage-4/run.sh <clean-clone>/stage-4
+SECOND_READER_ONLY=stage4-affordable-research-only-evidence-in-batch SECOND_READER_NO_BROWSER=1 /Users/[REDACTED]/dev/band-factory/work/second-reader/probes/stage-4/run.sh <clean-clone>/stage-4
 ```
 
 ## Exact-revision commands and results
 
-- `fclone b928822534e8f8b9b7ce8dbf555bfbda1a42deab /Users/sunzeyu/dev/band-factory/work/second-reader/clones/stage-4-b928822534e8` — exit0, clean clone.
-- `BUILDX_CONFIG=/Users/sunzeyu/dev/band-factory/work/second-reader/buildx fserve b928822534e8f8b9b7ce8dbf555bfbda1a42deab 4 20010 --container-port 8097` — exit0, health200.
-- Final complete runner: `/Users/sunzeyu/dev/band-factory/work/second-reader/probes/stage-4/run.sh /Users/sunzeyu/dev/band-factory/work/second-reader/clones/stage-4-b928822534e8/stage-4` — **300 passed, 4 failed**, exit1. Only the four cases above fail. Final private artifacts: `/Users/sunzeyu/dev/band-factory/work/second-reader/probes/runs-stage-4/second-reader-audit-1ac8cd5c-2xaz7wzi/`.
+- `fclone b928822534e8f8b9b7ce8dbf555bfbda1a42deab /Users/[REDACTED]/dev/band-factory/work/second-reader/clones/stage-4-b928822534e8` — exit0, clean clone.
+- `BUILDX_CONFIG=/Users/[REDACTED]/dev/band-factory/work/second-reader/buildx fserve b928822534e8f8b9b7ce8dbf555bfbda1a42deab 4 20010 --container-port 8097` — exit0, health200.
+- Final complete runner: `/Users/[REDACTED]/dev/band-factory/work/second-reader/probes/stage-4/run.sh /Users/[REDACTED]/dev/band-factory/work/second-reader/clones/stage-4-b928822534e8/stage-4` — **300 passed, 4 failed**, exit1. Only the four cases above fail. Final private artifacts: `/Users/[REDACTED]/dev/band-factory/work/second-reader/probes/runs-stage-4/second-reader-audit-1ac8cd5c-2xaz7wzi/`.
 - The focused reproductions also fail on this exact hash. F4's focused run independently confirms the peer finding without opening its test source; F3's focused trace was separately ruled under R4-8.
-- From `/Users/sunzeyu/dev/band-factory/vendor/sf-buildathon-2026`: `BUILDX_CONFIG=/Users/sunzeyu/dev/band-factory/work/second-reader/buildx with-slot .venv/bin/python -m harness run --track dossier --repo /Users/sunzeyu/dev/band-factory/work/second-reader/clones/stage-4-b928822534e8 --stage 4 --mode isolated --out /Users/sunzeyu/dev/band-factory/work/checks/second-reader-s4-b9288225-round1` — exit0, **claimed stage:4**. This is a sample only.
+- From `/Users/[REDACTED]/dev/band-factory/vendor/sf-buildathon-2026`: `BUILDX_CONFIG=/Users/[REDACTED]/dev/band-factory/work/second-reader/buildx with-slot .venv/bin/python -m harness run --track dossier --repo /Users/[REDACTED]/dev/band-factory/work/second-reader/clones/stage-4-b928822534e8 --stage 4 --mode isolated --out /Users/[REDACTED]/dev/band-factory/work/checks/second-reader-s4-b9288225-round1` — exit0, **claimed stage:4**. This is a sample only.
 - `ledger-check 4 --phase audit --revision b928822534e8f8b9b7ce8dbf555bfbda1a42deab` — exit1 for S4-002/S4-038/S4-039/S4-040/S4-109/S4-118, with no missing evidence.
 
 The one-argument runner builds/starts the supplied stage itself, the documented mock and actual accepted Stage1/2/3 images. Services run at2vCPU/3GiB. Builds and browser jobs use with-slot. Browser work runs Chromium in df-harness-runner. No product module is imported on the host. Each run includes the public sample before independent fixtures. It removes its containers/networks and prints counts.
@@ -105,7 +105,7 @@ Native Stage4 round-trip preserves origins, standing history, batch ownership/st
 
 ## Visual review
 
-All16 browser journeys pass at1280/375 pixels, covering required routes, authentication, retry/uncertainty, latest reads, competing clients, polling, loading/empty/failed feedback, legacy session continuity, executive/investor markup and the six-field contested contract. Viewed exact-revision mobile investor dossier and desktop evidence images: confirmed and single-source-mentioned names are distinguished, source/origin metadata is human-readable, excerpts are quoted/linked, and multi-member qualification is explained. No horizontal overflow is observed. Final images are regenerated in the printed run's browser-shots folder; same-revision images reviewed also include `/Users/sunzeyu/dev/band-factory/work/second-reader/probes/runs-stage-4/second-reader-audit-ead7dd1e-u4qppc_5/browser-shots/`.
+All16 browser journeys pass at1280/375 pixels, covering required routes, authentication, retry/uncertainty, latest reads, competing clients, polling, loading/empty/failed feedback, legacy session continuity, executive/investor markup and the six-field contested contract. Viewed exact-revision mobile investor dossier and desktop evidence images: confirmed and single-source-mentioned names are distinguished, source/origin metadata is human-readable, excerpts are quoted/linked, and multi-member qualification is explained. No horizontal overflow is observed. Final images are regenerated in the printed run's browser-shots folder; same-revision images reviewed also include `/Users/[REDACTED]/dev/band-factory/work/second-reader/probes/runs-stage-4/second-reader-audit-ead7dd1e-u4qppc_5/browser-shots/`.
 
 ## Peer results after independent probes
 

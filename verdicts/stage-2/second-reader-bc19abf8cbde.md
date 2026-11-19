@@ -12,17 +12,17 @@ S2-F1 (S2-002/S2-005/S2-054): research is delayed seven seconds, then the first 
 Focused reproduction:
 
 ```sh
-SECOND_READER_ONLY=stage2-slow-research-then-throttled-extract SECOND_READER_NO_BROWSER=1 /Users/sunzeyu/dev/band-factory/work/second-reader/probes/stage-2/run.sh <clean-clone>/stage-2
+SECOND_READER_ONLY=stage2-slow-research-then-throttled-extract SECOND_READER_NO_BROWSER=1 /Users/[REDACTED]/dev/band-factory/work/second-reader/probes/stage-2/run.sh <clean-clone>/stage-2
 ```
 
 Result: sample plus focused case **2 passed, 0 failed**, exit 0. The full run executes that regression before the other API cases.
 
 ## Exact-revision commands and results
 
-- `fclone bc19abf8cbde23c3a2fa50f23baa55dbfe48d731 /Users/sunzeyu/dev/band-factory/work/second-reader/clones/stage-2-bc19abf8cbde` — exit 0, clean clone.
-- `BUILDX_CONFIG=/Users/sunzeyu/dev/band-factory/work/second-reader/buildx fserve bc19abf8cbde23c3a2fa50f23baa55dbfe48d731 2 20010 --container-port 8097` — exit 0, health 200.
-- `SECOND_READER_FIRST=stage2-slow-research-then-throttled-extract /Users/sunzeyu/dev/band-factory/work/second-reader/probes/stage-2/run.sh /Users/sunzeyu/dev/band-factory/work/second-reader/clones/stage-2-bc19abf8cbde/stage-2` — **205 passed, 0 failed**, exit 0. Results identify this exact clone. Artifacts: `/Users/sunzeyu/dev/band-factory/work/second-reader/probes/runs-stage-2/second-reader-audit-95e3c14d-bg_0hegf/`.
-- From `/Users/sunzeyu/dev/band-factory/vendor/sf-buildathon-2026`: `BUILDX_CONFIG=/Users/sunzeyu/dev/band-factory/work/second-reader/buildx with-slot .venv/bin/python -m harness run --track dossier --repo /Users/sunzeyu/dev/band-factory/work/second-reader/clones/stage-2-bc19abf8cbde --stage 2 --mode isolated --out /Users/sunzeyu/dev/band-factory/work/checks/second-reader-s2-bc19abf8-round2` — exit 0, **claimed stage: 2**. This is supplementary sample evidence.
+- `fclone bc19abf8cbde23c3a2fa50f23baa55dbfe48d731 /Users/[REDACTED]/dev/band-factory/work/second-reader/clones/stage-2-bc19abf8cbde` — exit 0, clean clone.
+- `BUILDX_CONFIG=/Users/[REDACTED]/dev/band-factory/work/second-reader/buildx fserve bc19abf8cbde23c3a2fa50f23baa55dbfe48d731 2 20010 --container-port 8097` — exit 0, health 200.
+- `SECOND_READER_FIRST=stage2-slow-research-then-throttled-extract /Users/[REDACTED]/dev/band-factory/work/second-reader/probes/stage-2/run.sh /Users/[REDACTED]/dev/band-factory/work/second-reader/clones/stage-2-bc19abf8cbde/stage-2` — **205 passed, 0 failed**, exit 0. Results identify this exact clone. Artifacts: `/Users/[REDACTED]/dev/band-factory/work/second-reader/probes/runs-stage-2/second-reader-audit-95e3c14d-bg_0hegf/`.
+- From `/Users/[REDACTED]/dev/band-factory/vendor/sf-buildathon-2026`: `BUILDX_CONFIG=/Users/[REDACTED]/dev/band-factory/work/second-reader/buildx with-slot .venv/bin/python -m harness run --track dossier --repo /Users/[REDACTED]/dev/band-factory/work/second-reader/clones/stage-2-bc19abf8cbde --stage 2 --mode isolated --out /Users/[REDACTED]/dev/band-factory/work/checks/second-reader-s2-bc19abf8-round2` — exit 0, **claimed stage: 2**. This is supplementary sample evidence.
 - `ledger-check 2 --phase audit --revision bc19abf8cbde23c3a2fa50f23baa55dbfe48d731` — exit 0, all 188 units accounted for and all 144 normative/ruled ambiguous rows evidenced.
 
 The runner builds and starts the supplied stage itself with 2 vCPU and 3 GiB, uses the documented kit mock and sample corpus, and runs Chromium in df-harness-runner through with-slot. A forwarding proxy timestamps the real mock's answers; it does not synthesize status codes or log credentials. No product modules are imported on the host.

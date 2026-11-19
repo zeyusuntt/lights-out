@@ -22,7 +22,7 @@ Observed: the service ends **ready**, spends **33 units**, and returns **ceo unk
 Reproduce on a clean clone of this exact revision:
 
 ```sh
-SECOND_READER_ONLY=research-header-shaped-prose-is-evidence /Users/sunzeyu/dev/band-factory/work/second-reader/probes/stage-1/run.sh <clean-clone>/stage-1
+SECOND_READER_ONLY=research-header-shaped-prose-is-evidence /Users/[REDACTED]/dev/band-factory/work/second-reader/probes/stage-1/run.sh <clean-clone>/stage-1
 ```
 
 The command builds and starts its own service and mock, runs the sample corpus, then runs the named case. It exits 1 and prints the ready state, spending, unknown CEO, and the provider-served sentence. No product source was read to establish this failure.
@@ -38,19 +38,19 @@ An ordinary non-searchable page for `reader-research-long.test` has one prose se
 Reproduce:
 
 ```sh
-SECOND_READER_ONLY=research-excerpt-length-limit /Users/sunzeyu/dev/band-factory/work/second-reader/probes/stage-1/run.sh <clean-clone>/stage-1
+SECOND_READER_ONLY=research-excerpt-length-limit /Users/[REDACTED]/dev/band-factory/work/second-reader/probes/stage-1/run.sh <clean-clone>/stage-1
 ```
 
 This independently observed follow-up was motivated by the verifier's post-probe length note. The targeted command exits 1 and prints `research citation length 1056`, the URL, field CEO, and state ready. It uses normal provider-served page prose and does not inspect product code. A final full-suite run also includes this case.
 
 ## Retests and verification
 
-- `fclone b9d46b6fd9eabedd13ecc8fb09aa6247ad1fcf17 /Users/sunzeyu/dev/band-factory/work/second-reader/clones/stage-1-b9d46b6fd9ea` — exit 0; clean clone.
-- `BUILDX_CONFIG=/Users/sunzeyu/dev/band-factory/work/second-reader/buildx fserve b9d46b6fd9eabedd13ecc8fb09aa6247ad1fcf17 1 20010 --container-port 8097` — exit 0; health 200.
+- `fclone b9d46b6fd9eabedd13ecc8fb09aa6247ad1fcf17 /Users/[REDACTED]/dev/band-factory/work/second-reader/clones/stage-1-b9d46b6fd9ea` — exit 0; clean clone.
+- `BUILDX_CONFIG=/Users/[REDACTED]/dev/band-factory/work/second-reader/buildx fserve b9d46b6fd9eabedd13ecc8fb09aa6247ad1fcf17 1 20010 --container-port 8097` — exit 0; health 200.
 - First, `SECOND_READER_ONLY=encoded-path-domain-validation,fixture-id-length-boundary .../probes/stage-1/run.sh <clone>/stage-1` — **3 passed, 0 failed**, including the mandatory sample run. F1 now returns 422 on all four encoded-slash GET/refresh requests. F2 accepts a 64-character ID, rejects 65 characters with 422, and preserves the prior user identity.
-- Then, `SECOND_READER_FIRST=encoded-path-domain-validation,fixture-id-length-boundary /Users/sunzeyu/dev/band-factory/work/second-reader/probes/stage-1/run.sh /Users/sunzeyu/dev/band-factory/work/second-reader/clones/stage-1-b9d46b6fd9ea/stage-1` — initial complete run **163 passed, 1 failed**, exit 1 (F3); final complete run with F4 added **163 passed, 2 failed**, exit 1 (F3 and F4 only). The fresh-process clock prerequisite precedes cases that reset the service.
+- Then, `SECOND_READER_FIRST=encoded-path-domain-validation,fixture-id-length-boundary /Users/[REDACTED]/dev/band-factory/work/second-reader/probes/stage-1/run.sh /Users/[REDACTED]/dev/band-factory/work/second-reader/clones/stage-1-b9d46b6fd9ea/stage-1` — initial complete run **163 passed, 1 failed**, exit 1 (F3); final complete run with F4 added **163 passed, 2 failed**, exit 1 (F3 and F4 only). The fresh-process clock prerequisite precedes cases that reset the service.
 - Separate research retest with `SECOND_READER_ONLY=research-citations-verbatim-prose-and-reuse,research-header-citation-is-not-prose,research-header-shaped-prose-is-evidence` and the same runner/clone — **3 passed, 1 failed**, exit 1. F3 again ends ready at 33 units; diagnostics show the exact research-served sentence quoted above.
-- From the kit directory, `BUILDX_CONFIG=/Users/sunzeyu/dev/band-factory/work/second-reader/buildx with-slot .venv/bin/python -m harness run --track dossier --repo /Users/sunzeyu/dev/band-factory/work/second-reader/clones/stage-1-b9d46b6fd9ea --stage 1 --mode isolated --out /Users/sunzeyu/dev/band-factory/work/checks/second-reader-s1-b9d46b6f-round2` — exit 0, **claimed stage: 1**. This sample is further evidence, not a stage verdict.
+- From the kit directory, `BUILDX_CONFIG=/Users/[REDACTED]/dev/band-factory/work/second-reader/buildx with-slot .venv/bin/python -m harness run --track dossier --repo /Users/[REDACTED]/dev/band-factory/work/second-reader/clones/stage-1-b9d46b6fd9ea --stage 1 --mode isolated --out /Users/[REDACTED]/dev/band-factory/work/checks/second-reader-s1-b9d46b6f-round2` — exit 0, **claimed stage: 1**. This sample is further evidence, not a stage verdict.
 
 All the first-round probes were rerun, including concurrency, reset during a build, import during a build, unchanged cross-process transfer after stopping/restarting the source, idempotent retries, provider errors, budget pressure, no-page extraction and connection-loss costs, all legal suffixes and negators, Unicode names, conflicting values, headcount boundaries, and amount formats. The runner builds the supplied stage folder itself and requires no second argument.
 

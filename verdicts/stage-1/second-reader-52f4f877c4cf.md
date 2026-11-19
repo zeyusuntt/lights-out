@@ -21,7 +21,7 @@ POST /dossiers/valid.test%2Fpath/refresh
 Reproduction, from a clean clone of the stated revision:
 
 ```sh
-SECOND_READER_ONLY=encoded-path-domain-validation /Users/sunzeyu/dev/band-factory/work/second-reader/probes/stage-1/run.sh <clean-clone>/stage-1
+SECOND_READER_ONLY=encoded-path-domain-validation /Users/[REDACTED]/dev/band-factory/work/second-reader/probes/stage-1/run.sh <clean-clone>/stage-1
 ```
 
 The command builds and starts its own service and local mock, runs the required sample corpus, then reproduces all four requests. It exits nonzero. No product source was read to establish this finding.
@@ -35,17 +35,17 @@ Reset with a seeded user whose `id` is 64 characters succeeds and the user logs 
 Reproduction:
 
 ```sh
-SECOND_READER_ONLY=fixture-id-length-boundary /Users/sunzeyu/dev/band-factory/work/second-reader/probes/stage-1/run.sh <clean-clone>/stage-1
+SECOND_READER_ONLY=fixture-id-length-boundary /Users/[REDACTED]/dev/band-factory/work/second-reader/probes/stage-1/run.sh <clean-clone>/stage-1
 ```
 
 The probe reports the accepted reset status and the returned ID length without disclosing credentials. It exits nonzero.
 
 ## Commands and scope
 
-- Clean clone: `fclone 52f4f877c4cf853d78515f431a8b58a950ee1da0 /Users/sunzeyu/dev/band-factory/work/second-reader/clones/stage-1-52f4f877c4cf` — exit 0; clone initially clean.
-- Required start: `BUILDX_CONFIG=/Users/sunzeyu/dev/band-factory/work/second-reader/buildx fserve 52f4f877c4cf853d78515f431a8b58a950ee1da0 1 20010 --container-port 8097` — exit 0; health 200 on the nondefault container port.
-- Independent suite: `SECOND_READER_FIRST=encoded-path-domain-validation,fixture-id-length-boundary /Users/sunzeyu/dev/band-factory/work/second-reader/probes/stage-1/run.sh /Users/sunzeyu/dev/band-factory/work/second-reader/clones/stage-1-52f4f877c4cf/stage-1` — exit 1; **159 passed, 2 failed**, namely F1 and F2. The fresh-process clock prerequisite runs before tests that reset the service.
-- Isolated sample check: `BUILDX_CONFIG=/Users/sunzeyu/dev/band-factory/work/second-reader/buildx with-slot .venv/bin/python -m harness run --track dossier --repo /Users/sunzeyu/dev/band-factory/work/second-reader/clones/stage-1-52f4f877c4cf --stage 1 --mode isolated --out /Users/sunzeyu/dev/band-factory/work/checks/second-reader-s1-52f4f877-round1b`, from `/Users/sunzeyu/dev/band-factory/vendor/sf-buildathon-2026` — exit 0, `claimed stage: 1`. No shipped check source was opened.
+- Clean clone: `fclone 52f4f877c4cf853d78515f431a8b58a950ee1da0 /Users/[REDACTED]/dev/band-factory/work/second-reader/clones/stage-1-52f4f877c4cf` — exit 0; clone initially clean.
+- Required start: `BUILDX_CONFIG=/Users/[REDACTED]/dev/band-factory/work/second-reader/buildx fserve 52f4f877c4cf853d78515f431a8b58a950ee1da0 1 20010 --container-port 8097` — exit 0; health 200 on the nondefault container port.
+- Independent suite: `SECOND_READER_FIRST=encoded-path-domain-validation,fixture-id-length-boundary /Users/[REDACTED]/dev/band-factory/work/second-reader/probes/stage-1/run.sh /Users/[REDACTED]/dev/band-factory/work/second-reader/clones/stage-1-52f4f877c4cf/stage-1` — exit 1; **159 passed, 2 failed**, namely F1 and F2. The fresh-process clock prerequisite runs before tests that reset the service.
+- Isolated sample check: `BUILDX_CONFIG=/Users/[REDACTED]/dev/band-factory/work/second-reader/buildx with-slot .venv/bin/python -m harness run --track dossier --repo /Users/[REDACTED]/dev/band-factory/work/second-reader/clones/stage-1-52f4f877c4cf --stage 1 --mode isolated --out /Users/[REDACTED]/dev/band-factory/work/checks/second-reader-s1-52f4f877-round1b`, from `/Users/[REDACTED]/dev/band-factory/vendor/sf-buildathon-2026` — exit 0, `claimed stage: 1`. No shipped check source was opened.
 
 Independent probes cover the public sample, authentication, error taxonomy, domain and query boundaries, idempotency precedence and concurrency, logical clock behavior, refresh success/failure, supported/unsupported research citations, evidence beyond snippets and beyond ten initial results, pagination, reset during active work, repeated cross-process import, old tokens and replay records after transfer, source stop/restart after export, mid-build export snapshots, budget pressure, refusal/connection-loss/no-page costs, all listed legal suffixes and negators, statement phrases, Unicode words, conflicting values, headcount boundaries, and USD amount formats. Services run with 2 vCPU and 3 GiB and no Tavily configuration.
 

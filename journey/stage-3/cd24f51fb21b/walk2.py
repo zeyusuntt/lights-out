@@ -1,6 +1,6 @@
 import json, httpx
 from playwright.sync_api import sync_playwright
-B="http://127.0.0.1:21001"; O="/Users/sunzeyu/dev/band-factory/work/result/journey/stage-3/cd24f51fb21b/"
+B="http://127.0.0.1:21001"; O="/Users/[REDACTED]/dev/band-factory/work/result/journey/stage-3/cd24f51fb21b/"
 F=["legal_name","hq_city","ceo","founded_year","headcount_range","funding_total"]
 with sync_playwright() as p:
     br=p.chromium.launch()

@@ -2,7 +2,7 @@
 
 All four stages are closed and accepted. The line never stopped: the most blocks on any one stage was 3, against the limit of 5. Each stage was accepted only after the kit check claimed it on a clean clone in isolated mode, all verifying seats passed that exact revision, the ledger audit showed evidence for every required unit, and `accept-check` exited 0.
 
-Result repository: /Users/sunzeyu/dev/band-factory/work/result. Sealed acceptance suites are in `acceptance/stage-<n>/`, published at c359185. Second-reader probes are in `acceptance/second-reader/stage-<n>/`, published at be6c018 and 47183d8.
+Result repository: /Users/[REDACTED]/dev/band-factory/work/result. Sealed acceptance suites are in `acceptance/stage-<n>/`, published at c359185. Second-reader probes are in `acceptance/second-reader/stage-<n>/`, published at be6c018 and 47183d8.
 
 ## Per stage
 
