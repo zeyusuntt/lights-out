@@ -1,0 +1,21 @@
+diff --git a/tablekeeper/replans.py b/tablekeeper/replans.py
+--- a/tablekeeper/replans.py
++++ b/tablekeeper/replans.py
+@@ -129,7 +129,7 @@
+             )
+         )
+     store.relocate(placements)
+-    touched_series = set()
++    touched_series = []
+     for reservation, placement in placements:
+         reservation.revision += 1
+         change = history.seating_list_change(
+@@ -137,7 +137,7 @@
+         )
+         history.record(reservation, history.REASSIGNED, [change], plan_id=plan.id)
+         if reservation.series_id is not None:
+-            touched_series.add(reservation.series_id)
++            touched_series.append(reservation.series_id)
+     for series_id in touched_series:
+         store.series[series_id].revision += 1
+ 

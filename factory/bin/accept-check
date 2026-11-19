@@ -1,0 +1,90 @@
+#!/usr/bin/env python3
+"""Refuse acceptance unless everything required holds for one exact revision.
+
+    accept-check <stage> <full-hash> --ui|--no-ui --report <report.json>
+
+--ui means the stage has a human interface, so the product-user's verdict is required; say which.
+--report is the kit check's report from an isolated run on a clean clone of that hash.
+
+Requires: a suite whose first seal predates the stage's first product commit and which still matches its latest
+seal; committed PASS verdict files for that revision; the check report claiming the stage at that revision; the
+ledger audit at that revision, committed; a whole stage folder at that revision; no later change to the folder.
+"""
+import json, pathlib, subprocess, sys
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1] / "lib"))
+import fenv
+
+args = sys.argv[1:]
+if len(args) < 2 or args[0] in ("-h", "--help"):
+    print(__doc__); raise SystemExit(0)
+stage, rev = args[0], args[1]
+problems = []
+if ("--ui" in args) == ("--no-ui" in args):
+    problems.append("say --ui or --no-ui: does this stage have a human interface?")
+seats = ["verifier", "second-reader"] + (["product-user"] if "--ui" in args else [])
+report_path = args[args.index("--report") + 1] if "--report" in args else ""
+if fenv.git("rev-parse", "--verify", f"{rev}^{{commit}}", check=False).returncode:
+    fenv.die(f"accept-check: {rev} is not a commit")
+full = fenv.git("rev-parse", rev).stdout.strip()
+if full != rev:
+    problems.append("give the full hash")
+here = pathlib.Path(__file__).with_name
+seal = fenv.seal_path(stage)
+if not seal.exists():
+    problems.append("no seal for this stage")
+else:
+    first = json.loads(seal.read_text())[0]
+    if first.get("product_commits") not in ("0", ""):
+        problems.append(f"sealed after {first['product_commits']} product commit(s)")
+    verify = subprocess.run([str(here("seal")), "--verify", stage, str(fenv.WORK / "verifier" / "sealed" / f"stage-{stage}")], capture_output=True, text=True)
+    if verify.returncode:
+        problems.append("the suite no longer matches its latest seal: " + verify.stderr.strip()[:200])
+if not report_path:
+    problems.append("no --report: give the isolated check's report.json for this revision")
+else:
+    try:
+        report = json.loads(pathlib.Path(report_path).read_text())
+        if report.get("state") != "completed":
+            problems.append(f"check report state is {report.get('state')!r}")
+        if report.get("mode") != "isolated":
+            problems.append(f"check report mode is {report.get('mode')!r}, not isolated")
+        if report.get("revision") != full:
+            problems.append(f"check report is for {str(report.get('revision'))[:12]}, not {full[:12]}")
+        if report.get("overshoot"):
+            problems.append(f"this folder also passes stage {report['overshoot']}'s suite")
+        if str(report.get("claimed_stage")) != str(stage):
+            problems.append(f"check report claims stage {report.get('claimed_stage')!r}")
+    except (OSError, ValueError) as exc:
+        problems.append(f"cannot read the check report: {exc}")
+open_files = fenv.git("status", "--porcelain", "--", "ledger", f"verdicts/stage-{stage}", check=False).stdout.strip()
+if open_files:
+    problems.append("evidence not committed:\n" + open_files[:600])
+for seat in seats:
+    path = fenv.result() / "verdicts" / f"stage-{stage}" / f"{seat}-{full[:12]}.md"
+    if not path.exists():
+        problems.append(f"no verdict file from {seat}")
+        continue
+    head = path.read_text().splitlines()[:3]
+    if not any(line.strip() == "VERDICT: PASS" for line in head):
+        problems.append(f"{seat}'s verdict is not PASS")
+    if not any(line.strip() == f"REVISION: {full}" for line in head):
+        problems.append(f"{seat}'s verdict names another revision")
+check = subprocess.run([str(here("ledger-check")), stage, "--phase", "audit", "--revision", full], capture_output=True, text=True)
+if check.returncode:
+    problems.append("ledger audit open:\n" + check.stdout[:2000] + check.stderr[:500])
+tree = fenv.git("ls-tree", "-r", "--name-only", full, f"stage-{stage}/", check=False).stdout.splitlines()
+for name in ("Dockerfile", "RUN.md"):
+    if f"stage-{stage}/{name}" not in tree:
+        problems.append(f"stage-{stage}/{name} is missing at {full[:12]}")
+modes = fenv.git("ls-tree", "-r", full, f"stage-{stage}/", check=False).stdout.splitlines()
+if any(line.startswith(("120000", "160000")) for line in modes):
+    problems.append("the stage folder holds a symlink or a submodule")
+if fenv.git("status", "--porcelain", "--", f"stage-{stage}/", check=False).stdout.strip():
+    problems.append(f"stage-{stage}/ has uncommitted or untracked files; the next stage would copy them")
+if fenv.git("diff", "--quiet", full, "HEAD", "--", f"stage-{stage}/", check=False).returncode:
+    problems.append("the stage folder changed after that revision")
+if problems:
+    print("NOT ACCEPTABLE:")
+    print("\n".join(f"- {p}" for p in problems))
+    raise SystemExit(1)
+print(f"acceptable: stage {stage} at {full}")

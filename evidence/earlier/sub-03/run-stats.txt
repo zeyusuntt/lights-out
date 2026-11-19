@@ -1,0 +1,9 @@
+messages 2053, text 55, human text 1
+dispatch 04:19Z; final report 09:33Z; wall clock 315 min
+  stage 1: open 04:19, ledger ready +7m, sealed +9m, candidates 7 (first +31m), closed 09:29 (310m), BLOCK 7 PASS 7; shipped 122/122
+verdicts: {'second-reader/BLOCK': 7, 'verifier/PASS': 7}
+per seat (room text messages, tool calls reported to the room): {'builder': (7, 151), 'foreman': (24, 96), 'product-user': (0, 3), 'second-reader': (10, 466), 'verifier': (13, 122)}
+error events: 0 []
+commits: {'foreman': 37, 'second-reader': 13, 'builder': 10, 'verifier': 8}
+claude-side estimate: 9f8dd96e-417b-487e-8e78-f39da9b5b900           4       63198697     $26.63  [REDACTED]/builder $12.49 · [REDACTED]/verifier $9.61 · [REDACTED]/product-user $0.29 · [REDACTED]/foreman $4.24
+second-reader tokens (codex sessions in the run's window): {'input_tokens': 49367056, 'cached_input_tokens': 48583936, 'output_tokens': 517186} about $82 at the assumed rates

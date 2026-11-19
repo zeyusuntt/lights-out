@@ -1,0 +1,4 @@
+docker build failed:
+
+ERROR: failed to build: failed to update builder last activity time: open /Users/[REDACTED]/.docker/buildx/activity/.tmp-colima3294483610: operation not permitted
+

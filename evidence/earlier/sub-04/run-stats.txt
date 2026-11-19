@@ -1,0 +1,9 @@
+messages 1887, text 54, human text 1
+dispatch 09:54Z; final report 15:55Z; wall clock 361 min
+  stage 1: open 09:54, ledger ready +5m, sealed +13m, candidates 7 (first +40m), closed 15:53 (359m), BLOCK 7 PASS 7; shipped 122/122
+verdicts: {'second-reader/BLOCK': 7, 'verifier/PASS': 7}
+per seat (room text messages, tool calls reported to the room): {'builder': (7, 167), 'foreman': (23, 88), 'product-user': (0, 3), 'second-reader': (11, 387), 'timekeeper': (1, 0), 'verifier': (11, 113)}
+error events: 1 ['This content was flagged for possible cybersecurity risk. If this seems wrong, try rephrasing your r']
+commits: {'foreman': 41, 'builder': 13, 'second-reader': 10, 'verifier': 8}
+claude-side estimate: 6352dc26-a932-45f8-9ccd-6686cd542db7           4       69345992     $34.13  [REDACTED]/builder $16.03 · [REDACTED]/verifier $13.18 · [REDACTED]/product-user $0.26 · [REDACTED]/foreman $4.66
+second-reader tokens (codex sessions in the run's window): {'input_tokens': 49631514, 'cached_input_tokens': 48983296, 'output_tokens': 396882} about $75 at the assumed rates

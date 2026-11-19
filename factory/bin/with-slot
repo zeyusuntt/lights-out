@@ -1,0 +1,49 @@
+#!/usr/bin/env python3
+"""Run a command holding one of two machine slots, so heavy Docker and browser jobs don't pile up.
+
+    with-slot <command...>
+
+Waits up to 40 minutes for a slot. A command already running under a slot doesn't take a second one. The operating
+system holds the lock, so a killed holder frees its slot.
+"""
+import fcntl, os, pathlib, signal, subprocess, sys, time
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1] / "lib"))
+import fenv
+
+if len(sys.argv) < 2 or sys.argv[1] in ("-h", "--help"):
+    print(__doc__); raise SystemExit(0)
+if os.environ.get("FACTORY_SLOT_HELD"):
+    raise SystemExit(subprocess.run(sys.argv[1:]).returncode)
+root = fenv.WORK / "state" / "slots"; root.mkdir(parents=True, exist_ok=True)
+deadline = time.monotonic() + 2400
+held = None
+while held is None:
+    for n in ("1", "2"):
+        handle = open(root / f"{n}.lock", "a")
+        try:
+            fcntl.flock(handle, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            held = handle
+            break
+        except OSError:
+            handle.close()
+    if held is None:
+        if time.monotonic() > deadline:
+            fenv.die("with-slot: no slot free after 40 minutes")
+        time.sleep(1)
+# The child runs in its own process group, and that group goes when this process goes, so a slot
+# is never released while its work carries on.
+child = subprocess.Popen(sys.argv[1:], env={**os.environ, "FACTORY_SLOT_HELD": "1"}, start_new_session=True)
+
+
+def stop(*_):
+    try:
+        os.killpg(child.pid, signal.SIGTERM)
+    except ProcessLookupError:
+        pass
+    raise SystemExit(143)
+
+
+signal.signal(signal.SIGTERM, stop)
+signal.signal(signal.SIGINT, stop)
+signal.signal(signal.SIGHUP, stop)
+raise SystemExit(child.wait())

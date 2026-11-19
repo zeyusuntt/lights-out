@@ -1,0 +1,142 @@
+{
+  "revision": "7c72afa4b997585fb1d128bf28f9f416361bac29",
+  "track": "dossier",
+  "stages": {
+    "1": "pass",
+    "2": "pass",
+    "3": "pass"
+  },
+  "highest_contiguous": 3,
+  "started_at": "2026-11-18T23:02:15.145144+00:00",
+  "finished_at": "2026-11-18T23:03:01.401446+00:00",
+  "schema_version": 2,
+  "run_id": "6d172a253a3240b0a50c804acdf75db6",
+  "mode": "isolated",
+  "provenance": "working-tree",
+  "state": "completed",
+  "pytest_args": [],
+  "suite_digest": "a4391f5154bbbb997000ddb814b3802cf1d53fb86a90ab6e4824555c857b8e3d",
+  "suite_digests": {
+    "1": "df1eb07cee2eadbe87cc314e6ad0770012e62be7821b2fea4ce2e06d591d83f9",
+    "2": "b03edeab309ee7c3e135c74da0f3927f134b00bba060fd4faf75375a0d7ef4b8",
+    "3": "9c50c1548039eff43998be6648cee88ffdced6cd52b57f4ea16d78a1b1c9bc04"
+  },
+  "checks": {
+    "1": {
+      "collected": 122,
+      "passed": 122,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0,
+      "deselected": 0,
+      "xfailed": 0,
+      "leaks": 0,
+      "fabrications": 0,
+      "economy": null,
+      "files": {
+        "stage_1/test_auth.py": {
+          "passed": 51,
+          "total": 51
+        },
+        "stage_1/test_dossiers.py": {
+          "passed": 60,
+          "total": 60
+        },
+        "stage_1/test_sample.py": {
+          "passed": 11,
+          "total": 11
+        }
+      }
+    },
+    "2": {
+      "collected": 12,
+      "passed": 12,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0,
+      "deselected": 0,
+      "xfailed": 0,
+      "leaks": 0,
+      "fabrications": 0,
+      "economy": null,
+      "files": {
+        "stage_2/test_sample.py": {
+          "passed": 12,
+          "total": 12
+        }
+      }
+    },
+    "3": {
+      "collected": 9,
+      "passed": 9,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0,
+      "deselected": 0,
+      "xfailed": 0,
+      "leaks": 0,
+      "fabrications": 0,
+      "economy": null,
+      "files": {
+        "stage_3/test_sample.py": {
+          "passed": 9,
+          "total": 9
+        }
+      }
+    }
+  },
+  "implementation_stage": "3",
+  "overshoot": null,
+  "claimed_stage": "3",
+  "share": 1.0,
+  "upgrade_sources": {
+    "2": {
+      "folder": "/Users/[REDACTED]/dev/band-factory/work/score/clone-150025/stage-1",
+      "revision": "7c72afa4b997585fb1d128bf28f9f416361bac29"
+    },
+    "3": {
+      "folder": "/Users/[REDACTED]/dev/band-factory/work/score/clone-150025/stage-2",
+      "revision": "7c72afa4b997585fb1d128bf28f9f416361bac29"
+    },
+    "4": {
+      "folder": "/Users/[REDACTED]/dev/band-factory/work/score/clone-150025/stage-3",
+      "revision": "7c72afa4b997585fb1d128bf28f9f416361bac29"
+    }
+  },
+  "web": {
+    "1": {
+      "fabrications": 0,
+      "economy": null
+    },
+    "2": {
+      "fabrications": 0,
+      "economy": null
+    },
+    "3": {
+      "fabrications": 0,
+      "economy": null
+    }
+  },
+  "probe": {
+    "suite": "4",
+    "status": "fail",
+    "checks": {
+      "collected": 10,
+      "passed": 0,
+      "failed": 1,
+      "errors": 0,
+      "skipped": 0,
+      "deselected": 0,
+      "xfailed": 0,
+      "leaks": 0,
+      "fabrications": 0,
+      "economy": null,
+      "files": {
+        "stage_4/test_sample.py": {
+          "passed": 0,
+          "total": 10
+        }
+      }
+    }
+  }
+}

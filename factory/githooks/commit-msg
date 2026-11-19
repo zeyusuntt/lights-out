@@ -1,0 +1,8 @@
+#!/usr/bin/env python3
+"""Commit messages describe the work. They name no vendor or model."""
+import re, sys
+text = open(sys.argv[1]).read()
+hit = re.search(r"\b(claude|codex|anthropic|openai|chatgpt|gpt-?\d*|opus|sonnet|co-authored-by)\b", text, re.I) or re.search(r"\bAI\b", text)
+if hit:
+    print(f"commit message names {hit.group(0)!r}; describe the work instead", file=sys.stderr)
+    raise SystemExit(1)

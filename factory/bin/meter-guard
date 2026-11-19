@@ -1,0 +1,24 @@
+#!/bin/sh
+# Operator process: enforce a stop line on the shared Claude 7-day window.
+# meter-guard [stop-percent, default 92]: every 15 min reads the meter and logs it. At the stop line it stops every seat
+# (queued messages wait) and pauses the watchdog. Once the window has reset it restarts the seats. Prints only on changes of state.
+case "$1" in -h|--help) sed -n '2,/^[^#]/p' "$0" | grep "^#" | sed "s/^# \{0,1\}//"; exit 0;; esac
+here="$(cd "$(dirname "$0")" && pwd)"; work="$here/../../work"; stop="${1:-92}"; paused=0
+[ -f "$work/state/paused" ] && paused=1
+while :; do
+  line="$("$here/plan-meter" 2>/dev/null | head -1)"
+  pct="$(printf '%s' "$line" | sed -nE "s/.*seven_day': \(([0-9]+),.*/\1/p")"
+  printf '%s %s\n' "$(date '+%m-%d %H:%M')" "$line" >> "$work/state/meter.log"
+  if [ -n "$pct" ] && [ "$pct" -ge "$stop" ] && [ "$paused" = 0 ]; then
+    touch "$work/state/paused"; paused=1
+    for s in foreman builder verifier second-reader product-user; do band --session "df-$s" stop >/dev/null 2>&1; done
+    echo "GUARD stopped seats at ${pct}%"
+  elif [ -n "$pct" ] && [ "$pct" -lt 60 ] && [ "$paused" = 1 ]; then
+    for s in foreman builder verifier second-reader product-user; do band --session "df-$s" restart >/dev/null 2>&1; done
+    rm -f "$work/state/paused"; paused=0
+    echo "GUARD restarted seats at ${pct}%"
+  fi
+  # Once the run is over and nothing waits on a reset, the guard has nothing left to protect.
+  if [ "$paused" = 0 ] && grep -q "FINAL REPORT" "$work/state/final-seen" 2>/dev/null; then exit 0; fi
+  sleep 900
+done

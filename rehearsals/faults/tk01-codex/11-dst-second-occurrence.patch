@@ -1,0 +1,12 @@
+diff --git a/tablekeeper/localtime.py b/tablekeeper/localtime.py
+--- a/tablekeeper/localtime.py
++++ b/tablekeeper/localtime.py
+@@ -117,7 +117,7 @@
+ 
+ def to_instant(naive: datetime, zone: ZoneInfo) -> int:
+     """Resolve a wall-clock time. fold=0 selects the first occurrence of a repeated time."""
+-    return _seconds(naive) - _wall_offset(naive, zone, 0)
++    return _seconds(naive) - _wall_offset(naive, zone, 1)
+ 
+ 
+ def boundary_instant(naive: datetime, zone: ZoneInfo) -> int:

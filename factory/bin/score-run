@@ -1,0 +1,47 @@
+#!/usr/bin/env python3
+"""Operator tool: score a finished run with the pristine kit, from a fresh clone.
+
+    score-run [--run <run-dir>] [--track <t>]
+
+Writes <run>/score/ and prints per-folder, per-suite counts. Uses the untouched kit, including checks a
+holdout rehearsal withheld from the seats.
+"""
+import sys as _sys
+if _sys.argv[1:2] in (["-h"], ["--help"]):
+    print(__doc__ or "see the comment at the top of this file"); raise SystemExit(0)
+import json, pathlib, shutil, subprocess, sys, time
+HOME = pathlib.Path(__file__).resolve().parents[2]
+KIT = HOME / "vendor/dark-factory-wearedevs"
+args = sys.argv[1:]
+run = pathlib.Path(args[args.index("--run") + 1]) if "--run" in args else HOME / "work"
+env = dict(l.split("=", 1) for l in (run / "run.env").read_text().splitlines() if "=" in l)
+KIT = pathlib.Path(env.get("KIT_SOURCE", KIT))      # the run's untouched kit, recorded by new-run
+track = args[args.index("--track") + 1] if "--track" in args else env["TRACK"]
+score = run / "score"; stamp = time.strftime("%H%M%S")
+clone = score / f"clone-{stamp}"; score.mkdir(exist_ok=True)
+subprocess.run(["git", "clone", "-q", str(run / "result"), str(clone)], check=True)
+out = score / f"all-{stamp}"
+proc = subprocess.run([str(KIT / ".venv/bin/python"), "-m", "harness", "run", "--track", track, "--repo", str(clone), "--all", "--mode", "isolated", "--out", str(out)],
+                      cwd=KIT, capture_output=True, text=True)
+print(proc.stdout[-1500:], proc.stderr[-400:])
+rows = {}
+for stage in "1234":
+    report = out / f"stage-{stage}" / "report.json"
+    if not report.exists():
+        continue
+    body = json.loads(report.read_text())
+    checks = body.get("checks") or {}
+    rows[stage] = {"claimed": body.get("claimed_stage"), "overshoot": body.get("overshoot"),
+                   "suites": {s: (c.get("passed"), c.get("collected")) for s, c in checks.items()}}
+    print(f"stage-{stage}: claimed={body.get('claimed_stage')} overshoot={body.get('overshoot')} " + " ".join(f"S{s}:{p}/{t}" for s, (p, t) in rows[stage]["suites"].items()))
+(score / f"summary-{stamp}.json").write_text(json.dumps(rows, indent=1) + "\n")
+check = subprocess.run([str(KIT / ".venv/bin/python"), "-m", "harness", "check", str(run / "result"), "--track", track], cwd=KIT, capture_output=True, text=True)
+print("harness check:", check.stderr[-1200:])
+claimed = [stage for stage, row in rows.items() if row["claimed"] == stage]
+chain = 0
+for stage in "1234":
+    if stage not in claimed:
+        break
+    chain = int(stage)
+print(f"chain: stage {chain}")
+raise SystemExit(0 if proc.returncode == 0 and rows and chain == len(rows) and check.returncode == 0 else 1)

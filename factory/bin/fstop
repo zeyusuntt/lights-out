@@ -1,0 +1,19 @@
+#!/bin/sh
+# Stop and remove a container this seat started in this run: fstop <name>, or fstop --all for everything fserve recorded for it.
+# --all reads this run's own record, never a name prefix: another run on this machine may use the same seat names.
+# A removal that fails is reported, kept in the record and makes the exit code non-zero.
+if [ "$1" = "-h" ] || [ "$1" = "--help" ] || [ -z "$1" ]; then sed -n 2,4p "$0"; exit 0; fi
+record="${FACTORY_WORK:-$(dirname "$0")/../../work}/${FACTORY_SEAT:-operator}/serve/started"
+if [ "$1" = "--all" ]; then
+  [ -f "$record" ] && names=$(sort -u "$record") || names=""
+else names="$1"; fi
+failed=""
+for n in $names; do
+  if docker rm -f "$n" >/dev/null 2>&1 || ! docker inspect "$n" >/dev/null 2>&1; then
+    docker rmi -f "$n" >/dev/null 2>&1; echo "removed $n"
+  else
+    echo "could not remove $n" >&2; failed="$failed $n"
+  fi
+done
+if [ "$1" = "--all" ] && [ -f "$record" ]; then printf '%s\n' $failed | sed '/^$/d' > "$record"; fi
+[ -z "$failed" ]

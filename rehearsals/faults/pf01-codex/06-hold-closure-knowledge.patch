@@ -1,0 +1,12 @@
+diff --git a/pocketful/history.py b/pocketful/history.py
+--- a/pocketful/history.py
++++ b/pocketful/history.py
+@@ -83,7 +83,7 @@
+         return []
+     end = parse_instant(authorization["expires_at"])
+     closed_at = authorization["closed_at"]
+-    if closed_at is not None and parse_instant(closed_at) <= known:
++    if closed_at is not None:
+         end = min(end, parse_instant(closed_at))
+     if end <= created:
+         return []

@@ -1,0 +1,17 @@
+#!/bin/sh
+# Operator: score one revision of the current run with the pristine kit, out of sight of the seats.
+# score-candidate <hash> <stage>
+case "$1" in -h|--help) sed -n '2,/^[^#]/p' "$0" | grep "^#" | sed "s/^# \{0,1\}//"; exit 0;; esac
+here="$(cd "$(dirname "$0")" && pwd)"; home="$here/../.."; h="$1"; s="$2"; . "$home/work/run.env"
+d="$home/scratch/$RUN_ID-s$s-$(printf %.8s "$h")"; rm -rf "$d" "$d-out"
+git clone -q "$home/work/result" "$d" && git -C "$d" checkout -q --detach "$h"
+cd "$home/vendor/dark-factory-wearedevs"
+FACTORY_SEAT=operator FACTORY_WORK="$home/work" "$here/with-slot" .venv/bin/python -m harness run --track "$TRACK" --repo "$d" --stage "$s" --mode isolated --out "$d-out" > "$d.txt" 2>&1
+rc=$?
+python3 - "$d-out/report.json" <<'PY'
+import json, sys
+d = json.load(open(sys.argv[1]))
+print({k: (v.get("passed"), v.get("collected"), v.get("failed"), v.get("errors")) for k, v in d["checks"].items()}, "claimed", d.get("claimed_stage"), "overshoot", d.get("overshoot"))
+PY
+for n in 1 2 3 4; do [ -f "$d-out/stage-$n.log" ] && [ "$n" -le "$s" ] && grep -hE '^(FAILED|ERROR)' "$d-out/stage-$n.log" | cut -c1-260 | head -25; done
+exit $rc

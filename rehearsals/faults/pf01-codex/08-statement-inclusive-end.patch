@@ -1,0 +1,12 @@
+diff --git a/pocketful/history.py b/pocketful/history.py
+--- a/pocketful/history.py
++++ b/pocketful/history.py
+@@ -126,7 +126,7 @@
+     """
+     timeline = _timeline_as_known(store, user, known)
+     first = 0 if start is None else bisect_left(timeline.times, start)
+-    past_last = bisect_left(timeline.times, end)
++    past_last = bisect_right(timeline.times, end)
+     page = range(first + offset, min(first + offset + limit, past_last))
+     return {
+         "opening_balance": timeline.balances[first],

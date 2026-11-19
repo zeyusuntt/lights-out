@@ -1,0 +1,158 @@
+#!/usr/bin/env python3
+"""Operator tool: measured facts about a run, from the room log, git history, the score and usage records.
+
+    run-stats [--run <archived run dir>] [--room-json <file>] [--markdown]
+
+With no --run: the live run (work/run.env, the room through the CLI, work/result).
+With --run: an archive made by new-run (run.env, room-export.json or room.json, result/, score/).
+--room-json reads the room from a file instead (the console's Download full session, or export-room).
+--markdown prints the tables FACTORY.md uses, so its numbers are generated, not typed.
+"""
+import sys as _sys
+if _sys.argv[1:2] in (["-h"], ["--help"]):
+    print(__doc__ or "see the comment at the top of this file"); raise SystemExit(0)
+import collections, datetime, glob, json, os, pathlib, re, subprocess, sys
+HOME = pathlib.Path(__file__).resolve().parents[2]
+args = sys.argv[1:]
+opt = lambda name: args[args.index(name) + 1] if name in args else None
+run_dir = pathlib.Path(opt("--run")).resolve() if opt("--run") else None
+base = run_dir or HOME / "work"
+env = dict(l.split("=", 1) for l in (base / "run.env").read_text().splitlines() if "=" in l)
+room = env["ROOM"]
+repo = base / "result"
+room_json = opt("--room-json") or next((str(base / n) for n in ("room.json", "room-export.json") if run_dir and (base / n).exists()), None)
+
+
+def norm(m):
+    g = lambda snake, camel: m.get(snake, m.get(camel))
+    return {"id": m["id"], "sender_name": g("sender_name", "senderName"), "sender_type": g("sender_type", "senderType"),
+            "message_type": g("message_type", "messageType"), "content": m.get("content") or "", "inserted_at": g("inserted_at", "insertedAt")}
+
+
+if room_json:
+    raw = json.loads(pathlib.Path(room_json).read_text())
+    msgs = [norm(m) for m in (raw["messages"] if isinstance(raw, dict) else raw)]
+else:
+    out = subprocess.run([str(HOME / "factory/bin/room-page"), "--room", room], capture_output=True, text=True, check=True).stdout
+    msgs = [norm(json.loads(l)) for l in out.splitlines()]
+msgs.sort(key=lambda m: m["inserted_at"])
+ts = lambda m: datetime.datetime.fromisoformat(m["inserted_at"].replace("Z", "+00:00"))
+text = [m for m in msgs if m["message_type"] == "text"]
+human = [m for m in text if m["sender_type"] == "User"]
+start = ts(human[0]) if human else ts(msgs[0])
+body = lambda m: re.sub(r"@\[\[[^\]]+\]\]\s*", "", m["content"]).strip()
+final = next((m for m in text if m["sender_type"] != "User" and re.search(r"(^|\s)FINAL REPORT", body(m).split("\n", 1)[0])), None)
+end = ts(final) if final else ts(msgs[-1])
+
+marks = collections.defaultdict(dict)
+verdicts = collections.Counter(); per_stage = collections.Counter(); blocks = []; accepted = {}
+for m in text:
+    head = body(m).split("\n", 1)[0]
+    g = re.match(r"(STAGE-OPEN|LEDGER READY|SEALED|SEAL AMENDED|CANDIDATE|ACCEPTED|BLOCKED) (\d)", head)
+    if g:
+        marks[g.group(2)].setdefault(g.group(1), []).append(ts(m))
+    # One message may accept several stages, e.g. a backport re-acceptance and the next stage together.
+    for h in re.finditer(r"(?:^|[\s.;:])ACCEPTED (\d) ([0-9a-f]{7,40})", head):
+        if not (g and g.group(1) == "ACCEPTED" and g.group(2) == h.group(1)):
+            marks[h.group(1)].setdefault("ACCEPTED", []).append(ts(m))
+        accepted[h.group(1)] = h.group(2)
+    g = re.match(r"VERDICT (\S+) (\d) ([0-9a-f]+) (PASS|BLOCK|INCONCLUSIVE)", head)
+    if g:
+        verdicts[(g.group(1), g.group(4))] += 1; per_stage[(g.group(2), g.group(4))] += 1
+        if g.group(4) == "BLOCK":
+            blocks.append({"seat": g.group(1), "stage": g.group(2), "rev": g.group(3), "msg": m["id"], "at": ts(m)})
+
+seats = collections.defaultdict(collections.Counter)
+for m in msgs:
+    if m["sender_type"] != "User":
+        seats[m["sender_name"]][m["message_type"]] += 1
+commits = collections.Counter()
+for line in subprocess.run(["git", "-C", str(repo), "log", "--all", "--format=%an"], capture_output=True, text=True).stdout.split():
+    commits[line] += 1
+scores = sorted(glob.glob(str(base / "score/summary-*.json")))
+shipped = json.loads(pathlib.Path(scores[-1]).read_text()) if scores else {}
+minutes = lambda a, b: round((b - a).total_seconds() / 60)
+
+stages = []
+for stage, m in sorted(marks.items()):
+    opened = m.get("STAGE-OPEN", [start])[0]
+    closed = (m.get("ACCEPTED") or m.get("BLOCKED") or [None])[-1]
+    s = shipped.get(stage, {})
+    stages.append({
+        "stage": stage, "opened": opened,
+        "ledger": minutes(opened, m["LEDGER READY"][0]) if m.get("LEDGER READY") else None,
+        "sealed": minutes(opened, m["SEALED"][0]) if m.get("SEALED") else None,
+        "first": minutes(opened, m["CANDIDATE"][0]) if m.get("CANDIDATE") else None,
+        "candidates": len(m.get("CANDIDATE", [])), "closed": closed, "took": minutes(opened, closed) if closed else None,
+        "block": per_stage[(stage, "BLOCK")], "pass": per_stage[(stage, "PASS")], "accepted": accepted.get(stage),
+        "shipped": ", ".join(f"{p}/{t}" for _, (p, t) in sorted(s.get("suites", {}).items())) or "not scored",
+        "claims": s.get("claimed") == stage, "overshoot": s.get("overshoot")})
+
+usage = subprocess.run(["band", "usage", "rooms"], capture_output=True, text=True).stdout
+claude_line = next((l for l in usage.splitlines() if room in l), "not yet attributed")
+codex = pathlib.Path.home() / ".local/share/band-factory/codex-home/sessions"
+totals = collections.Counter()
+for path in codex.rglob("*.jsonl"):
+    st = path.stat()
+    born = datetime.datetime.fromtimestamp(getattr(st, "st_birthtime", st.st_mtime), datetime.timezone.utc)
+    if datetime.datetime.fromtimestamp(st.st_mtime, datetime.timezone.utc) < start or born > end:
+        continue
+    last = None
+    for line in path.read_text(errors="replace").splitlines():
+        if '"token_count"' in line:
+            try:
+                info = json.loads(line)["payload"].get("info")
+                last = info.get("total_token_usage") if info else last
+            except (ValueError, KeyError):
+                pass
+    if last:
+        totals.update({k: last.get(k, 0) for k in ("input_tokens", "cached_input_tokens", "output_tokens")})
+codex_usd = (totals["input_tokens"] - totals["cached_input_tokens"]) * 10e-6 + totals["cached_input_tokens"] * 1e-6 + totals["output_tokens"] * 50e-6
+
+if "--markdown" not in args:
+    print(f"messages {len(msgs)}, text {len(text)}, human text {len(human)}")
+    print(f"dispatch {start:%H:%MZ}; final report {end:%H:%MZ}{'' if final else ' (none seen: last message)'}; wall clock {minutes(start, end)} min")
+    for s in stages:
+        parts = [f"stage {s['stage']}: open {s['opened']:%H:%M}"]
+        parts += [f"{k} +{s[v]}m" for k, v in (("ledger ready", "ledger"), ("sealed", "sealed")) if s[v] is not None]
+        if s["candidates"]:
+            parts.append(f"candidates {s['candidates']} (first +{s['first']}m)")
+        if s["closed"]:
+            parts.append(f"closed {s['closed']:%H:%M} ({s['took']}m)")
+        parts.append(f"BLOCK {s['block']} PASS {s['pass']}; shipped {s['shipped']}")
+        print("  " + ", ".join(parts))
+    print("verdicts:", {f"{a}/{b}": n for (a, b), n in sorted(verdicts.items())})
+    print("per seat (room text messages, tool calls reported to the room):", {s: (c["text"], c["tool_call"]) for s, c in sorted(seats.items())})
+    errors = [m for m in msgs if m["message_type"] == "error"]
+    print(f"error events: {len(errors)}", [e["content"][:100] for e in errors[:5]])
+    print("commits:", dict(commits.most_common()))
+    print("claude-side estimate:", claude_line[:240])
+    print("second-reader tokens (codex sessions in the run's window):", dict(totals), f"about ${codex_usd:.0f} at the assumed rates")
+    sys.exit(0)
+
+print(f"Dispatch {start:%Y-%m-%d %H:%M} UTC; final report {end:%H:%M} UTC; {minutes(start, end)} min from dispatch to final report. "
+      f"Human messages in the room: {len(human)}.\n")
+print("| Stage | Ledger ready | Tests sealed | First candidate | Candidates | BLOCK verdicts | Time | Accepted revision | Shipped checks, fresh clone |")
+print("|---|---|---|---|---|---|---|---|---|")
+for s in stages:
+    f = lambda v: "—" if v is None else f"+{v} min"
+    rev = f"`{s['accepted'][:12]}`" if s["accepted"] else "not accepted"
+    claim = "" if s["shipped"] == "not scored" else (" (claims its stage)" if s["claims"] and not s["overshoot"] else " (does not claim its stage)")
+    print(f"| {s['stage']} | {f(s['ledger'])} | {f(s['sealed'])} | {f(s['first'])} | {s['candidates']} | {s['block']} | "
+          f"{'—' if s['took'] is None else str(s['took']) + ' min'} | {rev} | {s['shipped']}{claim} |")
+print("\nTimes are from the stage's opening message. Shipped checks: the kit's isolated run on a fresh clone of the final repository.\n")
+print("| Seat | Commits | Room messages | Tool calls shown in the room |")
+print("|---|---|---|---|")
+for name in sorted(set(seats) | set(commits)):
+    print(f"| {name} | {commits.get(name, 0)} | {seats[name]['text']} | {seats[name]['tool_call']} |")
+if blocks:
+    print("\nBLOCK verdicts:\n")
+    for b in blocks:
+        vf = repo / f"verdicts/stage-{b['stage']}/{b['seat']}-{b['rev'][:12]}.md"
+        where = f"[`{vf.relative_to(repo)}`]({vf.relative_to(repo)})" if vf.exists() else "no verdict file"
+        print(f"- stage {b['stage']}, {b['seat']}, on `{b['rev'][:12]}` at {b['at']:%H:%M} UTC: {where}; room message `{b['msg']}`")
+g = re.search(r"\$([\d.,]+)\s+(.*)", claude_line)
+claude_text = (f"about ${g.group(1)} from `band usage rooms` ("
+               + ", ".join(re.sub(r"^[^/\s]+/", "", x.strip()) for x in g.group(2).split("·")) + ")") if g else "not yet attributed by Band"
+print(f"\nSpend at list prices, estimated: Claude seats {claude_text}; "
+      f"Codex seat about ${codex_usd:.0f} from its session logs ({totals['input_tokens']:,} input tokens, {totals['cached_input_tokens']:,} cached, {totals['output_tokens']:,} output).")

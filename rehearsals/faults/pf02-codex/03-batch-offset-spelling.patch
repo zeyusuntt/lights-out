@@ -1,0 +1,12 @@
+diff --git a/pocketful/correction_batches.py b/pocketful/correction_batches.py
+--- a/pocketful/correction_batches.py
++++ b/pocketful/correction_batches.py
+@@ -42,7 +42,7 @@
+             raise ApiError(422, "incomplete_settlement",
+                            "correct every payment of a settlement together")
+     for settlement_id, ids in members.items():
+-        if len({clock.instant(chosen[pid]["effective_at"]) for pid in ids}) != 1:
++        if len({chosen[pid]["effective_at"] for pid in ids}) != 1:
+             raise invalid("every payment of one settlement must take effect at the same instant")
+ 
+ 

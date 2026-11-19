@@ -1,0 +1,46 @@
+$ docker run --rm --network df-run-6d172a253a3240b0a50c804acdf75db6 -v /Users/[REDACTED]/dev/band-factory/vendor/sf-buildathon-2026:/work:ro -v /Users/[REDACTED]/dev/band-factory/work/score/all-150025/stage-3:/out -e PYTHONDONTWRITEBYTECODE=1 -e PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 -e COLUMNS=200 -w /work df-harness-runner python -m pytest challenges/dossier/test/stage_4 --base-url http://df-svc-fe41358797e2:8080 -p harness.plugin --rootdir challenges/dossier/test -q --web-url http://df-web-772c52238290:8080 --web-admin-token *** --web-corpus challenges/dossier/web/corpus/sample --control-dir /out/control -x --previous-base-url http://df-svc-fe41358797e2:8080 --implementation-stage 4 --harness-summary /out/stage-4.counts.json
+
+F
+=============================================================================================== FAILURES ===============================================================================================
+______________________________________________________________________________________ test_fields_carry_origins _______________________________________________________________________________________
+
+world = namespace(fixture={'now': '2026-03-01T09:00:00+00:00', 'users': [{'id': 'u_alice', 'email': 'alice@example.com', 'pass...ay_name': 'Bob'}]}, alice=<harness.http.Api object at 0xe118ddbdf5c0>, bob=<harness.http.Api object at 0xe118ddc2fce0>)
+build = <function build.<locals>._build at 0xe118ddb02520>
+plain = ['ashgrove-solar.test', 'corvid-security.test', 'halvorsen-robotics.test', 'mosaic-freight.test', 'pemberton-analytics.test', 'windrush-bakery.test']
+
+    def test_fields_carry_origins(world, build, plain):
+        body = build(plain[0])
+        assert body["state"] == "ready", body
+        for name, field in body["fields"].items():
+>           fx.assert_origins(name, field)
+
+challenges/dossier/test/stage_4/test_sample.py:21: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+name = 'legal_name', field = {'value': 'Ashgrove Solar GmbH', 'status': 'known', 'true_from': None, 'learned_at': '2026-03-01T09:00:00+00:00', ...}
+
+    def assert_origins(name: str, field: dict) -> None:
+        """A stage-4 field: every candidate has an `origin`; `origins` lists the distinct origins
+        of the candidates of its members, sorted, `[]` when `unknown`; and `corroborated` is true
+        exactly when every member's candidates have two or more."""
+        for cand in field["candidates"]:
+>           assert isinstance(cand.get("origin"), str) and cand["origin"], (name, cand)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           AssertionError: ('legal_name', {'value': 'Ashgrove Solar GmbH', 'url': 'https://ashgrove-solar.test/about', 'excerpt': 'Ashgrove Solar trades under the registered name Ashgrove Solar GmbH in all of its markets.', 'provider': 'nimble', 'kind': 'own', 'published_at': None, 'retrieved_at': '2026-03-01T09:00:00+00:00', 'true_from': None, 'learned_at': '2026-03-01T09:00:00+00:00', 'selected': True})
+
+challenges/dossier/test/fixtures.py:248: AssertionError
+=========================================================================================== warnings summary ===========================================================================================
+../usr/local/lib/python3.12/site-packages/_pytest/cacheprovider.py:469
+  /usr/local/lib/python3.12/site-packages/_pytest/cacheprovider.py:469: PytestCacheWarning: could not create cache path /work/challenges/dossier/test/.pytest_cache/v/cache/nodeids: [Errno 30] Read-only file system: '/work/challenges/dossier/test/pytest-cache-files-a1tugrp3'
+    config.cache.set("cache/nodeids", sorted(self.cached_nodeids))
+
+../usr/local/lib/python3.12/site-packages/_pytest/cacheprovider.py:423
+  /usr/local/lib/python3.12/site-packages/_pytest/cacheprovider.py:423: PytestCacheWarning: could not create cache path /work/challenges/dossier/test/.pytest_cache/v/cache/lastfailed: [Errno 30] Read-only file system: '/work/challenges/dossier/test/pytest-cache-files-jpebvy5j'
+    config.cache.set("cache/lastfailed", self.lastfailed)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================================================================================= short test summary info ========================================================================================
+FAILED challenges/dossier/test/stage_4/test_sample.py::test_fields_carry_origins - AssertionError: ('legal_name', {'value': 'Ashgrove Solar GmbH', 'url': 'https://ashgrove-solar.test/about', 'excer...
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+1 failed, 2 warnings in 0.23s
+

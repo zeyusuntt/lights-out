@@ -1,0 +1,11 @@
+--- a/tablekeeper/policies.py
++++ b/tablekeeper/policies.py
+@@ -15,7 +15,7 @@
+ 
+ def select_terms(store: Store, restaurant: Restaurant, day: date) -> Terms:
+     """The greatest effective date not after the day; among equals, the newest publication."""
+-    candidates = [p for p in store.policies_of(restaurant.id) if p.effective_from <= day]
++    candidates = [p for p in store.policies_of(restaurant.id) if p.effective_from < day]
+     if not candidates:
+         return restaurant.base_terms
+     return max(candidates, key=lambda p: (p.effective_from, p.terms.policy_version)).terms

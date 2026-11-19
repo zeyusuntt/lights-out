@@ -1,0 +1,12 @@
+diff --git a/tablekeeper/availability.py b/tablekeeper/availability.py
+--- a/tablekeeper/availability.py
++++ b/tablekeeper/availability.py
+@@ -65,7 +65,7 @@
+     options = [{"table_ids": [t], "capacity": terms.capacities[t]} for t in singles]
+     for pair in restaurant.combinable:
+         capacity = terms.seats(pair)
+-        if free.issuperset(pair) and capacity >= party:
++        if pair[0] in free and capacity >= party:
+             options.append({"table_ids": list(pair), "capacity": capacity})
+     slot = {
+         "starts_at_local": format_local(naive),

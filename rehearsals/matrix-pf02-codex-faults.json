@@ -1,0 +1,257 @@
+{
+ "valid": {
+  "shipped": true,
+  "sealed": true,
+  "probes": true,
+  "independent": true
+ },
+ "results": {
+  "__baseline__": {
+   "shipped": {
+    "failed": 0,
+    "total": 193,
+    "state": "completed"
+   },
+   "sealed": {
+    "failed": false,
+    "tail": "100%]\n780 passed, 5 skipped in 177.01s (0:02:57)\nCOUNTS: total=785 passed=780 failed=0 errors=0 skipped=5\nverifier-acc-37338-a 84.97MiB / 2GiB\nverifier-acc-37338-b 35.38MiB / 2GiB\nRESULT: PASS (rc=0)\n"
+   },
+   "probes": {
+    "failed": false,
+    "tail": "PASS s4_settlement_refund_membership_and_retries \nPASS s4_independent_settlements_and_32_item_limit \nPASS s4_stage3_source_stopped_import_and_new_operations \nPASS s4_same_stage_replacement_preserves_refunds_batches \nPASS export_import_migration \nCOUNTS cases=161 passed=161 failed=0 assertions=16663\n"
+   },
+   "independent": {
+    "failed": false,
+    "tail": ".sss                                                     [100%]\n593 passed, 3 skipped, 1 deselected in 95.66s (0:01:35)\n"
+   }
+  },
+  "01-refund-original-limit": {
+   "shipped": {
+    "failed": 0,
+    "total": 193,
+    "state": "completed"
+   },
+   "sealed": {
+    "failed": true,
+    "tail": "iled, 778 passed, 5 skipped in 176.85s (0:02:56)\nCOUNTS: total=785 passed=778 failed=2 errors=0 skipped=5\nverifier-acc-38449-a 85.47MiB / 2GiB\nverifier-acc-38449-b 35.39MiB / 2GiB\nRESULT: FAIL (rc=1)\n"
+   },
+   "probes": {
+    "failed": true,
+    "tail": "_settlements_and_32_item_limit \nPASS s4_stage3_source_stopped_import_and_new_operations \nFAIL s4_same_stage_replacement_preserves_refunds_batches POST /payments/p_000000000116e2/refunds status: expected 422, got 201\nPASS export_import_migration \nCOUNTS cases=161 passed=158 failed=3 assertions=16560\n"
+   },
+   "independent": {
+    "failed": true,
+    "tail": "fund_racing_correction_respects_refunded_floor[batch]\n2 failed, 591 passed, 3 skipped, 1 deselected in 95.00s (0:01:35)\n"
+   }
+  },
+  "02-refund-capture-target": {
+   "shipped": {
+    "failed": 0,
+    "total": 193,
+    "state": "completed"
+   },
+   "sealed": {
+    "failed": true,
+    "tail": "iled, 779 passed, 5 skipped in 176.84s (0:02:56)\nCOUNTS: total=785 passed=779 failed=1 errors=0 skipped=5\nverifier-acc-39420-a 84.98MiB / 2GiB\nverifier-acc-39420-b 35.38MiB / 2GiB\nRESULT: FAIL (rc=1)\n"
+   },
+   "probes": {
+    "failed": true,
+    "tail": "PASS s4_settlement_refund_membership_and_retries \nPASS s4_independent_settlements_and_32_item_limit \nPASS s4_stage3_source_stopped_import_and_new_operations \nPASS s4_same_stage_replacement_preserves_refunds_batches \nPASS export_import_migration \nCOUNTS cases=161 passed=160 failed=1 assertions=16571\n"
+   },
+   "independent": {
+    "failed": true,
+    "tail": "ure_refund_does_not_restore_or_release_remaining_hold\n3 failed, 590 passed, 3 skipped, 1 deselected in 95.34s (0:01:35)\n"
+   }
+  },
+  "03-batch-offset-spelling": {
+   "shipped": {
+    "failed": 0,
+    "total": 193,
+    "state": "completed"
+   },
+   "sealed": {
+    "failed": true,
+    "tail": "iled, 779 passed, 5 skipped in 176.94s (0:02:56)\nCOUNTS: total=785 passed=779 failed=1 errors=0 skipped=5\nverifier-acc-40086-a 85.02MiB / 2GiB\nverifier-acc-40086-b 35.39MiB / 2GiB\nRESULT: FAIL (rc=1)\n"
+   },
+   "probes": {
+    "failed": true,
+    "tail": "PASS s4_settlement_refund_membership_and_retries \nPASS s4_independent_settlements_and_32_item_limit \nPASS s4_stage3_source_stopped_import_and_new_operations \nPASS s4_same_stage_replacement_preserves_refunds_batches \nPASS export_import_migration \nCOUNTS cases=161 passed=160 failed=1 assertions=16650\n"
+   },
+   "independent": {
+    "failed": true,
+    "tail": "lement_batch_requires_every_member_and_equal_instants\n1 failed, 592 passed, 3 skipped, 1 deselected in 94.09s (0:01:34)\n"
+   }
+  },
+  "04-batch-gross-affordability": {
+   "shipped": {
+    "failed": 0,
+    "total": 193,
+    "state": "completed"
+   },
+   "sealed": {
+    "failed": true,
+    "tail": " failed, 779 passed, 5 skipped in 175.93s (0:02:55)\nCOUNTS: total=785 passed=779 failed=1 errors=0 skipped=5\nverifier-acc-40745-a 85MiB / 2GiB\nverifier-acc-40745-b 35.38MiB / 2GiB\nRESULT: FAIL (rc=1)\n"
+   },
+   "probes": {
+    "failed": true,
+    "tail": "PASS s4_settlement_refund_membership_and_retries \nPASS s4_independent_settlements_and_32_item_limit \nPASS s4_stage3_source_stopped_import_and_new_operations \nPASS s4_same_stage_replacement_preserves_refunds_batches \nPASS export_import_migration \nCOUNTS cases=161 passed=160 failed=1 assertions=16597\n"
+   },
+   "independent": {
+    "failed": true,
+    "tail": "wallet_reads_during_batch_never_see_partial_revisions\n2 failed, 591 passed, 3 skipped, 1 deselected in 91.64s (0:01:31)\n"
+   }
+  },
+  "05-known-at-exclusive": {
+   "shipped": {
+    "failed": 0,
+    "total": 193,
+    "state": "completed"
+   },
+   "sealed": {
+    "failed": false,
+    "tail": "  [100%]\n780 passed, 5 skipped in 177.03s (0:02:57)\nCOUNTS: total=785 passed=780 failed=0 errors=0 skipped=5\nverifier-acc-41988-a 85MiB / 2GiB\nverifier-acc-41988-b 35.39MiB / 2GiB\nRESULT: PASS (rc=0)\n"
+   },
+   "probes": {
+    "failed": true,
+    "tail": "PASS s4_settlement_refund_membership_and_retries \nPASS s4_independent_settlements_and_32_item_limit \nPASS s4_stage3_source_stopped_import_and_new_operations \nPASS s4_same_stage_replacement_preserves_refunds_batches \nPASS export_import_migration \nCOUNTS cases=161 passed=157 failed=4 assertions=16321\n"
+   },
+   "independent": {
+    "failed": true,
+    "tail": "reserves_receipts_and_opening_replaces_effective_time\n3 failed, 590 passed, 3 skipped, 1 deselected in 93.48s (0:01:33)\n"
+   }
+  },
+  "06-historical-available-check": {
+   "shipped": {
+    "failed": 0,
+    "total": 193,
+    "state": "completed"
+   },
+   "sealed": {
+    "failed": true,
+    "tail": "iled, 779 passed, 5 skipped in 177.01s (0:02:57)\nCOUNTS: total=785 passed=779 failed=1 errors=0 skipped=5\nverifier-acc-42647-a 84.97MiB / 2GiB\nverifier-acc-42647-b 35.39MiB / 2GiB\nRESULT: FAIL (rc=1)\n"
+   },
+   "probes": {
+    "failed": true,
+    "tail": "PASS s4_settlement_refund_membership_and_retries \nPASS s4_independent_settlements_and_32_item_limit \nPASS s4_stage3_source_stopped_import_and_new_operations \nPASS s4_same_stage_replacement_preserves_refunds_batches \nPASS export_import_migration \nCOUNTS cases=161 passed=159 failed=2 assertions=16595\n"
+   },
+   "independent": {
+    "failed": true,
+    "tail": "h_current_available_and_historical_available_enforced\n2 failed, 591 passed, 3 skipped, 1 deselected in 95.92s (0:01:35)\n"
+   }
+  },
+  "07-statement-zero-entry": {
+   "shipped": {
+    "failed": 0,
+    "total": 193,
+    "state": "completed"
+   },
+   "sealed": {
+    "failed": true,
+    "tail": "iled, 779 passed, 5 skipped in 177.04s (0:02:57)\nCOUNTS: total=785 passed=779 failed=1 errors=0 skipped=5\nverifier-acc-43415-a 84.98MiB / 2GiB\nverifier-acc-43415-b 35.39MiB / 2GiB\nRESULT: FAIL (rc=1)\n"
+   },
+   "probes": {
+    "failed": true,
+    "tail": "PASS s4_settlement_refund_membership_and_retries \nPASS s4_independent_settlements_and_32_item_limit \nPASS s4_stage3_source_stopped_import_and_new_operations \nPASS s4_same_stage_replacement_preserves_refunds_batches \nPASS export_import_migration \nCOUNTS cases=161 passed=159 failed=2 assertions=16541\n"
+   },
+   "independent": {
+    "failed": true,
+    "tail": "wallet_reads_during_batch_never_see_partial_revisions\n2 failed, 591 passed, 3 skipped, 1 deselected in 95.14s (0:01:35)\n"
+   }
+  },
+  "08-capture-default-original": {
+   "shipped": {
+    "failed": 0,
+    "total": 193,
+    "state": "completed"
+   },
+   "sealed": {
+    "failed": true,
+    "tail": "ailed, 778 passed, 5 skipped in 176.98s (0:02:56)\nCOUNTS: total=785 passed=778 failed=2 errors=0 skipped=5\nverifier-acc-44073-a 84.98MiB / 2GiB\nverifier-acc-44073-b 35.4MiB / 2GiB\nRESULT: FAIL (rc=1)\n"
+   },
+   "probes": {
+    "failed": false,
+    "tail": "PASS s4_settlement_refund_membership_and_retries \nPASS s4_independent_settlements_and_32_item_limit \nPASS s4_stage3_source_stopped_import_and_new_operations \nPASS s4_same_stage_replacement_preserves_refunds_batches \nPASS export_import_migration \nCOUNTS cases=161 passed=161 failed=0 assertions=16663\n"
+   },
+   "independent": {
+    "failed": true,
+    "tail": "replaces_state_preserves_all_links_tokens_and_retries\n2 failed, 591 passed, 3 skipped, 1 deselected in 95.53s (0:01:35)\n"
+   }
+  },
+  "09-nonfinal-full-capture": {
+   "shipped": {
+    "failed": 0,
+    "total": 193,
+    "state": "completed"
+   },
+   "sealed": {
+    "failed": true,
+    "tail": "ailed, 779 passed, 5 skipped in 177.47s (0:02:57)\nCOUNTS: total=785 passed=779 failed=1 errors=0 skipped=5\nverifier-acc-44801-a 84.99MiB / 2GiB\nverifier-acc-44801-b 35.4MiB / 2GiB\nRESULT: FAIL (rc=1)\n"
+   },
+   "probes": {
+    "failed": true,
+    "tail": "PASS s4_settlement_refund_membership_and_retries \nPASS s4_independent_settlements_and_32_item_limit \nPASS s4_stage3_source_stopped_import_and_new_operations \nPASS s4_same_stage_replacement_preserves_refunds_batches \nPASS export_import_migration \nCOUNTS cases=161 passed=160 failed=1 assertions=16656\n"
+   },
+   "independent": {
+    "failed": true,
+    "tail": "ture_modes_links_and_available[2000-False-0-captured]\n1 failed, 592 passed, 3 skipped, 1 deselected in 96.12s (0:01:36)\n"
+   }
+  },
+  "10-split-zero-requests": {
+   "shipped": {
+    "failed": 1,
+    "total": 193,
+    "state": "completed"
+   },
+   "sealed": {
+    "failed": true,
+    "tail": " failed, 775 passed, 5 skipped in 178.14s (0:02:58)\nCOUNTS: total=785 passed=775 failed=5 errors=0 skipped=5\nverifier-acc-45931-a 85MiB / 2GiB\nverifier-acc-45931-b 35.39MiB / 2GiB\nRESULT: FAIL (rc=1)\n"
+   },
+   "probes": {
+    "failed": true,
+    "tail": "PASS s4_settlement_refund_membership_and_retries \nPASS s4_independent_settlements_and_32_item_limit \nPASS s4_stage3_source_stopped_import_and_new_operations \nPASS s4_same_stage_replacement_preserves_refunds_batches \nPASS export_import_migration \nCOUNTS cases=161 passed=159 failed=2 assertions=16226\n"
+   },
+   "independent": {
+    "failed": true,
+    "tail": "_rounding_order_zero_shares_and_no_balance_check[1-3]\n1 failed, 592 passed, 3 skipped, 1 deselected in 93.19s (0:01:33)\n"
+   }
+  },
+  "11-request-paid-before-debit": {
+   "shipped": {
+    "failed": 2,
+    "total": 193,
+    "state": "completed"
+   },
+   "sealed": {
+    "failed": true,
+    "tail": " failed, 778 passed, 5 skipped in 181.56s (0:03:01)\nCOUNTS: total=785 passed=778 failed=2 errors=0 skipped=5\nverifier-acc-50510-a 85MiB / 2GiB\nverifier-acc-50510-b 35.39MiB / 2GiB\nRESULT: FAIL (rc=1)\n"
+   },
+   "probes": {
+    "failed": true,
+    "tail": "PASS s4_settlement_refund_membership_and_retries \nPASS s4_independent_settlements_and_32_item_limit \nPASS s4_stage3_source_stopped_import_and_new_operations \nPASS s4_same_stage_replacement_preserves_refunds_batches \nPASS export_import_migration \nCOUNTS cases=161 passed=160 failed=1 assertions=16489\n"
+   },
+   "independent": {
+    "failed": true,
+    "tail": "naffordable_request_can_be_paid_later_with_failed_key\n2 failed, 591 passed, 3 skipped, 1 deselected in 94.36s (0:01:34)\n"
+   }
+  },
+  "12-key-byte-length": {
+   "shipped": {
+    "failed": 0,
+    "total": 193,
+    "state": "completed"
+   },
+   "sealed": {
+    "failed": false,
+    "tail": "100%]\n780 passed, 5 skipped in 176.55s (0:02:56)\nCOUNTS: total=785 passed=780 failed=0 errors=0 skipped=5\nverifier-acc-65505-a 84.99MiB / 2GiB\nverifier-acc-65505-b 35.38MiB / 2GiB\nRESULT: PASS (rc=0)\n"
+   },
+   "probes": {
+    "failed": false,
+    "tail": "PASS s4_settlement_refund_membership_and_retries \nPASS s4_independent_settlements_and_32_item_limit \nPASS s4_stage3_source_stopped_import_and_new_operations \nPASS s4_same_stage_replacement_preserves_refunds_batches \nPASS export_import_migration \nCOUNTS cases=161 passed=161 failed=0 assertions=16663\n"
+   },
+   "independent": {
+    "failed": false,
+    "tail": ".sss                                                     [100%]\n593 passed, 3 skipped, 1 deselected in 94.73s (0:01:34)\n"
+   }
+  }
+ }
+}

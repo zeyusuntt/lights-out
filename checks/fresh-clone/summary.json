@@ -1,0 +1,84 @@
+{
+  "track": "dossier",
+  "folders": {
+    "1": {
+      "claimed": true,
+      "share": 1.0,
+      "overshoot": null,
+      "highest_contiguous": 1,
+      "report": "stage-1/report.json",
+      "web": {
+        "1": {
+          "fabrications": 0,
+          "economy": null
+        }
+      }
+    },
+    "2": {
+      "claimed": true,
+      "share": 1.0,
+      "overshoot": null,
+      "highest_contiguous": 2,
+      "report": "stage-2/report.json",
+      "web": {
+        "1": {
+          "fabrications": 0,
+          "economy": null
+        },
+        "2": {
+          "fabrications": 0,
+          "economy": null
+        }
+      }
+    },
+    "3": {
+      "claimed": true,
+      "share": 1.0,
+      "overshoot": null,
+      "highest_contiguous": 3,
+      "report": "stage-3/report.json",
+      "web": {
+        "1": {
+          "fabrications": 0,
+          "economy": null
+        },
+        "2": {
+          "fabrications": 0,
+          "economy": null
+        },
+        "3": {
+          "fabrications": 0,
+          "economy": null
+        }
+      }
+    },
+    "4": {
+      "claimed": true,
+      "share": 1.0,
+      "overshoot": null,
+      "highest_contiguous": 4,
+      "report": "stage-4/report.json",
+      "web": {
+        "1": {
+          "fabrications": 0,
+          "economy": null
+        },
+        "2": {
+          "fabrications": 0,
+          "economy": null
+        },
+        "3": {
+          "fabrications": 0,
+          "economy": null
+        },
+        "4": {
+          "fabrications": 0,
+          "economy": null
+        }
+      }
+    }
+  },
+  "run_id": "all-150025",
+  "mode": "isolated",
+  "preview": true
+}

@@ -1,0 +1,55 @@
+{
+  "claudeMdExcludes": [
+    "{HOME}/.claude/CLAUDE.md",
+    "{HOME}/.claude/rules/**",
+    "{HOME}/CLAUDE.md",
+    "{HOME}/dev/CLAUDE.md"
+  ],
+  "attribution": {
+    "commit": "",
+    "pr": ""
+  },
+  "includeCoAuthoredBy": false,
+  "autoMemoryEnabled": false,
+  "env": {
+    "CLAUDE_CODE_DISABLE_BACKGROUND_TASKS": "1",
+    "CLAUDE_CODE_DISABLE_AUTO_MEMORY": "1",
+    "BASH_DEFAULT_TIMEOUT_MS": "600000",
+    "BASH_MAX_TIMEOUT_MS": "1800000",
+    "DISABLE_AUTOUPDATER": "1",
+    "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1"
+  },
+  "permissions": {
+    "deny": [
+      "AskUserQuestion",
+      "mcp__jam__AskUserQuestion",
+      "WebSearch",
+      "WebFetch",
+      "Task",
+      "Agent",
+      "SendMessage",
+      "ListAgents",
+      "SendToProject",
+      "CronCreate",
+      "CronDelete",
+      "CronList",
+      "RemoteTrigger",
+      "ScheduleWakeup",
+      "Monitor",
+      "PushNotification"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "{FACTORY}/factory/hooks/guard.py"
+          }
+        ]
+      }
+    ]
+  }
+}

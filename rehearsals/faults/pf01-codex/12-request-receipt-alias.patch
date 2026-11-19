@@ -1,0 +1,12 @@
+diff --git a/pocketful/money_requests.py b/pocketful/money_requests.py
+--- a/pocketful/money_requests.py
++++ b/pocketful/money_requests.py
+@@ -19,7 +19,7 @@
+     payer = store.user_by_handle(payer_handle)
+     if payer is user:
+         raise ApiError(422, "self_request", "You cannot request money from yourself.")
+-    return dict(store.record_request(user, payer, amount, note, store.tick()))
++    return store.record_request(user, payer, amount, note, store.tick())
+ 
+ 
+ def _find(store, params: dict) -> dict:

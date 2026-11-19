@@ -1,0 +1,53 @@
+#!/bin/sh
+# Operator: ablation. One agent, the room's builder model, no room, no ledger, no other seats, same job and same kit view.
+# solo-run <id> <track> <model> [hours]    Workspace: runs/<id>/. Scored afterwards exactly as a factory run is.
+case "$1" in -h|--help) sed -n '2,/^[^#]/p' "$0" | grep "^#" | sed "s/^# \{0,1\}//"; exit 0;; esac
+set -e
+here="$(cd "$(dirname "$0")" && pwd)"; home="$(cd "$here/../.." && pwd)"; id="$1"; track="$2"; model="$3"; hours="${4:-8}"
+root="$home/runs/$id"; [ ! -e "$root" ] || { echo "$root exists"; exit 2; }
+mkdir -p "$root/result" "$root/checks" "$root/state" "$root/tmp" "$root/result/.claude"
+kit_src="$home/vendor/dark-factory-wearedevs"; kit="$root/kit"
+python3 - "$kit_src" "$kit" "$track" <<'PY'
+import os, pathlib, shutil, sys
+src, kit, track = pathlib.Path(sys.argv[1]), pathlib.Path(sys.argv[2]), sys.argv[3]
+shutil.copytree(src, kit, ignore=shutil.ignore_patterns(".venv", ".git", "__pycache__", "runs"))
+tests = kit / track / "test"
+stub = '"""Withheld in this rehearsal: the service starts and answers."""\nimport httpx\n\ndef test_service_answers(base_url):\n    assert httpx.get(f"{base_url}/health", timeout=5).status_code == 200\n'
+for stage in sorted(tests.glob("stage_*")):
+    for path in stage.glob("test_*.py"):
+        if path.name != "test_sample.py":
+            path.unlink()
+    if stage.name in ("stage_3", "stage_4"):
+        (stage / "test_sample.py").write_text(stub)
+os.symlink(src / ".venv", kit / ".venv")
+cli = kit / "harness" / "cli.py"
+cli.write_text(cli.read_text().replace('NO_NEW_SURFACE = {("toy", "3")}', f'NO_NEW_SURFACE = {{("toy", "3"), ("{track}", "3"), ("{track}", "4")}}'))
+PY
+git -C "$root/result" init -q -b main
+printf '.claude/\n' >> "$root/result/.git/info/exclude"
+git -C "$root/result" config user.name solo; git -C "$root/result" config user.email [REDACTED]
+printf 'RUN_ID=%s\nTRACK=%s\nKIT=%s\nKIT_VIEW=holdout\n' "$id" "$track" "$kit" > "$root/run.env"
+sed -e "s|{FACTORY}|$home|g" -e "s|{HOME}|$HOME|g" "$home/factory/settings/seat-base.json" > "$root/result/.claude/settings.local.json"
+specs=""; for f in "$kit/$track/spec"/stage-*.md; do specs="$specs $f"; done
+cat > "$root/prompt.md" <<PROMPT
+Build the job below, stage by stage, to the end, without asking anything. There is no one to ask.
+
+Result repository (absolute path, empty, commit here): $root/result
+Stage folders: $root/result/stage-1/ to stage-4/. Each is a complete service with its own Dockerfile and RUN.md, and holds that stage's solution, nothing from a later stage. Stage n+1 starts as a copy of finished stage n.
+
+Specifications, in order (read each in full):$specs
+Earlier stages' requirements continue to apply unless a later stage says otherwise.
+
+Check command, run through the job's kit and only that way, new output directory each time:
+cd $kit && .venv/bin/python -m harness run --track $track --repo <clean clone of the result repository> --stage <n> --mode isolated --out $root/checks/<new-name>
+It prints "claimed stage: <n>" when a stage folder claims its stage. It runs a sample only, and a green run is not evidence of a stage. Its check sources are not to be opened.
+
+Tools for tests: $kit/.venv/bin/python has pytest, httpx and playwright with chromium.
+
+When every stage is finished, write $root/result/REPORT.md and stop.
+PROMPT
+cd "$root/result"
+export FACTORY_SEAT=solo FACTORY_WORK="$root" GIT_AUTHOR_NAME=solo GIT_COMMITTER_NAME=solo GIT_AUTHOR_EMAIL=[REDACTED] GIT_COMMITTER_EMAIL=[REDACTED]
+date -u +%FT%TZ > "$root/state/started"
+timeout "$((hours * 3600))" claude -p --model "$model" --setting-sources project,local --strict-mcp-config --permission-mode auto --output-format stream-json --verbose "$(cat "$root/prompt.md")" </dev/null > "$root/solo.jsonl" 2> "$root/solo.err"
+echo "exit $?" > "$root/state/finished"; date -u +%FT%TZ >> "$root/state/finished"

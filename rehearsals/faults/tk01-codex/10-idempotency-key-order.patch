@@ -1,0 +1,12 @@
+diff --git a/tablekeeper/idempotency.py b/tablekeeper/idempotency.py
+--- a/tablekeeper/idempotency.py
++++ b/tablekeeper/idempotency.py
+@@ -37,7 +37,7 @@
+ 
+ 
+ def _canonical(body: dict) -> str:
+-    return json.dumps(body, sort_keys=True, separators=(",", ":"))
++    return json.dumps(body, separators=(",", ":"))
+ 
+ 
+ def run_once(

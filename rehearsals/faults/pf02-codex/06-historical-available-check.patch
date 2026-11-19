@@ -1,0 +1,11 @@
+diff --git a/pocketful/history.py b/pocketful/history.py
+--- a/pocketful/history.py
++++ b/pocketful/history.py
+@@ -95,6 +95,6 @@
+     for instant in sorted(events):
+         total += events[instant][0]
+         held += events[instant][1]
+-        if total < 0 or total - held < 0:
++        if total < 0:
+             return True
+     return False

@@ -1,0 +1,11 @@
+diff --git a/pocketful/history.py b/pocketful/history.py
+--- a/pocketful/history.py
++++ b/pocketful/history.py
+@@ -163,7 +163,6 @@
+         boundaries = {
+             start,
+             *timeline.times[bisect_left(timeline.times, start):bisect_left(timeline.times, stop)],
+-            *change_times[bisect_left(change_times, start):bisect_left(change_times, stop)],
+         }
+         for time in boundaries:
+             held = held_after[bisect_right(change_times, time)]

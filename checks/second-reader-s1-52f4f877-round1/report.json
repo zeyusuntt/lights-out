@@ -1,0 +1,26 @@
+{
+  "revision": "52f4f877c4cf853d78515f431a8b58a950ee1da0",
+  "track": "dossier",
+  "stages": {
+    "1": "error"
+  },
+  "highest_contiguous": 0,
+  "started_at": "2026-11-18T16:39:07.467584+00:00",
+  "finished_at": "2026-11-18T16:39:07.553380+00:00",
+  "schema_version": 2,
+  "run_id": "b2f347c328094673b205c9bf48c4e19b",
+  "mode": "isolated",
+  "provenance": "working-tree",
+  "state": "error",
+  "pytest_args": [],
+  "suite_digest": "df1eb07cee2eadbe87cc314e6ad0770012e62be7821b2fea4ce2e06d591d83f9",
+  "suite_digests": {
+    "1": "df1eb07cee2eadbe87cc314e6ad0770012e62be7821b2fea4ce2e06d591d83f9"
+  },
+  "checks": {},
+  "implementation_stage": "1",
+  "overshoot": null,
+  "claimed_stage": null,
+  "share": 0.0,
+  "upgrade_sources": {}
+}

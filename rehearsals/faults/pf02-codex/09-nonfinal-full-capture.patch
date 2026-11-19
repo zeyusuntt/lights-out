@@ -1,0 +1,12 @@
+diff --git a/pocketful/authorizations.py b/pocketful/authorizations.py
+--- a/pocketful/authorizations.py
++++ b/pocketful/authorizations.py
+@@ -71,7 +71,7 @@
+         raise ApiError(422, "capture_exceeds_authorization",
+                        "amount is more than the authorization's remaining amount")
+     amount = remainder if requested is None else int(requested)
+-    closes = final or amount == remainder
++    closes = final
+     state = ctx.state
+     ledger.apply(state, [(auth.from_user_id, auth.to_user_id, amount)],
+                  released={auth.from_user_id: remainder if closes else amount})

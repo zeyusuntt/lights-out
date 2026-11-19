@@ -1,0 +1,12 @@
+diff --git a/pocketful/correction_batches.py b/pocketful/correction_batches.py
+--- a/pocketful/correction_batches.py
++++ b/pocketful/correction_batches.py
+@@ -46,6 +46,8 @@
+ def _create(store, _user: dict, body: dict, _params: dict) -> dict:
+     proposals = [_read_item(store, item) for item in _read_items(body)]
+     _refuse_partial_settlements(store, proposals)
++    for proposal in proposals:
++        store.checked_balances(corrections._wallet_changes(store, [proposal]))
+     results = corrections.checked_balances(store, proposals)
+     batch_id = store.new_id("cb_")
+     revisions = corrections.commit(store, proposals, results, batch_id)

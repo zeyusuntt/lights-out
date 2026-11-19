@@ -1,0 +1,11 @@
+--- a/tablekeeper/series.py
++++ b/tablekeeper/series.py
+@@ -144,7 +144,7 @@
+     restaurant = store.restaurants[series.restaurant_id]
+     changes = _plan_amendment(store, restaurant, series, from_index, clock)
+     check_final_occupancy(store, changes)
+-    commit_changes(store, restaurant.id, changes, diner_exceptions=False)
++    commit_changes(store, restaurant.id, changes)
+     return _envelope(store, series)
+ 
+ 

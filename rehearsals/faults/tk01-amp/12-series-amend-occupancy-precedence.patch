@@ -1,0 +1,13 @@
+--- a/tablekeeper/series.py
++++ b/tablekeeper/series.py
+@@ -130,6 +130,10 @@
+         check_cutoff(reservation)
+         terms = select_terms(store, restaurant, naive.date())
+         placement = place(restaurant, terms, current.table_ids, naive, current.party_size)
++        if not store.is_free(
++            restaurant.id, current.table_ids, placement.start, placement.end, {reference}
++        ):
++            raise table_unavailable()
+         changes.append(Change(reservation, placement, terms, real=True))
+     return changes
+ 

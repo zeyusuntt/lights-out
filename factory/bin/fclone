@@ -1,0 +1,22 @@
+#!/usr/bin/env python3
+"""Make a clean clone of one exact revision of the result repository.
+
+    fclone <full-hash> <dir>
+
+The verifier cannot clone until the current stage is sealed.
+"""
+import pathlib, shutil, subprocess, sys
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1] / "lib"))
+import fenv
+
+if len(sys.argv) != 3 or sys.argv[1] in ("-h", "--help"):
+    print(__doc__); raise SystemExit(0)
+rev, dest = sys.argv[1], pathlib.Path(sys.argv[2])
+stage = fenv.current_stage()
+if fenv.SEAT == "verifier" and stage and not fenv.seal_path(stage).exists():
+    fenv.die(f"fclone: stage {stage} is not sealed yet. Seal your suite first.")
+if dest.exists():
+    fenv.die(f"fclone: {dest} already exists; use a new directory")
+subprocess.run(["git", "clone", "-q", "--no-hardlinks", str(fenv.result()), str(dest)], check=True)
+subprocess.run(["git", "checkout", "-q", "--detach", rev], cwd=dest, check=True)
+print(subprocess.run(["git", "rev-parse", "HEAD"], cwd=dest, capture_output=True, text=True).stdout.strip())

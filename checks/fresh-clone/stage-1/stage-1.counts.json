@@ -1,0 +1,1 @@
+{"collected": 122, "passed": 122, "failed": 0, "errors": 0, "skipped": 0, "deselected": 0, "xfailed": 0, "leaks": 0, "fabrications": 0, "economy": null, "files": {"stage_1/test_auth.py": {"passed": 51, "total": 51}, "stage_1/test_dossiers.py": {"passed": 60, "total": 60}, "stage_1/test_sample.py": {"passed": 11, "total": 11}}}

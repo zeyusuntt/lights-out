@@ -1,0 +1,11 @@
+$ docker run --rm --network df-run-c343208b66bc4b788c3b9ce4caa8841d -v /Users/[REDACTED]/dev/band-factory/vendor/sf-buildathon-2026:/work:ro -v /Users/[REDACTED]/dev/band-factory/work/checks/builder-s3-r1:/out -e PYTHONDONTWRITEBYTECODE=1 -e PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 -e COLUMNS=200 -w /work df-harness-runner python -m pytest challenges/dossier/test/stage_2 --base-url http://df-svc-1055111fa5ad:8080 -p harness.plugin --rootdir challenges/dossier/test -q --web-url http://df-web-15a5661f1efd:8080 --web-admin-token *** --web-corpus challenges/dossier/web/corpus/sample --control-dir /out/control --previous-base-url http://df-svc-c176b7da9e4d:8080 --implementation-stage 3 --harness-summary /out/stage-2.counts.json
+
+............                                                                                                                                                                                     [100%]
+=========================================================================================== warnings summary ===========================================================================================
+../usr/local/lib/python3.12/site-packages/_pytest/cacheprovider.py:469
+  /usr/local/lib/python3.12/site-packages/_pytest/cacheprovider.py:469: PytestCacheWarning: could not create cache path /work/challenges/dossier/test/.pytest_cache/v/cache/nodeids: [Errno 30] Read-only file system: '/work/challenges/dossier/test/pytest-cache-files-6g1ru51k'
+    config.cache.set("cache/nodeids", sorted(self.cached_nodeids))
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+12 passed, 1 warning in 5.57s
+

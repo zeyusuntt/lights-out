@@ -1,0 +1,14 @@
+diff --git a/pocketful/corrections.py b/pocketful/corrections.py
+--- a/pocketful/corrections.py
++++ b/pocketful/corrections.py
+@@ -69,6 +69,10 @@
+             moves.append((payment.from_user_id, payment.to_user_id, change))
+         elif change < 0:
+             moves.append((payment.to_user_id, payment.from_user_id, -change))
++    if batch_id:
++        for sender, _, amount in moves:
++            if state.available(sender) < amount:
++                raise conflict("insufficient_funds", "insufficient available funds")
+     after = ledger.plan(state, moves)
+     parties = {uid for p in payments for uid in (p.from_user_id, p.to_user_id)}
+     if any(history.overdraws(state, uid, revisions) for uid in sorted(parties)):

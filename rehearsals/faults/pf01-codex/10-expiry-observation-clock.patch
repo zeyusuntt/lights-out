@@ -1,0 +1,9 @@
+diff --git a/pocketful/store.py b/pocketful/store.py
+--- a/pocketful/store.py
++++ b/pocketful/store.py
+@@ -286,4 +286,4 @@
+         now = now_micros()
+         for hold in [hold for hold, due in self.open_holds.items() if due <= now]:
+             authorization = self.authorizations[hold]
+-            self.close_authorization(authorization, "expired", authorization["expires_at"])
++            self.close_authorization(authorization, "expired", self.tick())

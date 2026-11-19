@@ -1,0 +1,11 @@
+#!/bin/sh
+# One launcher per seat: Band owns the runtime's arguments, so the seat name cannot be one.
+case "$1" in -h|--help) sed -n '2,/^[^#]/p' "$0" | grep "^#" | sed "s/^# \{0,1\}//"; exit 0;; esac
+here="$(cd "$(dirname "$0")" && pwd)"; mkdir -p "$here/seats"
+# Each argument is seat:kind[:effort]; the effort is the one the seat's mandate states.
+for s in "$@"; do
+  seat="${s%%:*}"; rest="${s#*:}"; kind="${rest%%:*}"; effort=""
+  [ "$rest" != "$kind" ] && effort="${rest#*:}"
+  printf '#!/bin/sh\nFACTORY_SEAT_NAME=%s FACTORY_SEAT_EFFORT=%s exec "%s/seat-%s" "$@"\n' "$seat" "$effort" "$here" "$kind" > "$here/seats/$seat"
+  chmod +x "$here/seats/$seat"
+done

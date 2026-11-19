@@ -1,0 +1,12 @@
+diff --git a/pocketful/authorizations.py b/pocketful/authorizations.py
+--- a/pocketful/authorizations.py
++++ b/pocketful/authorizations.py
+@@ -62,6 +62,8 @@
+ def capture(ctx, body):
+     requested, final = _capture_fields(body)
+     auth = _authorization_for(ctx, "to_user_id")
++    if requested is None:
++        requested = auth.amount
+     if auth.status in ("captured", "voided"):
+         raise _not_open()
+     if auth.status == "expired":

@@ -1,0 +1,14 @@
+--- a/tablekeeper/amendments.py
++++ b/tablekeeper/amendments.py
+@@ -61,10 +61,10 @@
+ 
+ def check_preconditions(reservation: Reservation, body: dict) -> None:
+     check_field_types(body)
+-    _check_expected_revision(reservation, body)
+     if reservation.status == CANCELLED:
+         raise ApiError(409, "reservation_cancelled", "The reservation is cancelled")
+     check_cutoff(reservation)
++    _check_expected_revision(reservation, body)
+ 
+ 
+ def plan_change(store: Store, reservation: Reservation, body: dict) -> Change:

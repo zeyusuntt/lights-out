@@ -1,0 +1,10 @@
+diff --git a/pocketful/refunds.py b/pocketful/refunds.py
+--- a/pocketful/refunds.py
++++ b/pocketful/refunds.py
+@@ -19,5 +19,5 @@
+         raise ApiError(422, "refund_exceeds_payment", "This is more than is left to refund.")
+     return store.transfer(
+         user, store.users[target["from_user_id"]], amount, target["note"], target["visibility"],
+-        refund_of=target["payment_id"],
++        refund_of=target["payment_id"], reserved=store.held(user["id"]),
+     )

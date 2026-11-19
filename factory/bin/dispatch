@@ -1,0 +1,47 @@
+#!/usr/bin/env python3
+"""Send the one human message of a run. Also records it, verbatim, for the foreman's handoffs.
+
+    dispatch [--print]
+
+It refuses any other argument, and refuses to send twice in one run (work/state/dispatched-at).
+
+All stages' specification paths go in one message. --print renders it without sending, to check it first.
+The track's event rules, factory/templates/track-rules/<track>.md when it exists, go into the message too:
+track detail belongs in the task, never in a mandate.
+"""
+import pathlib, re, subprocess, sys, time
+args = sys.argv[1:]
+if args in (["-h"], ["--help"]):
+    print(__doc__); raise SystemExit(0)
+if args not in ([], ["--print"]):
+    raise SystemExit(f"dispatch: unknown arguments {args}; nothing was sent. Usage: dispatch [--print]")
+HOME = pathlib.Path(__file__).resolve().parents[2]
+WORK = HOME / "work"
+if not args and (WORK / "state" / "dispatched-at").exists():
+    raise SystemExit("dispatch: this run was already dispatched; the rules allow one human message. Nothing was sent.")
+env = dict(l.split("=", 1) for l in (WORK / "run.env").read_text().splitlines() if "=" in l)
+kit = pathlib.Path(env["KIT"]); track = env["TRACK"]
+track_dir = kit / "challenges" / track if (kit / "challenges" / track).is_dir() else kit / track   # kits from 11-13 keep tracks under challenges/
+specs = sorted((track_dir / "spec").glob("stage-*.md"))
+if not specs:
+    raise SystemExit(f"dispatch: no specifications under {track_dir}/spec; nothing was sent.")
+owner = env["OWNER"]
+seats = ["foreman", "builder", "verifier", "second-reader", "product-user"]
+text = (HOME / "factory/templates/dispatch.md").read_text()
+rules = HOME / "factory/templates/track-rules" / f"{track}.md"
+track_rules = rules.read_text().strip() + "\n\n" if rules.exists() else ""
+for k, v in {"{TRACK_RULES}": track_rules, "{RESULT}": str(WORK / "result"), "{STAGES}": str(len(specs)), "{SPECS}": " ".join(str(s) for s in specs), "{KIT}": str(kit), "{TRACK}": track, "{TRACK_DIR}": str(track_dir),
+             "{CHECKS}": str(WORK / "checks"), "{BROWSER_IMAGE}": "df-harness-runner", "{ROSTER}": ", ".join(seats)}.items():
+    text = text.replace(k, v)
+if args == ["--print"]:
+    print(text); raise SystemExit(0)
+(WORK / "state").mkdir(exist_ok=True)
+(WORK / "state" / "dispatch.md").write_text(text)
+foreman = subprocess.run(["band", "room", "participants", env["ROOM"]], capture_output=True, text=True).stdout
+fid = re.search(rf"{owner}/foreman .*id=([0-9a-f-]+)\)", foreman).group(1)
+out = subprocess.run(["band", "room", "send", env["ROOM"], text, "--mention", fid], capture_output=True, text=True)
+print(out.stdout.strip(), out.stderr.strip())
+if out.returncode:
+    raise SystemExit(f"dispatch failed: {out.stderr.strip()}")
+(WORK / "state" / "dispatched-at").write_text(str(int(time.time())) + "\n")
+print(f"{len(text)} characters")

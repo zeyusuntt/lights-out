@@ -1,0 +1,12 @@
+diff --git a/tablekeeper/amendments.py b/tablekeeper/amendments.py
+--- a/tablekeeper/amendments.py
++++ b/tablekeeper/amendments.py
+@@ -55,7 +55,7 @@
+ 
+ def check_cutoff(reservation: Reservation) -> None:
+     """Against the accepted terms and the current start, whatever is published or proposed."""
+-    if now_instant() >= reservation.placement.start - reservation.terms.cutoff_minutes * 60:
++    if now_instant() > reservation.placement.start - reservation.terms.cutoff_minutes * 60:
+         raise ApiError(409, "cutoff_passed", "The cancellation cutoff has passed")
+ 
+ 

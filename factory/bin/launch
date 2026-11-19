@@ -1,0 +1,20 @@
+#!/bin/sh
+# Operator: start a whole run. launch <run-id> <track> [--kit-view full|holdout] [--stop-at <percent>] [--cpus <n>] [--memory <size>] [--kit <path>]
+# Stops the last run's helpers, makes a fresh workspace and room, sends the one message, starts watchdog, timekeeper and meter guard.
+# --submission marks the run as the one to submit: no later run may archive it until its room has been downloaded.
+case "$1" in -h|--help) sed -n '2,/^[^#]/p' "$0" | grep "^#" | sed "s/^# \{0,1\}//"; exit 0;; esac
+set -e
+here="$(cd "$(dirname "$0")" && pwd)"; home="$here/../.."; run="$1"; track="$2"; shift 2
+view=full; stop=92; submission=""; limits=""
+while [ $# -gt 0 ]; do case "$1" in --kit-view) view="$2"; shift 2;; --stop-at) stop="$2"; shift 2;; --submission) submission="--submission"; shift;;
+  --cpus|--memory|--kit) limits="$limits $1 $2"; shift 2;; *) echo "unknown $1"; exit 2;; esac; done
+pkill -f "$here/watchdog" 2>/dev/null || true; pkill -f "$here/timekeeper" 2>/dev/null || true; pkill -f "$here/meter-guard" 2>/dev/null || true
+"$here/make-seats"
+"$here/new-run" "$run" "$track" --kit-view "$view" $submission $limits
+"$here/dispatch"
+cd "$home"
+nohup timeout 172800 "$here/watchdog" > work/state/watchdog.out 2>&1 &
+nohup timeout 172800 "$here/timekeeper" > work/state/timekeeper.out 2>&1 &
+nohup "$here/meter-guard" "$stop" > work/state/guard.out 2>&1 &
+sleep 2
+echo "launched $run: $(grep ROOM work/run.env)"

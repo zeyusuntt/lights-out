@@ -1,0 +1,12 @@
+diff --git a/pocketful/splits.py b/pocketful/splits.py
+--- a/pocketful/splits.py
++++ b/pocketful/splits.py
+@@ -38,7 +38,7 @@
+     split_id = state.new_id("sp", state.splits)
+     state.splits[split_id] = created.at
+     requests = [open_request(state, caller.id, user.id, share, note, created)
+-                for user, share in zip(participants, split_shares) if user is not caller]
++                for user, share in zip(participants, split_shares) if user is not caller and share > 0]
+     return {
+         "split_id": split_id,
+         "amount": amount,

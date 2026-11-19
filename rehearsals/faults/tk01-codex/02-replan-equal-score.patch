@@ -1,0 +1,12 @@
+diff --git a/tablekeeper/planner.py b/tablekeeper/planner.py
+--- a/tablekeeper/planner.py
++++ b/tablekeeper/planner.py
+@@ -98,7 +98,7 @@
+             new_moves = moves + option.changed
+             new_unused = unused + option.unused
+             rest = still_needed[position + 1]
+-            if best_score is not None and (new_moves + rest[0], new_unused + rest[1]) >= best_score:
++            if best_score is not None and (new_moves + rest[0], new_unused + rest[1]) > best_score:
+                 continue
+             chosen_masks[position] = mask
+             chosen.append(option)

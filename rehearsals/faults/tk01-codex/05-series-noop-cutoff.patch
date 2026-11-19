@@ -1,0 +1,14 @@
+diff --git a/tablekeeper/series.py b/tablekeeper/series.py
+--- a/tablekeeper/series.py
++++ b/tablekeeper/series.py
+@@ -125,9 +125,9 @@
+             continue
+         current = reservation.placement
+         naive = at_minute(parse_local(current.starts_at_local).date(), clock)
++        check_cutoff(reservation)
+         if format_local(naive) == current.starts_at_local:
+             continue
+-        check_cutoff(reservation)
+         terms = select_terms(store, restaurant, naive.date())
+         placement = place(restaurant, terms, current.table_ids, naive, current.party_size)
+         changes.append(Change(reservation, placement, terms, real=True))

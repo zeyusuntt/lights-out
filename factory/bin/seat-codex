@@ -1,0 +1,14 @@
+#!/bin/sh
+# Launches one codex seat, free of the operator's personal configuration.
+case "$1" in -h|--help) sed -n '2,/^[^#]/p' "$0" | grep "^#" | sed "s/^# \{0,1\}//"; exit 0;; esac
+seat="$FACTORY_SEAT_NAME"
+FACTORY_HOME="$(cd "$(dirname "$0")/../.." && pwd)"
+. "$FACTORY_HOME/factory/settings/operator.env"
+export FACTORY_SEAT="$seat" FACTORY_HOME FACTORY_WORK="$FACTORY_HOME/work"
+export PATH="$FACTORY_HOME/factory/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+export GIT_AUTHOR_NAME="$seat" GIT_COMMITTER_NAME="$seat"
+export GIT_AUTHOR_EMAIL="$OPERATOR_EMAIL_USER+$seat@$OPERATOR_EMAIL_DOMAIN" GIT_COMMITTER_EMAIL="$OPERATOR_EMAIL_USER+$seat@$OPERATOR_EMAIL_DOMAIN"
+export CODEX_HOME="$HOME/.local/share/band-factory/codex-home"
+bundled="/Applications/ChatGPT.app/Contents/Resources/codex-cli/CodexCLI.app/Contents/MacOS/codex"
+if [ -x "$bundled" ]; then exec "$bundled" "$@"; fi
+exec "$(command -v codex)" "$@"

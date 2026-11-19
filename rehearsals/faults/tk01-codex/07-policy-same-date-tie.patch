@@ -1,0 +1,12 @@
+diff --git a/tablekeeper/policies.py b/tablekeeper/policies.py
+--- a/tablekeeper/policies.py
++++ b/tablekeeper/policies.py
+@@ -18,7 +18,7 @@
+     candidates = [p for p in store.policies_of(restaurant.id) if p.effective_from <= day]
+     if not candidates:
+         return restaurant.base_terms
+-    return max(candidates, key=lambda p: (p.effective_from, p.terms.policy_version)).terms
++    return max(candidates, key=lambda p: p.effective_from).terms
+ 
+ 
+ def _bounded(body: dict, name: str, minimum: int, maximum: int) -> int:

@@ -1,0 +1,6 @@
+#!/bin/sh
+# Copy the dispatch, exactly as sent, to plan/task.md in the result repository.
+set -e
+[ "$1" = "-h" ] || [ "$1" = "--help" ] && { sed -n 2p "$0"; exit 0; }
+here="$(cd "$(dirname "$0")" && pwd)"; work="${FACTORY_WORK:-$here/../../work}"
+mkdir -p "$work/result/plan"; cp "$work/state/dispatch.md" "$work/result/plan/task.md"; echo "saved plan/task.md"

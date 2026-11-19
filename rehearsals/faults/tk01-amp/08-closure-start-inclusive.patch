@@ -1,0 +1,11 @@
+--- a/tablekeeper/model.py
++++ b/tablekeeper/model.py
+@@ -198,7 +198,7 @@
+     end: Fraction
+ 
+     def overlaps(self, start: int, end: int) -> bool:
+-        return self.start < end and start < self.end
++        return self.start <= end and start < self.end
+ 
+     def as_json(self) -> dict:
+         return {"table_id": self.table_id, "from": self.from_text, "to": self.to_text}

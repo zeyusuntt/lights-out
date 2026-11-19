@@ -1,0 +1,26 @@
+#!/bin/sh
+# Operator tool: print the Claude plan windows and the Codex plan windows, at negligible cost.
+case "$1" in -h|--help) sed -n '2,/^[^#]/p' "$0" | grep "^#" | sed "s/^# \{0,1\}//"; exit 0;; esac
+cd "$(dirname "$0")/../../scratch" 2>/dev/null || cd /tmp
+timeout 60 /opt/homebrew/bin/claude -p --model claude-haiku-5-5 --setting-sources project,local --strict-mcp-config --output-format stream-json --verbose --max-turns 1 "ok" </dev/null 2>/dev/null \
+ | grep rate_limit_event | tail -1 | python3 -c "
+import json,sys,datetime
+for l in sys.stdin:
+    i=json.loads(l)['rate_limit_info']
+    w=i.get('unifiedWindows') or {}
+    print('claude', i.get('status'), {k:(round(v.get('utilization',0)*100), datetime.datetime.fromtimestamp(v['resetsAt']).strftime('%a %H:%M')) for k,v in w.items()} or i)
+"
+f=$(ls -t "$HOME"/.local/share/band-factory/codex-home/sessions/*/*/*/*.jsonl 2>/dev/null | head -1)
+[ -n "$f" ] && python3 - "$f" <<'PY'
+import datetime, json, sys
+last = None
+for line in open(sys.argv[1], errors="replace"):
+    if '"rate_limits"' in line:
+        try:
+            last = json.loads(line)["payload"]["rate_limits"]
+        except (ValueError, KeyError):
+            pass
+if last:
+    p = last.get("primary") or {}
+    print("codex", last.get("plan_type"), round(p.get("used_percent", 0)), "% of", p.get("window_minutes"), "min, resets", datetime.datetime.fromtimestamp(p.get("resets_at", 0)).strftime("%a %m-%d %H:%M"))
+PY

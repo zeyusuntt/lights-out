@@ -1,0 +1,12 @@
+messages 4332, text 125, human text 1
+dispatch 21:27Z; final report 06:39Z; wall clock 553 min
+  stage 1: open 21:27, ledger ready +6m, sealed +11m, candidates 2 (first +38m), closed 22:45 (78m), BLOCK 1 PASS 3; shipped 122/122
+  stage 2: open 22:45, ledger ready +13m, sealed +14m, candidates 4 (first +30m), closed 01:19 (154m), BLOCK 5 PASS 7; shipped 122/122, 12/12
+  stage 3: open 01:19, ledger ready +12m, sealed +11m, candidates 2 (first +31m), closed 02:49 (90m), BLOCK 1 PASS 5; shipped 122/122, 12/12, 9/9
+  stage 4: open 02:49, ledger ready +32m, sealed +11m, candidates 5 (first +51m), closed 06:20 (210m), BLOCK 9 PASS 7; shipped 122/122, 12/12, 9/9, 10/10
+verdicts: {'product-user/BLOCK': 1, 'product-user/PASS': 10, 'second-reader/BLOCK': 10, 'second-reader/PASS': 3, 'verifier/BLOCK': 5, 'verifier/PASS': 9}
+per seat (room text messages, tool calls reported to the room): {'builder': (14, 319), 'foreman': (46, 205), 'product-user': (11, 92), 'second-reader': (24, 860), 'verifier': (29, 263)}
+error events: 0 []
+commits: {'foreman': 94, 'builder': 33, 'second-reader': 22, 'verifier': 15, 'product-user': 12}
+claude-side estimate: 9e966994-4917-4201-8472-d26b4fb27f68           4      277230697     $84.36  [REDACTED]/builder $37.12 · [REDACTED]/verifier $30.62 · [REDACTED]/product-user $2.76 · [REDACTED]/foreman $13.86
+second-reader tokens (codex sessions in the run's window): {'input_tokens': 99363207, 'cached_input_tokens': 97776640, 'output_tokens': 729973} about $150 at the assumed rates

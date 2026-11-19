@@ -1,0 +1,16 @@
+#!/bin/sh
+# Operator tool: run a suite written outside the room against one accepted revision of an archived run.
+# run-indep <run-dir> <hash> <stage> <suite-dir> <port>     writes <suite-dir>.result.txt
+case "$1" in -h|--help) sed -n '2,/^[^#]/p' "$0" | grep "^#" | sed "s/^# \{0,1\}//"; exit 0;; esac
+run="$(cd "$1" && pwd)"; h="$2"; s="$3"; suite="$(cd "$4" && pwd)"; port="$5"
+here="$(cd "$(dirname "$0")" && pwd)"; py="$here/../../vendor/dark-factory-wearedevs/.venv/bin/python"
+export FACTORY_SEAT=operator FACTORY_WORK="$run"
+out=$("$here/fserve" "$h" "$s" "$port" --fresh) || { echo "serve failed: $out"; exit 3; }
+name=$(echo "$out" | sed -E 's/.*name=//')
+cd "$suite"; head -1 tests/README.md 2>/dev/null | cut -c1-120
+"$py" -I -m py_compile tests/*.py 2>&1 | tail -2 | cut -c1-160
+SUT_URL="http://127.0.0.1:$port" timeout 2400 "$py" -I -m pytest tests -q --tb=short -p no:cacheprovider > "$suite.result.txt" 2>&1
+rc=$?; echo "suite rc=$rc"; tail -1 "$suite.result.txt" | cut -c1-140
+grep -hE '^(FAILED|ERROR)' "$suite.result.txt" | cut -c1-230 | head -40
+"$here/fstop" "$name" | tail -1
+exit $rc

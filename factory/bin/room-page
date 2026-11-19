@@ -1,0 +1,24 @@
+#!/usr/bin/env python3
+"""Operator tool: print every message of the run's room, oldest first, as JSON lines.
+
+    room-page [--room <id>]
+"""
+import sys as _sys
+if _sys.argv[1:2] in (["-h"], ["--help"]):
+    print(__doc__ or "see the comment at the top of this file"); raise SystemExit(0)
+import json, pathlib, subprocess, sys
+HOME = pathlib.Path(__file__).resolve().parents[2]
+env = dict(l.split("=", 1) for l in (HOME / "work/run.env").read_text().splitlines() if "=" in l)
+room = sys.argv[sys.argv.index("--room") + 1] if "--room" in sys.argv else env["ROOM"]
+msgs, cursor = {}, None
+while True:
+    cmd = ["band", "room", "messages", room, "--json"] + (["--cursor", cursor] if cursor else [])
+    out = subprocess.run(cmd, capture_output=True, text=True)
+    page = json.loads(out.stdout)
+    for m in page["messages"]:
+        msgs[m["id"]] = m
+    cursor = page.get("next_cursor")
+    if not page.get("has_more") or not cursor:
+        break
+for m in sorted(msgs.values(), key=lambda m: m["inserted_at"]):
+    print(json.dumps(m))

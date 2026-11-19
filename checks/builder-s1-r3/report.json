@@ -1,0 +1,86 @@
+{
+  "revision": "d07442da2a5016e26e55e3f8b32a76e3d731c0dd",
+  "track": "dossier",
+  "stages": {
+    "1": "pass"
+  },
+  "highest_contiguous": 1,
+  "started_at": "2026-11-18T17:21:24.182818+00:00",
+  "finished_at": "2026-11-18T17:22:28.009693+00:00",
+  "schema_version": 2,
+  "run_id": "62714b89cdaf405bbff21ddd640b855c",
+  "mode": "isolated",
+  "provenance": "working-tree",
+  "state": "completed",
+  "pytest_args": [],
+  "suite_digest": "df1eb07cee2eadbe87cc314e6ad0770012e62be7821b2fea4ce2e06d591d83f9",
+  "suite_digests": {
+    "1": "df1eb07cee2eadbe87cc314e6ad0770012e62be7821b2fea4ce2e06d591d83f9"
+  },
+  "checks": {
+    "1": {
+      "collected": 122,
+      "passed": 122,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0,
+      "deselected": 0,
+      "xfailed": 0,
+      "leaks": 0,
+      "fabrications": 0,
+      "economy": null,
+      "files": {
+        "stage_1/test_auth.py": {
+          "passed": 51,
+          "total": 51
+        },
+        "stage_1/test_dossiers.py": {
+          "passed": 60,
+          "total": 60
+        },
+        "stage_1/test_sample.py": {
+          "passed": 11,
+          "total": 11
+        }
+      }
+    }
+  },
+  "implementation_stage": "1",
+  "overshoot": null,
+  "claimed_stage": "1",
+  "share": 1.0,
+  "upgrade_sources": {
+    "2": {
+      "folder": "/tmp/builder-clone/stage-1",
+      "revision": "d07442da2a5016e26e55e3f8b32a76e3d731c0dd"
+    }
+  },
+  "web": {
+    "1": {
+      "fabrications": 0,
+      "economy": null
+    }
+  },
+  "probe": {
+    "suite": "2",
+    "status": "fail",
+    "checks": {
+      "collected": 12,
+      "passed": 0,
+      "failed": 1,
+      "errors": 0,
+      "skipped": 0,
+      "deselected": 0,
+      "xfailed": 0,
+      "leaks": 0,
+      "fabrications": 0,
+      "economy": null,
+      "files": {
+        "stage_2/test_sample.py": {
+          "passed": 0,
+          "total": 12
+        }
+      }
+    }
+  }
+}

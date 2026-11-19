@@ -1,0 +1,15 @@
+#!/bin/sh
+# Operator tool: an agent outside the room classifies each failure of an outside suite, using the specification text and the live service.
+# triage-suite <run-dir> <hash> <stage> <suite-dir> <port>     writes <suite-dir>/triage.md
+case "$1" in -h|--help) sed -n '2,/^[^#]/p' "$0" | grep "^#" | sed "s/^# \{0,1\}//"; exit 0;; esac
+run="$(cd "$1" && pwd)"; h="$2"; s="$3"; suite="$(cd "$4" && pwd)"; port="$5"
+here="$(cd "$(dirname "$0")" && pwd)"
+export FACTORY_SEAT=operator FACTORY_WORK="$run"
+out=$("$here/fserve" "$h" "$s" "$port" --fresh) || { echo "serve failed: $out"; exit 3; }
+name=$(echo "$out" | sed -E 's/.*name=//')
+cp "$suite.result.txt" "$suite/failures.txt"
+cd "$suite"
+prompt="spec/ holds a specification. tests/ holds a black-box suite written from it, and failures.txt is the output of one run against a service now answering at http://127.0.0.1:$port (it accepts a reset as the specification describes, so you may drive it). For every failed test in failures.txt, decide from the specification text and direct experiments on the service which it is: PRODUCT_DEFECT (the service breaks a sentence you can quote; give a minimal reproduction you actually ran), TEST_BUG (the test is wrong: wrong setup, arithmetic, typo, or an assertion no sentence supports; say what is wrong), or AMBIGUOUS (the text supports both; quote it). Judge each on its merits, and do not assume either the service or the tests are right. You can't see the service's source. Write triage.md: one line per test with its class and the reason, then a total for each class, then the full reproductions for every PRODUCT_DEFECT."
+CODEX_HOME="$HOME/.local/share/band-factory/codex-home" timeout 3000 "/Applications/ChatGPT.app/Contents/Resources/codex-cli/CodexCLI.app/Contents/MacOS/codex" exec --skip-git-repo-check --sandbox workspace-write -m gpt-6.1-sol -c model_reasoning_effort=high "$prompt" </dev/null > triage.log 2>&1
+echo "triage exit $?"; grep -E 'PRODUCT_DEFECT|TEST_BUG|AMBIGUOUS' triage.md 2>/dev/null | tail -6 | cut -c1-160
+"$here/fstop" "$name" | tail -1

@@ -1,0 +1,13 @@
+--- a/tablekeeper/model.py
++++ b/tablekeeper/model.py
+@@ -134,8 +134,8 @@
+ 
+     def conflicts_with(self, other: "Placement") -> bool:
+         return (
+-            self.start < other.end
+-            and other.start < self.end
++            self.start <= other.end
++            and other.start <= self.end
+             and not set(self.table_ids).isdisjoint(other.table_ids)
+         )
+ 

@@ -1,0 +1,12 @@
+diff --git a/tablekeeper/series.py b/tablekeeper/series.py
+--- a/tablekeeper/series.py
++++ b/tablekeeper/series.py
+@@ -121,7 +121,7 @@
+     changes = []
+     for reference in series.references[from_index:]:
+         reservation = store.reservations[reference]
+-        if reservation.status == CANCELLED or reference in series.exceptions:
++        if reservation.status == CANCELLED:
+             continue
+         current = reservation.placement
+         naive = at_minute(parse_local(current.starts_at_local).date(), clock)

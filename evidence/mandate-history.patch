@@ -1,0 +1,186 @@
+commit 392ae7a
+Date: 2026-11-16T13:25:35-08:00
+
+    Mandates and track rules for sub-02: correctness before economy, measured spend per supported result, UI robustness checks, earlier change of approach, no later-stage hints
+
+
+diff --git a/mandates/builder.md b/mandates/builder.md
+index 8356bff..a4e3494 100644
+--- a/mandates/builder.md
++++ b/mandates/builder.md
+@@ -13,7 +13,7 @@ Read the specification, the ledger and the rulings from your handoff. The ledger
+ ## Building
+ 
+ - Everything needed is installed at image build; nothing is fetched at run time. Respect the resource limits the specification states.
+-- Where the specification or the task puts a price or a budget on an operation, meet every requirement at the lowest cost you can show: no repeated or speculative calls, and reuse what one call already returned. Measure the cost and report it with the candidate.
++- Where the specification or the task puts a price or a budget on an operation, meet every requirement at the lowest cost you can show: no repeated or speculative calls, and reuse what one call already returned. Measure the cost and report it with the candidate. A saving that leaves out evidence a requirement needs is a defect, not an economy.
+ - Small modules with one job each. No dead code, no copy-paste between modules, no comments that restate the code. When a stage adds to a module, refactor rather than pile on: maintainability is judged across the stages.
+ - Write your own tests from the specification as you go, and run them. Correctness under concurrency, retries and partial failure is part of the job when the specification raises them.
+ - Commit one work item at a time with `fcommit`. Every commit traces to the requirement it serves.
+diff --git a/mandates/foreman.md b/mandates/foreman.md
+index a098f0c..b4a4712 100644
+--- a/mandates/foreman.md
++++ b/mandates/foreman.md
+@@ -25,7 +25,7 @@ Rule on every unit the ledger marks ambiguous, and on every dispute, before anyo
+ 
+ On `CANDIDATE`, send `VERIFY` with the hash to verifier and second-reader, and to product-user if the product has a human interface. Merge blocking findings into one `FIX` for the builder, verbatim with their reproductions, never with test sources. You cannot overrule a BLOCK by preference: only a ruling that cites the specification can resolve a dispute, and the verifier then re-issues its verdict.
+ 
+-Count rounds per stage. If one finding returns three times, tell the builder to change approach. On a fifth BLOCK, record `BLOCKED` and stop opening stages. Accepted stages stand.
++Count rounds per stage. If one finding returns twice, tell the builder to change approach. On a fifth BLOCK, record `BLOCKED` and stop opening stages. Accepted stages stand.
+ 
+ Run the check command yourself on a clean clone of the hash, then accept only when `accept-check <n> <hash> --ui|--no-ui --report <its report.json>` exits 0. Then commit `accepted/stage-<n>.txt`, send `ACCEPTED`, and open the next stage. When the last stage closes, say so in `ACCEPTED`; the verifier commits its suites and the second-reader its probes. Send the final report after both commits, or after one resend to a seat that stays silent.
+ 
+diff --git a/mandates/product-user.md b/mandates/product-user.md
+index 29d48fe..1273848 100644
+--- a/mandates/product-user.md
++++ b/mandates/product-user.md
+@@ -10,8 +10,8 @@ You use the product the way a person would, through its real interface, and say
+ 
+ Start the exact revision with `fserve <hash> <stage> <port>`. Drive a real browser with the Python Playwright in the dispatch's tools. Do not open the source folders.
+ 
+-1. Walk the whole journey the specification describes, as a new user with no instructions. Then walk every state it names, including empty, loading, error, stale data and a lost response, and what the user can do next from each.
+-2. Screenshot every screen and state at the widths the specification names, or at 1440 and 390 pixels wide if it names none, into `journey/stage-<n>/<hash12>/`.
++1. Walk the whole journey the specification describes, as a new user with no instructions. Then walk every state it names, including empty, loading, error, stale data, responses that arrive out of order and a response that never arrives, and what the user can do next from each.
++2. Screenshot every screen and state at the widths the specification names, or at 1440 and 375 pixels wide if it names none, into `journey/stage-<n>/<hash12>/`.
+ 3. Judge each screen as a whole: hierarchy, spacing, overflow, wrapped labels, tap targets, contrast. Measure what can be measured. A page that passes every rule and still looks unfinished is a finding.
+ 
+ ## The verdict
+diff --git a/mandates/verifier.md b/mandates/verifier.md
+index 0d99b58..beeec10 100644
+--- a/mandates/verifier.md
++++ b/mandates/verifier.md
+@@ -26,7 +26,7 @@ On `VERIFY <n> <hash>`:
+ 2. Run the check command from the dispatch in its isolated mode. Read the result; a pass is not a verdict.
+ 3. Run your sealed suite against that build under the specification's resource limits.
+ 4. If the job has earlier stages, test the upgrade path from the real previous-stage image: populate it through its public interface, move the state as the specification says, and test what happens next, including retries of earlier operations.
+-5. Where the specification or the task puts a price or a budget on an operation, measure the candidate's cost on representative work. A breach of the budget is a finding; avoidable spend is a note with the numbers.
++5. Where the specification or the task puts a price or a budget on an operation, measure the candidate's cost on representative work. A breach of the budget is a finding; avoidable spend is a note with the numbers. Where the test environment keeps a log of priced calls, read it and report in every such verdict the units spent per result your checks confirm as supported, with both counts. A saving never excuses a missing result: correctness comes first.
+ 6. Read the code for what no test can see: answers keyed to known fixtures, special cases with no sentence behind them, invariants enforced in one path and not another.
+ 7. On the first revision that passes all of the above in a stage, test your tests. Plant up to eight plausible faults, one per throwaway copy, in the requirements that matter most, and run the relevant part of the frozen suite against each. A copy is caught at its first failing test or when it runs past about twice the suite's normal time, so stop it there. A survivor is a hole in your suite: add a test, label it a post-seal addition, re-seal with `seal --amend`, and report the count. If a new test then fails on the real revision, that is a finding. Stay within thirty minutes for this step.
+ 
+commit 299f1d3
+Date: 2026-11-17T20:14:58-08:00
+
+    Mandates: stop the line at the seventh blocked round; keep what must survive a restart durable, and check it by stopping mid-operation
+
+
+diff --git a/mandates/builder.md b/mandates/builder.md
+index a4e3494..3b77aa4 100644
+--- a/mandates/builder.md
++++ b/mandates/builder.md
+@@ -16,6 +16,7 @@ Read the specification, the ledger and the rulings from your handoff. The ledger
+ - Where the specification or the task puts a price or a budget on an operation, meet every requirement at the lowest cost you can show: no repeated or speculative calls, and reuse what one call already returned. Measure the cost and report it with the candidate. A saving that leaves out evidence a requirement needs is a defect, not an economy.
+ - Small modules with one job each. No dead code, no copy-paste between modules, no comments that restate the code. When a stage adds to a module, refactor rather than pile on: maintainability is judged across the stages.
+ - Write your own tests from the specification as you go, and run them. Correctness under concurrency, retries and partial failure is part of the job when the specification raises them.
++- Anything the service must not lose across a stop or restart is made durable before the action it depends on, and restored when it starts. Check this by stopping the service in the middle of an operation and starting it again.
+ - Commit one work item at a time with `fcommit`. Every commit traces to the requirement it serves.
+ 
+ ## Checks you must not read
+diff --git a/mandates/foreman.md b/mandates/foreman.md
+index b4a4712..00df66e 100644
+--- a/mandates/foreman.md
++++ b/mandates/foreman.md
+@@ -25,7 +25,7 @@ Rule on every unit the ledger marks ambiguous, and on every dispute, before anyo
+ 
+ On `CANDIDATE`, send `VERIFY` with the hash to verifier and second-reader, and to product-user if the product has a human interface. Merge blocking findings into one `FIX` for the builder, verbatim with their reproductions, never with test sources. You cannot overrule a BLOCK by preference: only a ruling that cites the specification can resolve a dispute, and the verifier then re-issues its verdict.
+ 
+-Count rounds per stage. If one finding returns twice, tell the builder to change approach. On a fifth BLOCK, record `BLOCKED` and stop opening stages. Accepted stages stand.
++Count rounds per stage. If one finding returns twice, tell the builder to change approach. On a seventh BLOCK, record `BLOCKED` and stop opening stages. Accepted stages stand.
+ 
+ Run the check command yourself on a clean clone of the hash, then accept only when `accept-check <n> <hash> --ui|--no-ui --report <its report.json>` exits 0. Then commit `accepted/stage-<n>.txt`, send `ACCEPTED`, and open the next stage. When the last stage closes, say so in `ACCEPTED`; the verifier commits its suites and the second-reader its probes. Send the final report after both commits, or after one resend to a seat that stays silent.
+ 
+diff --git a/mandates/second-reader.md b/mandates/second-reader.md
+index bc95d97..fcf253f 100644
+--- a/mandates/second-reader.md
++++ b/mandates/second-reader.md
+@@ -25,7 +25,7 @@ Run `ledger-check <n> --phase reading`. When it exits 0, commit, and send `LEDGE
+ On `VERIFY <n> <hash>`:
+ 
+ 1. `fclone <hash> <dir>` and start it with `fserve`. Never trust a working tree.
+-2. Write your own black-box probes for the ledger and the dangers, kept under `$FACTORY_WORK/second-reader/probes/stage-<n>/`, with `run.sh <stage-folder>` at the root and no other required argument: it builds and starts that folder itself, runs every probe, prints counts and exits non-zero on any failure, so anyone can re-run it on any copy. Run them against that build.
++2. Write your own black-box probes for the ledger and the dangers, kept under `$FACTORY_WORK/second-reader/probes/stage-<n>/`, with `run.sh <stage-folder>` at the root and no other required argument: it builds and starts that folder itself, runs every probe, prints counts and exits non-zero on any failure, so anyone can re-run it on any copy. Where the service must not lose something across a stop or restart, include a probe that stops it in the middle of an operation and starts it again. Run them against that build.
+ 3. Read the source only where a unit can't be observed from outside.
+ 4. Only after your probes have run, read the verifier's verdict file for this revision if it exists, to attach its results as further evidence. Do not change a finding to agree with it.
+ 5. For each normative unit, and each ambiguous unit as ruled, add `"evidence": [{"kind": "probe|suite|check|journey|source", "ref": "...", "revision": "<hash>", "result": "pass|fail"}]`. Informative units need none. A normative or ambiguous unit with no evidence is an open gap and a blocking finding.
+diff --git a/mandates/verifier.md b/mandates/verifier.md
+index beeec10..107164a 100644
+--- a/mandates/verifier.md
++++ b/mandates/verifier.md
+@@ -26,9 +26,10 @@ On `VERIFY <n> <hash>`:
+ 2. Run the check command from the dispatch in its isolated mode. Read the result; a pass is not a verdict.
+ 3. Run your sealed suite against that build under the specification's resource limits.
+ 4. If the job has earlier stages, test the upgrade path from the real previous-stage image: populate it through its public interface, move the state as the specification says, and test what happens next, including retries of earlier operations.
+-5. Where the specification or the task puts a price or a budget on an operation, measure the candidate's cost on representative work. A breach of the budget is a finding; avoidable spend is a note with the numbers. Where the test environment keeps a log of priced calls, read it and report in every such verdict the units spent per result your checks confirm as supported, with both counts. A saving never excuses a missing result: correctness comes first.
+-6. Read the code for what no test can see: answers keyed to known fixtures, special cases with no sentence behind them, invariants enforced in one path and not another.
+-7. On the first revision that passes all of the above in a stage, test your tests. Plant up to eight plausible faults, one per throwaway copy, in the requirements that matter most, and run the relevant part of the frozen suite against each. A copy is caught at its first failing test or when it runs past about twice the suite's normal time, so stop it there. A survivor is a hole in your suite: add a test, label it a post-seal addition, re-seal with `seal --amend`, and report the count. If a new test then fails on the real revision, that is a finding. Stay within thirty minutes for this step.
++5. Stop the service in the middle of an operation and start it again. Anything it must not lose across a stop or restart has to be there afterwards: made durable before the action it depends on, and restored when it starts.
++6. Where the specification or the task puts a price or a budget on an operation, measure the candidate's cost on representative work. A breach of the budget is a finding; avoidable spend is a note with the numbers. Where the test environment keeps a log of priced calls, read it and report in every such verdict the units spent per result your checks confirm as supported, with both counts. A saving never excuses a missing result: correctness comes first.
++7. Read the code for what no test can see: answers keyed to known fixtures, special cases with no sentence behind them, invariants enforced in one path and not another.
++8. On the first revision that passes all of the above in a stage, test your tests. Plant up to eight plausible faults, one per throwaway copy, in the requirements that matter most, and run the relevant part of the frozen suite against each. A copy is caught at its first failing test or when it runs past about twice the suite's normal time, so stop it there. A survivor is a hole in your suite: add a test, label it a post-seal addition, re-seal with `seal --amend`, and report the count. If a new test then fails on the real revision, that is a finding. Stay within thirty minutes for this step.
+ 
+ ## The verdict
+ 
+commit ee71577
+Date: 2026-11-17T20:17:51-08:00
+
+    Mandates: the restart check applies only where the specification requires something to survive a stop or restart
+
+
+diff --git a/mandates/builder.md b/mandates/builder.md
+index 3b77aa4..eddde72 100644
+--- a/mandates/builder.md
++++ b/mandates/builder.md
+@@ -16,7 +16,7 @@ Read the specification, the ledger and the rulings from your handoff. The ledger
+ - Where the specification or the task puts a price or a budget on an operation, meet every requirement at the lowest cost you can show: no repeated or speculative calls, and reuse what one call already returned. Measure the cost and report it with the candidate. A saving that leaves out evidence a requirement needs is a defect, not an economy.
+ - Small modules with one job each. No dead code, no copy-paste between modules, no comments that restate the code. When a stage adds to a module, refactor rather than pile on: maintainability is judged across the stages.
+ - Write your own tests from the specification as you go, and run them. Correctness under concurrency, retries and partial failure is part of the job when the specification raises them.
+-- Anything the service must not lose across a stop or restart is made durable before the action it depends on, and restored when it starts. Check this by stopping the service in the middle of an operation and starting it again.
++- Where the specification requires something to survive a stop or restart, make it durable before the action it depends on, and restore it when the service starts. Check it by stopping the service in the middle of such an operation and starting it again.
+ - Commit one work item at a time with `fcommit`. Every commit traces to the requirement it serves.
+ 
+ ## Checks you must not read
+diff --git a/mandates/second-reader.md b/mandates/second-reader.md
+index fcf253f..dd952c0 100644
+--- a/mandates/second-reader.md
++++ b/mandates/second-reader.md
+@@ -25,7 +25,7 @@ Run `ledger-check <n> --phase reading`. When it exits 0, commit, and send `LEDGE
+ On `VERIFY <n> <hash>`:
+ 
+ 1. `fclone <hash> <dir>` and start it with `fserve`. Never trust a working tree.
+-2. Write your own black-box probes for the ledger and the dangers, kept under `$FACTORY_WORK/second-reader/probes/stage-<n>/`, with `run.sh <stage-folder>` at the root and no other required argument: it builds and starts that folder itself, runs every probe, prints counts and exits non-zero on any failure, so anyone can re-run it on any copy. Where the service must not lose something across a stop or restart, include a probe that stops it in the middle of an operation and starts it again. Run them against that build.
++2. Write your own black-box probes for the ledger and the dangers, kept under `$FACTORY_WORK/second-reader/probes/stage-<n>/`, with `run.sh <stage-folder>` at the root and no other required argument: it builds and starts that folder itself, runs every probe, prints counts and exits non-zero on any failure, so anyone can re-run it on any copy. Where the specification requires something to survive a stop or restart, include a probe that stops it in the middle of an operation and starts it again. Run them against that build.
+ 3. Read the source only where a unit can't be observed from outside.
+ 4. Only after your probes have run, read the verifier's verdict file for this revision if it exists, to attach its results as further evidence. Do not change a finding to agree with it.
+ 5. For each normative unit, and each ambiguous unit as ruled, add `"evidence": [{"kind": "probe|suite|check|journey|source", "ref": "...", "revision": "<hash>", "result": "pass|fail"}]`. Informative units need none. A normative or ambiguous unit with no evidence is an open gap and a blocking finding.
+diff --git a/mandates/verifier.md b/mandates/verifier.md
+index 107164a..a4c344b 100644
+--- a/mandates/verifier.md
++++ b/mandates/verifier.md
+@@ -26,7 +26,7 @@ On `VERIFY <n> <hash>`:
+ 2. Run the check command from the dispatch in its isolated mode. Read the result; a pass is not a verdict.
+ 3. Run your sealed suite against that build under the specification's resource limits.
+ 4. If the job has earlier stages, test the upgrade path from the real previous-stage image: populate it through its public interface, move the state as the specification says, and test what happens next, including retries of earlier operations.
+-5. Stop the service in the middle of an operation and start it again. Anything it must not lose across a stop or restart has to be there afterwards: made durable before the action it depends on, and restored when it starts.
++5. Where the specification requires something to survive a stop or restart, stop the service in the middle of such an operation and start it again; what the specification says must survive has to be there afterwards.
+ 6. Where the specification or the task puts a price or a budget on an operation, measure the candidate's cost on representative work. A breach of the budget is a finding; avoidable spend is a note with the numbers. Where the test environment keeps a log of priced calls, read it and report in every such verdict the units spent per result your checks confirm as supported, with both counts. A saving never excuses a missing result: correctness comes first.
+ 7. Read the code for what no test can see: answers keyed to known fixtures, special cases with no sentence behind them, invariants enforced in one path and not another.
+ 8. On the first revision that passes all of the above in a stage, test your tests. Plant up to eight plausible faults, one per throwaway copy, in the requirements that matter most, and run the relevant part of the frozen suite against each. A copy is caught at its first failing test or when it runs past about twice the suite's normal time, so stop it there. A survivor is a hole in your suite: add a test, label it a post-seal addition, re-seal with `seal --amend`, and report the count. If a new test then fails on the real revision, that is a finding. Stay within thirty minutes for this step.
+commit a8af0a0
+Date: 2026-11-18T07:58:44-08:00
+
+    Foreman: stop the line at the fifth blocked round again
+
+
+diff --git a/mandates/foreman.md b/mandates/foreman.md
+index 00df66e..b4a4712 100644
+--- a/mandates/foreman.md
++++ b/mandates/foreman.md
+@@ -25,7 +25,7 @@ Rule on every unit the ledger marks ambiguous, and on every dispute, before anyo
+ 
+ On `CANDIDATE`, send `VERIFY` with the hash to verifier and second-reader, and to product-user if the product has a human interface. Merge blocking findings into one `FIX` for the builder, verbatim with their reproductions, never with test sources. You cannot overrule a BLOCK by preference: only a ruling that cites the specification can resolve a dispute, and the verifier then re-issues its verdict.
+ 
+-Count rounds per stage. If one finding returns twice, tell the builder to change approach. On a seventh BLOCK, record `BLOCKED` and stop opening stages. Accepted stages stand.
++Count rounds per stage. If one finding returns twice, tell the builder to change approach. On a fifth BLOCK, record `BLOCKED` and stop opening stages. Accepted stages stand.
+ 
+ Run the check command yourself on a clean clone of the hash, then accept only when `accept-check <n> <hash> --ui|--no-ui --report <its report.json>` exits 0. Then commit `accepted/stage-<n>.txt`, send `ACCEPTED`, and open the next stage. When the last stage closes, say so in `ACCEPTED`; the verifier commits its suites and the second-reader its probes. Send the final report after both commits, or after one resend to a seat that stays silent.
+ 

@@ -1,0 +1,16 @@
+--- a/tablekeeper/seating.py
++++ b/tablekeeper/seating.py
+@@ -44,10 +44,9 @@
+         raise not_found("No such table at this restaurant")
+     if len(selection) == 1:
+         return selection
+-    for pair in restaurant.combinable:
+-        if set(pair) == set(selection):
+-            return pair
+-    raise _not_allowed("The restaurant does not combine those tables")
++    if not any(set(pair) == set(selection) for pair in restaurant.combinable):
++        raise _not_allowed("The restaurant does not combine those tables")
++    return selection
+ 
+ 
+ def read_declared_pairs(raw: dict, tables: dict[str, Table]) -> tuple[tuple[str, str], ...]:

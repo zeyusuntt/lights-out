@@ -1,0 +1,37 @@
+#!/usr/bin/env python3
+"""Operator tool: every relative link in a package's README.md and FACTORY.md must open something in the package.
+
+    check-links <package dir>
+
+Checks markdown links, image sources and #anchors against the files and headings that exist, and that no
+`<!-- RUN: ... -->` template marker is left. Exits 1 on any miss.
+"""
+import sys as _sys
+if _sys.argv[1:2] in (["-h"], ["--help"]):
+    print(__doc__ or "see the comment at the top of this file"); raise SystemExit(0)
+import pathlib, re, sys
+root = pathlib.Path(sys.argv[1]).resolve()
+slug = lambda h: re.sub(r"[^\w\- ]", "", h.strip().lower()).replace(" ", "-")
+misses = 0
+for doc in ("README.md", "FACTORY.md"):
+    path = root / doc
+    if not path.exists():
+        print(f"{doc}: missing"); misses += 1; continue
+    text = path.read_text()
+    for left in sorted(set(re.findall(r"<!-- RUN[^>]*", text)))[:3]:
+        print(f"{doc}: unfilled template marker: {left[:70]}"); misses += 1
+    text_no_code = re.sub(r"```.*?```", "", text, flags=re.S)
+    targets = re.findall(r"\]\(([^)\s]+)\)", text_no_code) + re.findall(r'<img[^>]+src="([^"]+)"', text_no_code)
+    for t in targets:
+        if re.match(r"[a-z]+:", t):
+            continue
+        file, _, anchor = t.partition("#")
+        target = (path.parent / file).resolve() if file else path
+        if not target.exists() or root not in target.parents and target != root:
+            print(f"{doc}: {t} -> not found"); misses += 1; continue
+        if anchor and target.suffix == ".md":
+            heads = {slug(h) for h in re.findall(r"^#+\s+(.*)$", target.read_text(), flags=re.M)}
+            if anchor not in heads:
+                print(f"{doc}: {t} -> no heading #{anchor}"); misses += 1
+    print(f"{doc}: {len(targets)} links checked")
+sys.exit(1 if misses else 0)

@@ -1,0 +1,12 @@
+diff --git a/pocketful/refunds.py b/pocketful/refunds.py
+--- a/pocketful/refunds.py
++++ b/pocketful/refunds.py
+@@ -14,7 +14,7 @@
+     if target["refund_of"] is not None:
+         raise ApiError(422, "invalid_refund_target", "A refund cannot be refunded.")
+     amount = fields.amount(body)
+-    corrected = store.revisions[target["payment_id"]][-1]["amount"]
++    corrected = target["amount"]
+     if store.refunded[target["payment_id"]] + amount > corrected:
+         raise ApiError(422, "refund_exceeds_payment", "This is more than is left to refund.")
+     return store.transfer(

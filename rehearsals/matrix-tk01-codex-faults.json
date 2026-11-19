@@ -1,0 +1,257 @@
+{
+ "valid": {
+  "shipped": true,
+  "sealed": true,
+  "probes": false,
+  "independent": true
+ },
+ "results": {
+  "__baseline__": {
+   "shipped": {
+    "failed": 0,
+    "total": 158,
+    "state": "completed"
+   },
+   "sealed": {
+    "failed": false,
+    "tail": "..................... [ 95%]\n........................................................                 [100%]\n1352 passed in 394.15s (0:06:34)\nCOUNTS total=1352 passed=1352 failed=0 errors=0 skipped=0\n"
+   },
+   "probes": {
+    "failed": true,
+    "tail": ""
+   },
+   "independent": {
+    "failed": false,
+    "tail": "88%]\n.......................................                                  [100%]\n327 passed, 1 deselected in 57.07s\n"
+   }
+  },
+  "01-replan-base-capacities": {
+   "shipped": {
+    "failed": 0,
+    "total": 158,
+    "state": "completed"
+   },
+   "sealed": {
+    "failed": true,
+    "tail": " tail)\nINFO:     Started server process [1]\nINFO:     Waiting for application startup.\nINFO:     Application startup complete.\nINFO:     Uvicorn running on http://0.0.0.0:19736 (Press CTRL+C to quit)\n"
+   },
+   "probes": {
+    "failed": true,
+    "tail": ""
+   },
+   "independent": {
+    "failed": false,
+    "tail": "88%]\n.......................................                                  [100%]\n327 passed, 1 deselected in 56.83s\n"
+   }
+  },
+  "02-replan-equal-score": {
+   "shipped": {
+    "failed": 0,
+    "total": 158,
+    "state": "completed"
+   },
+   "sealed": {
+    "failed": true,
+    "tail": " tail)\nINFO:     Started server process [1]\nINFO:     Waiting for application startup.\nINFO:     Application startup complete.\nINFO:     Uvicorn running on http://0.0.0.0:19274 (Press CTRL+C to quit)\n"
+   },
+   "probes": {
+    "failed": true,
+    "tail": ""
+   },
+   "independent": {
+    "failed": true,
+    "tail": "ner_exact_global_objective_all_assignments_and_preview_read_only[lex_late]\n3 failed, 324 passed, 1 deselected in 56.99s\n"
+   }
+  },
+  "03-repair-series-overcount": {
+   "shipped": {
+    "failed": 0,
+    "total": 158,
+    "state": "completed"
+   },
+   "sealed": {
+    "failed": true,
+    "tail": " tail)\nINFO:     Started server process [1]\nINFO:     Waiting for application startup.\nINFO:     Application startup complete.\nINFO:     Uvicorn running on http://0.0.0.0:19490 (Press CTRL+C to quit)\n"
+   },
+   "probes": {
+    "failed": true,
+    "tail": ""
+   },
+   "independent": {
+    "failed": true,
+    "tail": "_seating_repair_invalidates_old_series_revision_without_marking_exceptions\n2 failed, 325 passed, 1 deselected in 56.95s\n"
+   }
+  },
+  "04-series-amend-exceptions": {
+   "shipped": {
+    "failed": 0,
+    "total": 158,
+    "state": "completed"
+   },
+   "sealed": {
+    "failed": true,
+    "tail": " tail)\nINFO:     Started server process [1]\nINFO:     Waiting for application startup.\nINFO:     Application startup complete.\nINFO:     Uvicorn running on http://0.0.0.0:19836 (Press CTRL+C to quit)\n"
+   },
+   "probes": {
+    "failed": true,
+    "tail": ""
+   },
+   "independent": {
+    "failed": true,
+    "tail": "test_seating_repair_preserves_series_flags_dates_terms_and_increments_once\n4 failed, 323 passed, 1 deselected in 56.72s\n"
+   }
+  },
+  "05-series-noop-cutoff": {
+   "shipped": {
+    "failed": 0,
+    "total": 158,
+    "state": "completed"
+   },
+   "sealed": {
+    "failed": true,
+    "tail": " tail)\nINFO:     Started server process [1]\nINFO:     Waiting for application startup.\nINFO:     Application startup complete.\nINFO:     Uvicorn running on http://0.0.0.0:19137 (Press CTRL+C to quit)\n"
+   },
+   "probes": {
+    "failed": true,
+    "tail": ""
+   },
+   "independent": {
+    "failed": false,
+    "tail": "88%]\n.......................................                                  [100%]\n327 passed, 1 deselected in 56.77s\n"
+   }
+  },
+  "06-series-stale-precedence": {
+   "shipped": {
+    "failed": 0,
+    "total": 158,
+    "state": "completed"
+   },
+   "sealed": {
+    "failed": true,
+    "tail": " tail)\nINFO:     Started server process [1]\nINFO:     Waiting for application startup.\nINFO:     Application startup complete.\nINFO:     Uvicorn running on http://0.0.0.0:19525 (Press CTRL+C to quit)\n"
+   },
+   "probes": {
+    "failed": true,
+    "tail": ""
+   },
+   "independent": {
+    "failed": true,
+    "tail": "_series_stale_revision_precedes_cutoff_and_old_accepted_cutoff_is_enforced\n1 failed, 326 passed, 1 deselected in 55.00s\n"
+   }
+  },
+  "07-policy-same-date-tie": {
+   "shipped": {
+    "failed": 0,
+    "total": 158,
+    "state": "completed"
+   },
+   "sealed": {
+    "failed": true,
+    "tail": " tail)\nINFO:     Started server process [1]\nINFO:     Waiting for application startup.\nINFO:     Application startup complete.\nINFO:     Uvicorn running on http://0.0.0.0:19828 (Press CTRL+C to quit)\n"
+   },
+   "probes": {
+    "failed": true,
+    "tail": ""
+   },
+   "independent": {
+    "failed": true,
+    "tail": "st_policy_selection_effective_order_same_date_snapshot_and_original_detail\n3 failed, 324 passed, 1 deselected in 54.58s\n"
+   }
+  },
+  "08-pair-to-single-history": {
+   "shipped": {
+    "failed": 0,
+    "total": 158,
+    "state": "completed"
+   },
+   "sealed": {
+    "failed": true,
+    "tail": " tail)\nINFO:     Started server process [1]\nINFO:     Waiting for application startup.\nINFO:     Application startup complete.\nINFO:     Uvicorn running on http://0.0.0.0:19205 (Press CTRL+C to quit)\n"
+   },
+   "probes": {
+    "failed": true,
+    "tail": ""
+   },
+   "independent": {
+    "failed": true,
+    "tail": "mbinations.py::test_pair_canonicalization_history_cancel_and_seeded_status\n1 failed, 326 passed, 1 deselected in 54.56s\n"
+   }
+  },
+  "09-pair-availability-member": {
+   "shipped": {
+    "failed": 0,
+    "total": 158,
+    "state": "completed"
+   },
+   "sealed": {
+    "failed": true,
+    "tail": " tail)\nINFO:     Started server process [1]\nINFO:     Waiting for application startup.\nINFO:     Application startup complete.\nINFO:     Uvicorn running on http://0.0.0.0:19398 (Press CTRL+C to quit)\n"
+   },
+   "probes": {
+    "failed": true,
+    "tail": ""
+   },
+   "independent": {
+    "failed": false,
+    "tail": "88%]\n.......................................                                  [100%]\n327 passed, 1 deselected in 54.67s\n"
+   }
+  },
+  "10-idempotency-key-order": {
+   "shipped": {
+    "failed": 0,
+    "total": 158,
+    "state": "completed"
+   },
+   "sealed": {
+    "failed": true,
+    "tail": " tail)\nINFO:     Started server process [1]\nINFO:     Waiting for application startup.\nINFO:     Application startup complete.\nINFO:     Uvicorn running on http://0.0.0.0:19403 (Press CTRL+C to quit)\n"
+   },
+   "probes": {
+    "failed": true,
+    "tail": ""
+   },
+   "independent": {
+    "failed": true,
+    "tail": "es_json_equivalence_and_reuse_before_validation_on_every_write[255-amend]\n11 failed, 316 passed, 1 deselected in 54.67s\n"
+   }
+  },
+  "11-dst-second-occurrence": {
+   "shipped": {
+    "failed": 1,
+    "total": 158,
+    "state": "completed"
+   },
+   "sealed": {
+    "failed": true,
+    "tail": " tail)\nINFO:     Started server process [1]\nINFO:     Waiting for application startup.\nINFO:     Application startup complete.\nINFO:     Uvicorn running on http://0.0.0.0:19784 (Press CTRL+C to quit)\n"
+   },
+   "probes": {
+    "failed": true,
+    "tail": ""
+   },
+   "independent": {
+    "failed": true,
+    "tail": "y_dst_slot_uses_real_duration_and_iana_offset[America/New_York-2026-11-01]\n8 failed, 319 passed, 1 deselected in 54.71s\n"
+   }
+  },
+  "12-cutoff-equality": {
+   "shipped": {
+    "failed": 0,
+    "total": 158,
+    "state": "completed"
+   },
+   "sealed": {
+    "failed": false,
+    "tail": "..................... [ 95%]\n........................................................                 [100%]\n1352 passed in 384.87s (0:06:24)\nCOUNTS total=1352 passed=1352 failed=0 errors=0 skipped=0\n"
+   },
+   "probes": {
+    "failed": true,
+    "tail": ""
+   },
+   "independent": {
+    "failed": false,
+    "tail": "88%]\n.......................................                                  [100%]\n327 passed, 1 deselected in 54.60s\n"
+   }
+  }
+ }
+}

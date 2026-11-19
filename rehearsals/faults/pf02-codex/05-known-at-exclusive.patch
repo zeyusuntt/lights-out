@@ -1,0 +1,12 @@
+diff --git a/pocketful/history.py b/pocketful/history.py
+--- a/pocketful/history.py
++++ b/pocketful/history.py
+@@ -23,7 +23,7 @@
+ 
+ def selected_revision(payment: Payment, known) -> dict | None:
+     for revision in reversed(payment.revisions):
+-        if instant(revision["recorded_at"]) <= known:
++        if instant(revision["recorded_at"]) < known:
+             return revision
+     return None
+ 

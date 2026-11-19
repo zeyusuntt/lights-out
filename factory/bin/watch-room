@@ -1,0 +1,28 @@
+#!/usr/bin/env python3
+"""Operator tool: stream one line per new text or error message in the run's room."""
+import sys as _sys
+if _sys.argv[1:2] in (["-h"], ["--help"]):
+    print(__doc__ or "see the comment at the top of this file"); raise SystemExit(0)
+import json, pathlib, re, subprocess, sys, time
+HOME = pathlib.Path(__file__).resolve().parents[2]
+env = dict(l.split("=", 1) for l in (HOME / "work/run.env").read_text().splitlines() if "=" in l)
+room = env["ROOM"]; seen = set(); first = True
+names = {}
+while True:
+    try:
+        out = subprocess.run(["band", "room", "messages", room, "--json"], capture_output=True, text=True, timeout=60)
+        page = json.loads(out.stdout)
+    except Exception:
+        time.sleep(30); continue
+    for m in sorted(page["messages"], key=lambda m: m["inserted_at"]):
+        if m["id"] in seen:
+            continue
+        seen.add(m["id"])
+        names[m["sender_id"]] = m["sender_name"]
+        if m["message_type"] not in ("text", "error") or (first and "--all" not in sys.argv):
+            continue
+        body = re.sub(r"@\[\[([0-9a-f-]+)\]\]", lambda g: "@" + names.get(g.group(1), g.group(1)[:6]), m["content"])
+        body = " ".join(body.split())
+        print(f"{m['inserted_at'][11:19]} {m['sender_name']}{' ERROR' if m['message_type']=='error' else ''}: {body[:260]}", flush=True)
+    first = False
+    time.sleep(30)

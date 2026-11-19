@@ -1,0 +1,72 @@
+#!/usr/bin/env python3
+"""Operator process with a seat identity: rings the foreman if the room goes silent. No model, no decisions.
+
+    timekeeper [--silence-minutes 35]
+
+The threshold is longer than any foreground command a seat may run. Doubles after each TICK, at most six, stops
+once the final report is posted. Honours work/state/paused. Logs to work/state/timekeeper.log.
+"""
+import sys as _sys
+if _sys.argv[1:2] in (["-h"], ["--help"]):
+    print(__doc__ or "see the comment at the top of this file"); raise SystemExit(0)
+import re, datetime, json, pathlib, subprocess, sys, time
+M = 60
+CAP = 6
+
+
+def is_final_report(m):
+    """The foreman's text whose first words, after any mentions, are FINAL REPORT."""
+    if m.get("message_type") != "text" or m.get("sender_name") != "foreman":
+        return False
+    body = re.sub(r"@\[\[[^\]]+\]\]|@[\w./-]+", "", str(m.get("content") or ""))
+    return re.sub(r"^[\s#*_>]+", "", body).startswith("FINAL REPORT")   # a markdown heading or bold is still the report
+
+
+def due(silent_for, threshold, ticks, since_tick):
+    """Whether to ring now. Each later TICK waits twice as long, measured from the last one."""
+    if ticks >= CAP or silent_for < threshold:
+        return False
+    return ticks == 0 or since_tick >= threshold * (2 ** ticks)
+
+
+def main():
+    HOME = pathlib.Path(__file__).resolve().parents[2]
+    WORK = HOME / "work"
+    args = sys.argv[1:]
+    threshold = int(args[args.index("--silence-minutes") + 1]) * M if "--silence-minutes" in args else 35 * M
+    env = dict(l.split("=", 1) for l in (WORK / "run.env").read_text().splitlines() if "=" in l)
+    room, owner = env["ROOM"], env["OWNER"]
+    log = WORK / "state" / "timekeeper.log"
+    ticks, last_tick = 0, 0.0
+
+    def note(text):
+        with log.open("a") as out:
+            out.write(f"{datetime.datetime.now(datetime.timezone.utc).isoformat(timespec='seconds')} {text}\n")
+
+    note(f"started room={room} threshold={threshold // M}m")
+    while True:
+        try:
+            if not (WORK / "state" / "paused").exists():
+                page = json.loads(subprocess.run(["band", "room", "messages", room, "--json"], capture_output=True, text=True, timeout=60).stdout)
+                msgs = page["messages"]
+                if any(is_final_report(m) for m in msgs):
+                    note("final report seen, stopping")
+                    (WORK / "state" / "final-seen").write_text("FINAL REPORT\n")
+                    return
+                newest = max((m["inserted_at"] for m in msgs if m["sender_name"] != "timekeeper"), default=None)
+                if newest:
+                    when = datetime.datetime.fromisoformat(newest.replace("Z", "+00:00")).timestamp()
+                    now = time.time()
+                    if due(now - when, threshold, ticks, now - last_tick):
+                        body = f"@{owner}/foreman TICK: no seat has shown any activity for {(now - when) / M:.0f} minutes."
+                        out = subprocess.run(["band", "--session", "df-timekeeper", "send", room, body], capture_output=True, text=True, timeout=60)
+                        ticks += 1
+                        last_tick = now
+                        note(f"tick {ticks}: silent {(now - when) / M:.0f}m rc={out.returncode} {out.stderr.strip()[:160]}")
+        except Exception as exc:
+            note(f"error: {exc!r}")
+        time.sleep(60)
+
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,114 @@
+{
+  "revision": "3cf3cef0862c212f6f572712876ad700e9e0e381",
+  "track": "dossier",
+  "stages": {
+    "1": "pass",
+    "2": "pass"
+  },
+  "highest_contiguous": 2,
+  "started_at": "2026-11-18T18:17:28.242890+00:00",
+  "finished_at": "2026-11-18T18:18:11.846955+00:00",
+  "schema_version": 2,
+  "run_id": "f2ef2954ccef4a3a91cf06d0db1fb8a9",
+  "mode": "isolated",
+  "provenance": "working-tree",
+  "state": "completed",
+  "pytest_args": [],
+  "suite_digest": "107db0a6c315f678183d8824c992e47b6e215266801e1ee854291061aec16832",
+  "suite_digests": {
+    "1": "df1eb07cee2eadbe87cc314e6ad0770012e62be7821b2fea4ce2e06d591d83f9",
+    "2": "b03edeab309ee7c3e135c74da0f3927f134b00bba060fd4faf75375a0d7ef4b8"
+  },
+  "checks": {
+    "1": {
+      "collected": 122,
+      "passed": 122,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0,
+      "deselected": 0,
+      "xfailed": 0,
+      "leaks": 0,
+      "fabrications": 0,
+      "economy": null,
+      "files": {
+        "stage_1/test_auth.py": {
+          "passed": 51,
+          "total": 51
+        },
+        "stage_1/test_dossiers.py": {
+          "passed": 60,
+          "total": 60
+        },
+        "stage_1/test_sample.py": {
+          "passed": 11,
+          "total": 11
+        }
+      }
+    },
+    "2": {
+      "collected": 12,
+      "passed": 12,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0,
+      "deselected": 0,
+      "xfailed": 0,
+      "leaks": 0,
+      "fabrications": 0,
+      "economy": null,
+      "files": {
+        "stage_2/test_sample.py": {
+          "passed": 12,
+          "total": 12
+        }
+      }
+    }
+  },
+  "implementation_stage": "2",
+  "overshoot": null,
+  "claimed_stage": "2",
+  "share": 1.0,
+  "upgrade_sources": {
+    "2": {
+      "folder": "/Users/[REDACTED]/dev/band-factory/work/second-reader/clones/stage-2-3cf3cef0862c/stage-1",
+      "revision": "3cf3cef0862c212f6f572712876ad700e9e0e381"
+    },
+    "3": {
+      "folder": "/Users/[REDACTED]/dev/band-factory/work/second-reader/clones/stage-2-3cf3cef0862c/stage-2",
+      "revision": "3cf3cef0862c212f6f572712876ad700e9e0e381"
+    }
+  },
+  "web": {
+    "1": {
+      "fabrications": 0,
+      "economy": null
+    },
+    "2": {
+      "fabrications": 0,
+      "economy": null
+    }
+  },
+  "probe": {
+    "suite": "3",
+    "status": "fail",
+    "checks": {
+      "collected": 9,
+      "passed": 0,
+      "failed": 1,
+      "errors": 0,
+      "skipped": 0,
+      "deselected": 0,
+      "xfailed": 0,
+      "leaks": 0,
+      "fabrications": 0,
+      "economy": null,
+      "files": {
+        "stage_3/test_sample.py": {
+          "passed": 0,
+          "total": 9
+        }
+      }
+    }
+  }
+}

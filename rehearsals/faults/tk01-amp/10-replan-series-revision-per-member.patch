@@ -1,0 +1,21 @@
+--- a/tablekeeper/replans.py
++++ b/tablekeeper/replans.py
+@@ -129,7 +129,6 @@
+             )
+         )
+     store.relocate(placements)
+-    touched_series = set()
+     for reservation, placement in placements:
+         reservation.revision += 1
+         change = history.seating_list_change(
+@@ -137,9 +136,7 @@
+         )
+         history.record(reservation, history.REASSIGNED, [change], plan_id=plan.id)
+         if reservation.series_id is not None:
+-            touched_series.add(reservation.series_id)
+-    for series_id in touched_series:
+-        store.series[series_id].revision += 1
++            store.series[reservation.series_id].revision += 1
+ 
+ 
+ def apply(store: Store, user: User, restaurant_id: str, plan_id: str) -> dict:

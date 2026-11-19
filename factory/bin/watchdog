@@ -1,0 +1,114 @@
+#!/usr/bin/env python3
+"""Operator process for a dark run. Never writes to the room or the repository.
+
+    watchdog [--interval 60]
+
+A seat with a queued message is restarted only if its runtime is gone, or if it has produced no room event of
+any kind for 45 minutes (longer than the longest foreground command allowed). Band redelivers the unsettled
+message. After a restart that seat is left alone for 45 minutes, and each seat gets at most six restarts.
+A restart kills the seat's turn, so it is a last resort. Honours work/state/paused; stops once the timekeeper has written work/state/final-seen.
+Every action goes to work/state/watchdog.log with a UTC timestamp, for disclosure.
+"""
+import sys as _sys
+if _sys.argv[1:2] in (["-h"], ["--help"]):
+    print(__doc__ or "see the comment at the top of this file"); raise SystemExit(0)
+import datetime, json, pathlib, subprocess, sys, time
+
+M = 60
+STALL = 45 * M
+COOLDOWN = 45 * M
+GRACE = 3 * M
+CAP = 6
+
+
+def decide(queued, has_process, last_event_age, since_restart, restarts, gone_for):
+    """Pure decision: None, or the reason to restart. Ages are seconds; since_restart is None if never."""
+    if not queued or restarts >= CAP:
+        return None
+    if since_restart is not None and since_restart < COOLDOWN:
+        return None
+    if not has_process:
+        return "no-process" if gone_for > GRACE else None
+    return "stalled" if last_event_age > STALL else None
+
+
+class GoneTracker:
+    """How long a seat has had a message waiting and no runtime. Idle time with nothing queued doesn't count."""
+
+    def __init__(self, now=time.time):
+        self.now, self.since = now, None
+
+    def gone_for(self, queued, has_process):
+        if has_process or not queued:
+            self.since = None
+            return 0
+        if self.since is None:
+            self.since = self.now()
+        return self.now() - self.since
+
+
+def main():
+    HOME = pathlib.Path(__file__).resolve().parents[2]
+    WORK = HOME / "work"
+    SEATS = ["foreman", "builder", "verifier", "second-reader", "product-user"]
+    args = sys.argv[1:]
+    interval = int(args[args.index("--interval") + 1]) if "--interval" in args else 60
+    env = dict(l.split("=", 1) for l in (WORK / "run.env").read_text().splitlines() if "=" in l)
+    room = env["ROOM"]
+    log = WORK / "state" / "watchdog.log"
+    started = time.time()
+    restarted_at, restarts = {}, {}
+    trackers = {seat: GoneTracker() for seat in SEATS}
+
+    def note(text):
+        with log.open("a") as out:
+            out.write(f"{datetime.datetime.now(datetime.timezone.utc).isoformat(timespec='seconds')} {text}\n")
+
+    def sh(*cmd):
+        return subprocess.run(cmd, capture_output=True, text=True, timeout=60)
+
+    def last_events():
+        """Newest event per seat, from the room's newest pages."""
+        seen, cursor = {}, None
+        for _ in range(6):
+            page = json.loads(sh("band", "room", "messages", room, "--json", *(["--cursor", cursor] if cursor else [])).stdout)
+            for m in page["messages"]:
+                when = datetime.datetime.fromisoformat(m["inserted_at"].replace("Z", "+00:00")).timestamp()
+                seen[m["sender_name"]] = max(seen.get(m["sender_name"], 0), when)
+            cursor = page.get("next_cursor")
+            if not page.get("has_more") or not cursor or all(s in seen for s in SEATS):
+                break
+        return seen
+
+    note(f"started room={room} interval={interval} stall={STALL // M}m cooldown={COOLDOWN // M}m cap={CAP}")
+    while True:
+        if (WORK / "state" / "final-seen").exists():
+            note("final report seen, stopping")
+            return
+        try:
+            if not (WORK / "state" / "paused").exists():
+                events = last_events()
+                now = time.time()
+                for seat in SEATS:
+                    d = json.loads(sh("band", "--session", f"df-{seat}", "status", "--json").stdout)
+                    session = next((s for s in d["peer"]["host_sessions"] if s.get("room") == room), None)
+                    if not session:
+                        continue
+                    queued = room in sh("band", "--session", f"df-{seat}", "inbox").stdout
+                    has_process = session.get("host_pid") not in (0, None)
+                    gone_for = trackers[seat].gone_for(queued, has_process)
+                    age = now - events.get(seat, started)
+                    since = now - restarted_at[seat] if seat in restarted_at else None
+                    why = decide(queued, has_process, age, since, restarts.get(seat, 0), gone_for)
+                    if why:
+                        out = sh("band", "--session", f"df-{seat}", "restart", "--host-session", f"default-{room}")
+                        restarted_at[seat] = now
+                        restarts[seat] = restarts.get(seat, 0) + 1
+                        note(f"restart {seat} #{restarts[seat]}: {why}, last event {age / M:.0f}m ago: rc={out.returncode}")
+        except Exception as exc:
+            note(f"error: {exc!r}")
+        time.sleep(interval)
+
+
+if __name__ == "__main__":
+    main()

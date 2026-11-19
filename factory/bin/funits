@@ -1,0 +1,83 @@
+#!/usr/bin/env python3
+"""Number every sentence, list item, table row and code block of a specification.
+
+    funits <spec.md> <stage>
+
+Writes ledger/stage-<stage>.units.tsv in the result repository and prints the count.
+Add --stdout to print the table instead of writing it.
+"""
+import pathlib, re, sys
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1] / "lib"))
+import fenv
+
+SENTENCE = re.compile(r"(?<=[.!?:])\s+(?=[A-Z`\"(*\[])")
+ABBREV = re.compile(r"(?:\be\.g\.|\bi\.e\.|\betc\.|\bvs\.)$")
+
+
+def sentences(text):
+    out, carry = [], ""
+    for piece in SENTENCE.split(text):
+        piece = (carry + " " + piece).strip() if carry else piece.strip()
+        if ABBREV.search(piece):
+            carry = piece
+            continue
+        carry = ""
+        if piece:
+            out.append(piece)
+    if carry:
+        out.append(carry)
+    return out
+
+
+def parse(markdown):
+    lines, i, units = markdown.splitlines(), 0, []
+    while i < len(lines):
+        line = lines[i]
+        stripped = line.strip()
+        if not stripped:
+            i += 1
+        elif stripped.startswith("```"):
+            block = [stripped]; i += 1
+            while i < len(lines) and not lines[i].strip().startswith("```"):
+                block.append(lines[i].rstrip()); i += 1
+            i += 1
+            units.append(" / ".join(b for b in block if b.strip()))
+        elif stripped.startswith("#"):
+            units.append(stripped); i += 1
+        elif stripped.startswith("|"):
+            rows = []
+            while i < len(lines) and lines[i].strip().startswith("|"):
+                rows.append(lines[i].strip()); i += 1
+            header = rows[0]
+            for row in rows[1:]:
+                if not re.fullmatch(r"[|:\-\s]+", row):
+                    units.append(f"{row}  [columns: {header}]")
+        elif re.match(r"^\s*([-*+]|\d+[.)])\s+", line):
+            item = [re.sub(r"^\s*([-*+]|\d+[.)])\s+", "", line).strip()]; i += 1
+            while i < len(lines) and lines[i].strip() and not re.match(r"^\s*([-*+]|\d+[.)])\s+", lines[i]) \
+                    and not lines[i].strip().startswith(("#", "|", "```")):
+                item.append(lines[i].strip()); i += 1
+            units.extend(sentences(" ".join(item)))
+        else:
+            para = [stripped]; i += 1
+            while i < len(lines) and lines[i].strip() and not lines[i].strip().startswith(("#", "|", "```")) \
+                    and not re.match(r"^\s*([-*+]|\d+[.)])\s+", lines[i]):
+                para.append(lines[i].strip()); i += 1
+            units.extend(sentences(" ".join(para)))
+    return units
+
+
+if __name__ == "__main__":
+    args = [a for a in sys.argv[1:] if a != "--stdout"]
+    if len(args) != 2 or args[0] in ("-h", "--help"):
+        print(__doc__); raise SystemExit(0)
+    spec, stage = pathlib.Path(args[0]), args[1]
+    rows = [f"S{stage}-{n:03d}\t{text}" for n, text in enumerate(parse(spec.read_text()), 1)]
+    table = "\n".join(rows) + "\n"
+    if "--stdout" in sys.argv:
+        sys.stdout.write(table)
+    else:
+        out = fenv.result() / "ledger" / f"stage-{stage}.units.tsv"
+        out.parent.mkdir(parents=True, exist_ok=True)
+        out.write_text(table)
+        print(f"{len(rows)} units written to {out}")

@@ -1,0 +1,12 @@
+diff --git a/pocketful/splits.py b/pocketful/splits.py
+--- a/pocketful/splits.py
++++ b/pocketful/splits.py
+@@ -29,7 +29,7 @@
+     requests = [
+         dict(store.record_request(user, participant, share, note, created_at))
+         for participant, share in zip(participants, shares)
+-        if participant is not user
++        if participant is not user and share > 0
+     ]
+     return {
+         "split_id": store.new_id("sp_"),

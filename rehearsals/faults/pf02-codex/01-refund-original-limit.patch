@@ -1,0 +1,12 @@
+diff --git a/pocketful/refunds.py b/pocketful/refunds.py
+--- a/pocketful/refunds.py
++++ b/pocketful/refunds.py
+@@ -15,7 +15,7 @@
+         raise forbidden("only the payment's receiver may refund it")
+     if target.refund_of is not None:
+         raise ApiError(422, "invalid_refund_target", "a refund cannot itself be refunded")
+-    if state.refunded(target.id) + amount > target.latest["amount"]:
++    if state.refunded(target.id) + amount > target.amount:
+         raise ApiError(422, "refund_exceeds_payment", "refunds would exceed the payment's amount")
+     ledger.apply(state, [(target.to_user_id, target.from_user_id, amount)])
+     refund = ledger.record(state, target.to_user_id, target.from_user_id, amount, target.note,

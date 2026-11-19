@@ -1,0 +1,135 @@
+#!/usr/bin/env python3
+"""Operator tool: plant faults, one per copy, and record which body of evidence catches each.
+
+    fault-audit <run-dir> <stage> <accepted-hash> <faults-dir> [--track <t>] [--no-probes] [--suite <dir with tests/>] [--suite-k <pytest -k expression>] [--only-suite] [--only-probes]
+
+Each faults-dir/<id>.patch applies to the stage folder (paths relative to it). For each fault: build the
+patched copy; run the kit's full shipped checks, the sealed suite's run.sh and the reader's probes' run.sh.
+Writes <run-dir>/fault-audit-s<stage>/matrix.json and prints a table. "caught" means a suite that passes on
+the unpatched folder fails on the patched copy.
+"""
+import sys as _sys
+if _sys.argv[1:2] in (["-h"], ["--help"]):
+    print(__doc__ or "see the comment at the top of this file"); raise SystemExit(0)
+import json, os, pathlib, shutil, socket, subprocess, sys, time, uuid
+HOME = pathlib.Path(__file__).resolve().parents[2]
+KIT = HOME / "vendor/dark-factory-wearedevs"
+PY = str(KIT / ".venv/bin/python")
+args = sys.argv[1:]
+if len(args) < 4:
+    print(__doc__); raise SystemExit(0)
+run, stage, rev, faults = pathlib.Path(args[0]).resolve(), args[1], args[2], pathlib.Path(args[3]).resolve()
+env = dict(l.split("=", 1) for l in (run / "run.env").read_text().splitlines() if "=" in l)
+KIT = pathlib.Path(env.get("KIT_SOURCE", KIT)); PY = str(KIT / ".venv/bin/python")   # the run's untouched kit
+CPUS, MEMORY = env.get("SERVICE_CPUS", "2"), env.get("SERVICE_MEMORY", "2g")
+track = args[args.index("--track") + 1] if "--track" in args else env["TRACK"]
+out = run / (f"fault-audit-s{stage}" + (f"-{pathlib.Path(args[args.index('--suite') + 1]).name}" if "--only-suite" in args else "-probes" if "--only-probes" in args else "")); out.mkdir(exist_ok=True)
+clone = out / "clone"
+if not clone.exists():
+    subprocess.run(["git", "clone", "-q", str(run / "result"), str(clone)], check=True)
+    subprocess.run(["git", "checkout", "-q", "--detach", rev], cwd=clone, check=True)
+sealed = run / "verifier" / "sealed" / f"stage-{stage}"
+probes = run / "second-reader" / "probes" / f"stage-{stage}"
+
+
+def free_port():
+    with socket.socket() as sock:
+        sock.bind(("127.0.0.1", 0))
+        return sock.getsockname()[1]
+
+
+def shipped(folder, tag):
+    if "--only-suite" in args or "--only-probes" in args:
+        return {"failed": None, "total": 0, "state": "skipped"}
+    stages = [str(n) for n in range(1, int(stage) + 1)]
+    o = out / f"shipped-{tag}-{uuid.uuid4().hex[:6]}"
+    prev = clone / f"stage-{int(stage) - 1}"
+    cmd = [PY, "-m", "harness", "run", "--track", track, "--build", str(folder), "--stages", *stages, "--mode", "isolated", "--out", str(o)]
+    if int(stage) > 1 and prev.exists():
+        cmd += ["--previous-build", str(prev)]
+    subprocess.run(cmd, cwd=KIT, capture_output=True, text=True, timeout=1800)
+    try:
+        report = json.loads((o / "report.json").read_text())
+    except (OSError, ValueError):
+        return {"failed": None, "total": 0, "state": "no-report"}
+    if report.get("state") != "completed":
+        return {"failed": None, "total": 0, "state": report.get("state")}
+    checks = report.get("checks") or {}
+    failed = sum((c.get("failed") or 0) + (c.get("errors") or 0) for c in checks.values())
+    total = sum(c.get("collected") or 0 for c in checks.values())
+    return {"failed": failed, "total": total, "state": report.get("state")}
+
+
+def sealed_suite(folder):
+    if "--only-suite" in args or "--only-probes" in args or not (sealed / "run.sh").exists():
+        return {"failed": None}
+    # The suite starts real earlier stages from sibling folders, which a patched copy doesn't have.
+    env = dict(os.environ, **{f"STAGE{n}_DIR": str(clone / f"stage-{n}") for n in range(1, int(stage))})
+    p = subprocess.run(["bash", str(sealed / "run.sh"), str(folder)], cwd=sealed, capture_output=True, text=True, timeout=3000, env=env)
+    return {"failed": p.returncode != 0, "tail": p.stdout[-200:]}
+
+
+def independent(folder):
+    """A suite written outside the room, from the specifications alone, reading SUT_URL."""
+    if "--suite" not in args:
+        return {"failed": None}
+    suite = pathlib.Path(args[args.index("--suite") + 1]).resolve()
+    name = f"operator-{uuid.uuid4().hex[:8]}"; port = free_port()
+    subprocess.run(["docker", "build", "-q", "-t", name, str(folder)], capture_output=True, text=True, timeout=1200)
+    subprocess.run(["docker", "run", "-d", "--name", name, "--cpus", CPUS, "--memory", MEMORY, "-p", f"127.0.0.1:{port}:8080", name], capture_output=True, text=True)
+    time.sleep(4)
+    try:
+        k = ["-k", args[args.index("--suite-k") + 1]] if "--suite-k" in args else []
+        p = subprocess.run([PY, "-I", "-m", "pytest", "tests", "-q", "--tb=no", "-p", "no:cacheprovider", *k], cwd=suite, capture_output=True, text=True, timeout=1500,
+                           env=dict(os.environ, SUT_URL=f"http://127.0.0.1:{port}"))
+        return {"failed": p.returncode != 0, "tail": p.stdout[-120:]}
+    finally:
+        subprocess.run(["docker", "rm", "-f", name], capture_output=True)
+        subprocess.run(["docker", "rmi", "-f", name], capture_output=True)
+
+
+def reader_probes(folder):
+    """The second-reader's probes: run.sh <stage-folder> builds and runs that folder itself."""
+    if "--no-probes" in args or not (probes / "run.sh").exists():
+        return {"failed": None}
+    # The seat's tools have to be on PATH, as they are for the seat.
+    env = dict(os.environ, PATH=f"{HOME / 'factory/bin'}:{os.environ['PATH']}", **{f"STAGE{n}_DIR": str(clone / f"stage-{n}") for n in range(1, int(stage))})
+    p = subprocess.run(["sh", str(probes / "run.sh"), str(folder)], cwd=probes, capture_output=True, text=True, timeout=3000, env=env)
+    return {"failed": p.returncode != 0, "tail": (p.stdout + p.stderr)[-300:]}
+
+
+results = {}
+base = clone / f"stage-{stage}"
+results["__baseline__"] = {"shipped": shipped(base, "base"), "sealed": sealed_suite(base), "probes": reader_probes(base), "independent": independent(base)}
+print("baseline", results["__baseline__"], flush=True)
+# A suite that fails on the unpatched folder can't be credited with catching anything.
+valid = {"shipped": results["__baseline__"]["shipped"]["failed"] == 0,
+         "sealed": results["__baseline__"]["sealed"]["failed"] is False,
+         "probes": results["__baseline__"]["probes"]["failed"] is False,
+         "independent": results["__baseline__"]["independent"]["failed"] is False}
+print("valid baselines", valid, flush=True)
+for patch in sorted(faults.glob("*.patch")):
+    # Patch inside a whole copy of the repository: suites may start real earlier stages from sibling folders.
+    tree = out / f"copy-{patch.stem}"
+    shutil.rmtree(tree, ignore_errors=True)
+    shutil.copytree(clone, tree, ignore=shutil.ignore_patterns(".git"))
+    copy = tree / f"stage-{stage}"
+    applied = subprocess.run(["git", "apply", "--unsafe-paths", "--directory", str(copy.relative_to(copy.anchor)), str(patch.resolve())], cwd=copy.anchor, capture_output=True, text=True)
+    if applied.returncode:
+        applied = subprocess.run(["patch", "-p1", "-s", "-i", str(patch.resolve())], cwd=copy, capture_output=True, text=True)
+    if applied.returncode:
+        shutil.rmtree(tree, ignore_errors=True)
+        results[patch.stem] = {"error": applied.stderr[:300] or applied.stdout[:300]}
+        print(patch.stem, "did not apply", flush=True)
+        continue
+    r = {"shipped": shipped(copy, patch.stem), "sealed": sealed_suite(copy), "probes": reader_probes(copy), "independent": independent(copy)}
+    results[patch.stem] = r
+    print(f"{patch.stem}: shipped {r['shipped']['failed']}/{r['shipped']['total']} failed; sealed caught={r['sealed']['failed']}; probes caught={r['probes']['failed']}; independent caught={r['independent']['failed']}", flush=True)
+    shutil.rmtree(tree, ignore_errors=True)
+    (out / "matrix.json").write_text(json.dumps(results, indent=1) + "\n")
+planted = [k for k, v in results.items() if k != "__baseline__" and "error" not in v]
+caught = lambda k, suite: valid[suite] and bool(results[k][suite]["failed"])
+line = {suite: sum(1 for k in planted if caught(k, suite)) if valid[suite] else "invalid baseline" for suite in valid}
+none = sum(1 for k in planted if not any(caught(k, suite) for suite in valid))
+print(f"planted {len(planted)}: {line}; caught by nothing {none}")
+(out / "matrix.json").write_text(json.dumps({"valid": valid, "results": results}, indent=1) + "\n")

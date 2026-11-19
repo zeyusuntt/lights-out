@@ -1,0 +1,24 @@
+#!/bin/sh
+# Operator tool: have an agent outside the room write planted faults, or an independent test suite.
+# audit-author faults <run-dir> <stage> <hash> <count>     writes <run-dir>/audit/faults-s<stage>/*.patch, seeing spec and stage code only
+# audit-author suite  <run-dir> <stage> <hash>             writes <run-dir>/audit/suite-s<stage>/, seeing the specifications only
+# It never sees the seats' ledgers, suites, probes or verdicts. Runs on a 40-minute deadline.
+case "$1" in -h|--help) sed -n '2,/^[^#]/p' "$0" | grep "^#" | sed "s/^# \{0,1\}//"; exit 0;; esac
+set -e
+mode="$1"; run="$(cd "$2" && pwd)"; stage="$3"; rev="$4"; count="${5:-12}"
+. "$run/run.env"
+FH="$(cd "$(dirname "$0")/../.." && pwd)"; KITSRC="$FH/vendor/dark-factory-wearedevs"
+CODEX="/Applications/ChatGPT.app/Contents/Resources/codex-cli/CodexCLI.app/Contents/MacOS/codex"
+export CODEX_HOME="$HOME/.local/share/band-factory/codex-home"
+dest="$run/audit/$mode-s$stage"; [ ! -e "$dest" ] || { echo "$dest exists"; exit 2; }
+mkdir -p "$dest/spec"
+for n in $(seq 1 "$stage"); do cp "$KITSRC/$TRACK/spec/stage-$n.md" "$dest/spec/"; done
+if [ "$mode" = faults ]; then
+  git -C "$run/result" archive "$rev" "stage-$stage" | tar -x -C "$dest"
+  prompt="You plant realistic bugs to measure a test suite. The specification is in spec/ and the service in stage-$stage/. Read them. Write $count separate unified diff patches in patches/NN-short-name.patch, each one small, each breaking exactly one behaviour the specification requires, the kind of mistake a careful programmer actually makes, such as a lock released early, a check in one path and not another, an off-by-one at a limit, state not rolled back on failure, a wrong clock read. Favour requirements that are subtle and that an ordinary test might miss, and spread them across the stage's newest features and the older ones. Each must still build and start. Paths in the patch are relative to stage-$stage/ with prefix a/ and b/. Check each applies with: cd stage-$stage && git apply --check ../patches/NAME.patch (use a scratch git init if needed) or patch --dry-run -p1. Do not modify stage-$stage/ itself. Write patches/INDEX.md with one line per patch: the sentence it breaks and the behaviour change."
+else
+  prompt="You write an independent black-box acceptance suite for a service you will never see the source of. Read every specification in spec/, in order; stage $stage is the target and earlier stages still apply unless superseded. Write pytest tests in tests/ using httpx (and playwright sync API only if a sentence needs a browser), reading the base URL from the environment variable SUT_URL. Reset the service per test as the specification says. Every test carries a comment quoting the sentence it enforces. Cover every rule, error case and limit, and especially what an ordinary test would miss: retries after state changes, ordering, boundaries, concurrency where stated, history that must stay truthful, atomicity. Test only what the text requires; where the text is silent, do not test. You can't run the service. Check your tests at least compile with python -m py_compile. Write tests/README.md listing any sentence you read as ambiguous."
+fi
+cd "$dest"; git init -q . 2>/dev/null || true
+timeout 2400 "$CODEX" exec --skip-git-repo-check --sandbox workspace-write -m gpt-6.1-sol -c model_reasoning_effort=high "$prompt" </dev/null > author.log 2>&1
+echo "$mode author exit $?; $(ls "$dest"/patches 2>/dev/null | wc -l | tr -d ' ') patches, $(ls "$dest"/tests 2>/dev/null | wc -l | tr -d ' ') test files"

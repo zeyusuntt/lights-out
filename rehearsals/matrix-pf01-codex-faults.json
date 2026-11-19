@@ -1,0 +1,244 @@
+{
+ "valid": {
+  "shipped": true,
+  "sealed": true,
+  "probes": false,
+  "independent": true
+ },
+ "results": {
+  "__baseline__": {
+   "shipped": {
+    "failed": 0,
+    "total": 193,
+    "state": "completed"
+   },
+   "sealed": {
+    "failed": false,
+    "tail": "                                                                        [100%]\n1657 passed in 294.37s (0:04:54)\nCOUNTS total=1662 passed=1662 failed=0 errors=0 skipped=0\ncontainer state: false true 0\n"
+   },
+   "probes": {
+    "failed": null
+   },
+   "independent": {
+    "failed": false,
+    "tail": "................sss                                                    [100%]\n594 passed, 3 skipped in 80.56s (0:01:20)\n"
+   }
+  },
+  "01-refund-original-limit": {
+   "shipped": {
+    "failed": 0,
+    "total": 193,
+    "state": "completed"
+   },
+   "sealed": {
+    "failed": true,
+    "tail": "_oracle.py::test_model_agrees[149] - AssertionError: want 422 r...\n89 failed, 1568 passed in 290.72s (0:04:50)\nCOUNTS total=1662 passed=1573 failed=89 errors=0 skipped=0\ncontainer state: false true 0\n"
+   },
+   "probes": {
+    "failed": null
+   },
+   "independent": {
+    "failed": true,
+    "tail": "s.py::test_refund_racing_correction_respects_refunded_floor[single]\n2 failed, 592 passed, 3 skipped in 81.89s (0:01:21)\n"
+   }
+  },
+  "02-refund-spends-held": {
+   "shipped": {
+    "failed": 0,
+    "total": 193,
+    "state": "completed"
+   },
+   "sealed": {
+    "failed": true,
+    "tail": "zf_rulings_stage4.py::test_failed_refund_key_after_release - Asse...\n2 failed, 1655 passed in 312.40s (0:05:12)\nCOUNTS total=1662 passed=1660 failed=2 errors=0 skipped=0\ncontainer state: false true 0\n"
+   },
+   "probes": {
+    "failed": null
+   },
+   "independent": {
+    "failed": true,
+    "tail": "und_available_funds_failure_leaves_no_trace_and_retry_after_release\n1 failed, 593 passed, 3 skipped in 83.16s (0:01:23)\n"
+   }
+  },
+  "03-batch-offset-spelling": {
+   "shipped": {
+    "failed": 0,
+    "total": 193,
+    "state": "completed"
+   },
+   "sealed": {
+    "failed": true,
+    "tail": "zg_postseal_stage4.py::test_members_differ_below_a_microsecond - ...\n2 failed, 1655 passed in 311.07s (0:05:11)\nCOUNTS total=1662 passed=1660 failed=2 errors=0 skipped=0\ncontainer state: false true 0\n"
+   },
+   "probes": {
+    "failed": null
+   },
+   "independent": {
+    "failed": true,
+    "tail": ".py::test_settlement_batch_requires_every_member_and_equal_instants\n1 failed, 593 passed, 3 skipped in 82.47s (0:01:22)\n"
+   }
+  },
+  "04-batch-individual-funds": {
+   "shipped": {
+    "failed": 0,
+    "total": 193,
+    "state": "completed"
+   },
+   "sealed": {
+    "failed": true,
+    "tail": "_oracle.py::test_model_agrees[148] - AssertionError: ((201, Non...\n13 failed, 1644 passed in 310.01s (0:05:10)\nCOUNTS total=1662 passed=1649 failed=13 errors=0 skipped=0\ncontainer state: false true 0\n"
+   },
+   "probes": {
+    "failed": null
+   },
+   "independent": {
+    "failed": true,
+    "tail": "_snapshot_and_wallet_reads_during_batch_never_see_partial_revisions\n2 failed, 592 passed, 3 skipped in 80.65s (0:01:20)\n"
+   }
+  },
+  "05-snapshot-future-cutoff": {
+   "shipped": {
+    "failed": 0,
+    "total": 193,
+    "state": "completed"
+   },
+   "sealed": {
+    "failed": false,
+    "tail": "                                                                        [100%]\n1657 passed in 310.76s (0:05:10)\nCOUNTS total=1662 passed=1662 failed=0 errors=0 skipped=0\ncontainer state: false true 0\n"
+   },
+   "probes": {
+    "failed": null
+   },
+   "independent": {
+    "failed": false,
+    "tail": "................sss                                                    [100%]\n594 passed, 3 skipped in 81.57s (0:01:21)\n"
+   }
+  },
+  "06-hold-closure-knowledge": {
+   "shipped": {
+    "failed": 0,
+    "total": 193,
+    "state": "completed"
+   },
+   "sealed": {
+    "failed": true,
+    "tail": "za_rulings_stage3.py::test_unknown_void_runs_to_deadline - assert...\n3 failed, 1654 passed in 310.64s (0:05:10)\nCOUNTS total=1662 passed=1659 failed=3 errors=0 skipped=0\ncontainer state: false true 0\n"
+   },
+   "probes": {
+    "failed": null
+   },
+   "independent": {
+    "failed": false,
+    "tail": "................sss                                                    [100%]\n594 passed, 3 skipped in 81.97s (0:01:21)\n"
+   }
+  },
+  "07-overdraft-hold-boundaries": {
+   "shipped": {
+    "failed": 0,
+    "total": 193,
+    "state": "completed"
+   },
+   "sealed": {
+    "failed": true,
+    "tail": "_oracle.py::test_model_agrees[149] - AssertionError: ((409, 'hi...\n10 failed, 1647 passed in 303.64s (0:05:03)\nCOUNTS total=1662 passed=1652 failed=10 errors=0 skipped=0\ncontainer state: false true 0\n"
+   },
+   "probes": {
+    "failed": null
+   },
+   "independent": {
+    "failed": true,
+    "tail": ".py::test_batch_current_available_and_historical_available_enforced\n2 failed, 592 passed, 3 skipped in 80.63s (0:01:20)\n"
+   }
+  },
+  "08-statement-inclusive-end": {
+   "shipped": {
+    "failed": 0,
+    "total": 193,
+    "state": "completed"
+   },
+   "sealed": {
+    "failed": true,
+    "tail": "zg_postseal_stage4.py::test_window_below_a_microsecond - Assertio...\n6 failed, 1651 passed in 300.71s (0:05:00)\nCOUNTS total=1662 passed=1656 failed=6 errors=0 skipped=0\ncontainer state: false true 0\n"
+   },
+   "probes": {
+    "failed": null
+   },
+   "independent": {
+    "failed": true,
+    "tail": "t_correction_preserves_receipts_and_opening_replaces_effective_time\n1 failed, 593 passed, 3 skipped in 75.91s (0:01:15)\n"
+   }
+  },
+  "09-capture-original-default": {
+   "shipped": {
+    "failed": 0,
+    "total": 193,
+    "state": "completed"
+   },
+   "sealed": {
+    "failed": true,
+    "tail": "w - httpx.Co...\n227 failed, 1202 passed, 228 errors in 274.70s (0:04:34)\nCOUNTS total=1662 passed=1207 failed=227 errors=228 skipped=0\ncontainer state: \nPRE  FAIL  container A did not survive the run\n"
+   },
+   "probes": {
+    "failed": null
+   },
+   "independent": {
+    "failed": true,
+    "tail": "ort_roundtrip_replaces_state_preserves_all_links_tokens_and_retries\n2 failed, 592 passed, 3 skipped in 77.19s (0:01:17)\n"
+   }
+  },
+  "10-expiry-observation-clock": {
+   "shipped": {
+    "failed": 0,
+    "total": 193,
+    "state": "completed"
+   },
+   "sealed": {
+    "failed": true,
+    "tail": "za_rulings_stage3.py::test_clock_expiry_closed_at_after_export - ...\n3 failed, 1654 passed in 311.10s (0:05:11)\nCOUNTS total=1662 passed=1659 failed=3 errors=0 skipped=0\ncontainer state: false true 0\n"
+   },
+   "probes": {
+    "failed": null
+   },
+   "independent": {
+    "failed": true,
+    "tail": "py::test_expiry_without_intervening_request_and_historical_deadline\n1 failed, 593 passed, 3 skipped in 77.72s (0:01:17)\n"
+   }
+  },
+  "11-split-skips-zero": {
+   "shipped": {
+    "failed": 1,
+    "total": 193,
+    "state": "completed"
+   },
+   "sealed": {
+    "failed": true,
+    "tail": "_ui_requests_split.py::test_submit_matches_preview[EUR-2-0.01-want3]\n7 failed, 1650 passed in 316.43s (0:05:16)\nCOUNTS total=1662 passed=1655 failed=7 errors=0 skipped=0\ncontainer state: false true 0\n"
+   },
+   "probes": {
+    "failed": null
+   },
+   "independent": {
+    "failed": true,
+    "tail": "st_equal_split_rounding_order_zero_shares_and_no_balance_check[1-3]\n1 failed, 593 passed, 3 skipped in 76.28s (0:01:16)\n"
+   }
+  },
+  "12-request-receipt-alias": {
+   "shipped": {
+    "failed": 0,
+    "total": 193,
+    "state": "completed"
+   },
+   "sealed": {
+    "failed": true,
+    "tail": "test_k_rulings_ledger.py::test_replay_cancelled_request_after_import\n2 failed, 1655 passed in 302.25s (0:05:02)\nCOUNTS total=1662 passed=1660 failed=2 errors=0 skipped=0\ncontainer state: false true 0\n"
+   },
+   "probes": {
+    "failed": null
+   },
+   "independent": {
+    "failed": true,
+    "tail": "equest_terminal_actions_repeat_and_conflict[cancel-bob-decline-ada]\n2 failed, 592 passed, 3 skipped in 80.16s (0:01:20)\n"
+   }
+  }
+ }
+}

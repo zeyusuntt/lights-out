@@ -1,0 +1,12 @@
+diff --git a/pocketful/idempotency.py b/pocketful/idempotency.py
+--- a/pocketful/idempotency.py
++++ b/pocketful/idempotency.py
+@@ -19,7 +19,7 @@
+         key = ctx.headers.get("idempotency-key", "")
+         if key == "":
+             raise ApiError(400, "missing_idempotency_key", "Idempotency-Key header is required")
+-        if len(key) > KEY_MAX:
++        if len(key.encode("utf-8")) > KEY_MAX:
+             raise invalid(f"Idempotency-Key must be at most {KEY_MAX} characters")
+         state = ctx.state
+         scope = (ctx.user.id, ctx.path, key)

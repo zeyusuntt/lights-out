@@ -1,0 +1,11 @@
+--- a/tablekeeper/schedule.py
++++ b/tablekeeper/schedule.py
+@@ -40,7 +40,7 @@
+             if not exists(naive, zone):
+                 continue
+             start, end = _interval_at(zone, terms, naive)
+-            if end <= closing and _can_be_written(zone, start, end):
++            if end < closing and _can_be_written(zone, start, end):
+                 yield naive, start, end
+ 
+ 

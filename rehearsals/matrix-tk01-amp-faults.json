@@ -1,0 +1,257 @@
+{
+ "valid": {
+  "shipped": true,
+  "sealed": true,
+  "probes": true,
+  "independent": true
+ },
+ "results": {
+  "__baseline__": {
+   "shipped": {
+    "failed": 0,
+    "total": 158,
+    "state": "completed"
+   },
+   "sealed": {
+    "failed": false,
+    "tail": "..................... [ 95%]\n........................................................                 [100%]\n1352 passed in 367.79s (0:06:07)\nCOUNTS total=1352 passed=1352 failed=0 errors=0 skipped=0\n"
+   },
+   "probes": {
+    "failed": false,
+    "tail": "er_open_form_refused_after_empty_closure\nPASS planner_performance_bounded_hunt_and_50_inflight\nPASS planner_connected_performance_hunt_and_five_sender_load\nCOUNTS cases=85 passed=85 failed=0 assertions=49412\nPASS source_stopped_before_import\nFINAL COUNTS cases=86 passed=86 failed=0 assertions=49428\n"
+   },
+   "independent": {
+    "failed": false,
+    "tail": "88%]\n.......................................                                  [100%]\n327 passed, 1 deselected in 56.19s\n"
+   }
+  },
+  "01-last-slot-at-closing": {
+   "shipped": {
+    "failed": 2,
+    "total": 158,
+    "state": "completed"
+   },
+   "sealed": {
+    "failed": true,
+    "tail": " tail)\nINFO:     Started server process [1]\nINFO:     Waiting for application startup.\nINFO:     Application startup complete.\nINFO:     Uvicorn running on http://0.0.0.0:19701 (Press CTRL+C to quit)\n"
+   },
+   "probes": {
+    "failed": true,
+    "tail": "er_open_form_refused_after_empty_closure\nPASS planner_performance_bounded_hunt_and_50_inflight\nPASS planner_connected_performance_hunt_and_five_sender_load\nCOUNTS cases=85 passed=79 failed=6 assertions=23883\nPASS source_stopped_before_import\nFINAL COUNTS cases=86 passed=80 failed=6 assertions=23899\n"
+   },
+   "independent": {
+    "failed": true,
+    "tail": "y_dst_slot_uses_real_duration_and_iana_offset[America/New_York-2026-11-01]\n6 failed, 321 passed, 1 deselected in 55.13s\n"
+   }
+  },
+  "02-password-length-boundary": {
+   "shipped": {
+    "failed": 0,
+    "total": 158,
+    "state": "completed"
+   },
+   "sealed": {
+    "failed": true,
+    "tail": " tail)\nINFO:     Started server process [1]\nINFO:     Waiting for application startup.\nINFO:     Application startup complete.\nINFO:     Uvicorn running on http://0.0.0.0:19398 (Press CTRL+C to quit)\n"
+   },
+   "probes": {
+    "failed": true,
+    "tail": "er_open_form_refused_after_empty_closure\nPASS planner_performance_bounded_hunt_and_50_inflight\nPASS planner_connected_performance_hunt_and_five_sender_load\nCOUNTS cases=85 passed=83 failed=2 assertions=49288\nPASS source_stopped_before_import\nFINAL COUNTS cases=86 passed=84 failed=2 assertions=49304\n"
+   },
+   "independent": {
+    "failed": true,
+    "tail": "est_browser.py::test_signup_auth_error_current_user_all_screens_and_logout\n2 failed, 325 passed, 1 deselected in 59.73s\n"
+   }
+  },
+  "03-batch-adjacent-bookings-conflict": {
+   "shipped": {
+    "failed": 0,
+    "total": 158,
+    "state": "completed"
+   },
+   "sealed": {
+    "failed": true,
+    "tail": " tail)\nINFO:     Started server process [1]\nINFO:     Waiting for application startup.\nINFO:     Application startup complete.\nINFO:     Uvicorn running on http://0.0.0.0:19417 (Press CTRL+C to quit)\n"
+   },
+   "probes": {
+    "failed": true,
+    "tail": "er_open_form_refused_after_empty_closure\nPASS planner_performance_bounded_hunt_and_50_inflight\nPASS planner_connected_performance_hunt_and_five_sender_load\nCOUNTS cases=85 passed=84 failed=1 assertions=49333\nPASS source_stopped_before_import\nFINAL COUNTS cases=86 passed=85 failed=1 assertions=49349\n"
+   },
+   "independent": {
+    "failed": false,
+    "tail": "88%]\n.......................................                                  [100%]\n327 passed, 1 deselected in 55.05s\n"
+   }
+  },
+  "04-reversed-pair-not-canonical": {
+   "shipped": {
+    "failed": 0,
+    "total": 158,
+    "state": "completed"
+   },
+   "sealed": {
+    "failed": true,
+    "tail": " tail)\nINFO:     Started server process [1]\nINFO:     Waiting for application startup.\nINFO:     Application startup complete.\nINFO:     Uvicorn running on http://0.0.0.0:19382 (Press CTRL+C to quit)\n"
+   },
+   "probes": {
+    "failed": true,
+    "tail": "er_open_form_refused_after_empty_closure\nPASS planner_performance_bounded_hunt_and_50_inflight\nPASS planner_connected_performance_hunt_and_five_sender_load\nCOUNTS cases=85 passed=83 failed=2 assertions=49282\nPASS source_stopped_before_import\nFINAL COUNTS cases=86 passed=84 failed=2 assertions=49298\n"
+   },
+   "independent": {
+    "failed": true,
+    "tail": "mbinations.py::test_pair_canonicalization_history_cancel_and_seeded_status\n3 failed, 324 passed, 1 deselected in 57.68s\n"
+   }
+  },
+  "05-policy-effective-same-day": {
+   "shipped": {
+    "failed": 1,
+    "total": 158,
+    "state": "completed"
+   },
+   "sealed": {
+    "failed": true,
+    "tail": " tail)\nINFO:     Started server process [1]\nINFO:     Waiting for application startup.\nINFO:     Application startup complete.\nINFO:     Uvicorn running on http://0.0.0.0:19453 (Press CTRL+C to quit)\n"
+   },
+   "probes": {
+    "failed": true,
+    "tail": "er_open_form_refused_after_empty_closure\nPASS planner_performance_bounded_hunt_and_50_inflight\nPASS planner_connected_performance_hunt_and_five_sender_load\nCOUNTS cases=85 passed=81 failed=4 assertions=48936\nPASS source_stopped_before_import\nFINAL COUNTS cases=86 passed=82 failed=4 assertions=48952\n"
+   },
+   "independent": {
+    "failed": true,
+    "tail": "ctive_amendment_eligible_suffix_terms_history_counters_and_original_replay\n5 failed, 322 passed, 1 deselected in 57.19s\n"
+   }
+  },
+  "06-stale-revision-after-cutoff": {
+   "shipped": {
+    "failed": 0,
+    "total": 158,
+    "state": "completed"
+   },
+   "sealed": {
+    "failed": true,
+    "tail": " tail)\nINFO:     Started server process [1]\nINFO:     Waiting for application startup.\nINFO:     Application startup complete.\nINFO:     Uvicorn running on http://0.0.0.0:19162 (Press CTRL+C to quit)\n"
+   },
+   "probes": {
+    "failed": true,
+    "tail": "er_open_form_refused_after_empty_closure\nPASS planner_performance_bounded_hunt_and_50_inflight\nPASS planner_connected_performance_hunt_and_five_sender_load\nCOUNTS cases=85 passed=83 failed=2 assertions=49286\nPASS source_stopped_before_import\nFINAL COUNTS cases=86 passed=84 failed=2 assertions=49302\n"
+   },
+   "independent": {
+    "failed": true,
+    "tail": "est_stale_revision_precedes_cutoff_and_other_validation_and_concurrent_cas\n2 failed, 325 passed, 1 deselected in 56.99s\n"
+   }
+  },
+  "07-pair-to-single-history-field": {
+   "shipped": {
+    "failed": 0,
+    "total": 158,
+    "state": "completed"
+   },
+   "sealed": {
+    "failed": true,
+    "tail": " tail)\nINFO:     Started server process [1]\nINFO:     Waiting for application startup.\nINFO:     Application startup complete.\nINFO:     Uvicorn running on http://0.0.0.0:19585 (Press CTRL+C to quit)\n"
+   },
+   "probes": {
+    "failed": true,
+    "tail": "er_open_form_refused_after_empty_closure\nPASS planner_performance_bounded_hunt_and_50_inflight\nPASS planner_connected_performance_hunt_and_five_sender_load\nCOUNTS cases=85 passed=84 failed=1 assertions=49381\nPASS source_stopped_before_import\nFINAL COUNTS cases=86 passed=85 failed=1 assertions=49397\n"
+   },
+   "independent": {
+    "failed": true,
+    "tail": "mbinations.py::test_pair_canonicalization_history_cancel_and_seeded_status\n1 failed, 326 passed, 1 deselected in 56.83s\n"
+   }
+  },
+  "08-closure-start-inclusive": {
+   "shipped": {
+    "failed": 0,
+    "total": 158,
+    "state": "completed"
+   },
+   "sealed": {
+    "failed": true,
+    "tail": " tail)\nINFO:     Started server process [1]\nINFO:     Waiting for application startup.\nINFO:     Application startup complete.\nINFO:     Uvicorn running on http://0.0.0.0:19870 (Press CTRL+C to quit)\n"
+   },
+   "probes": {
+    "failed": true,
+    "tail": "er_open_form_refused_after_empty_closure\nPASS planner_performance_bounded_hunt_and_50_inflight\nPASS planner_connected_performance_hunt_and_five_sender_load\nCOUNTS cases=85 passed=84 failed=1 assertions=49233\nPASS source_stopped_before_import\nFINAL COUNTS cases=86 passed=85 failed=1 assertions=49249\n"
+   },
+   "independent": {
+    "failed": true,
+    "tail": "test_closure_exact_endpoints_are_bookable_and_overlap_affects_every_option\n2 failed, 325 passed, 1 deselected in 56.97s\n"
+   }
+  },
+  "09-replan-capacity-ignores-accepted-terms": {
+   "shipped": {
+    "failed": 0,
+    "total": 158,
+    "state": "completed"
+   },
+   "sealed": {
+    "failed": true,
+    "tail": " tail)\nINFO:     Started server process [1]\nINFO:     Waiting for application startup.\nINFO:     Application startup complete.\nINFO:     Uvicorn running on http://0.0.0.0:19272 (Press CTRL+C to quit)\n"
+   },
+   "probes": {
+    "failed": true,
+    "tail": "formance_bounded_hunt_and_50_inflight planner deadline/load failures: variant 3 AssertionError\nPASS planner_connected_performance_hunt_and_five_sender_load\nCOUNTS cases=85 passed=78 failed=7 assertions=42457\nPASS source_stopped_before_import\nFINAL COUNTS cases=86 passed=79 failed=7 assertions=42473\n"
+   },
+   "independent": {
+    "failed": false,
+    "tail": "88%]\n.......................................                                  [100%]\n327 passed, 1 deselected in 57.05s\n"
+   }
+  },
+  "10-replan-series-revision-per-member": {
+   "shipped": {
+    "failed": 0,
+    "total": 158,
+    "state": "completed"
+   },
+   "sealed": {
+    "failed": true,
+    "tail": " tail)\nINFO:     Started server process [1]\nINFO:     Waiting for application startup.\nINFO:     Application startup complete.\nINFO:     Uvicorn running on http://0.0.0.0:19188 (Press CTRL+C to quit)\n"
+   },
+   "probes": {
+    "failed": true,
+    "tail": "er_open_form_refused_after_empty_closure\nPASS planner_performance_bounded_hunt_and_50_inflight\nPASS planner_connected_performance_hunt_and_five_sender_load\nCOUNTS cases=85 passed=80 failed=5 assertions=47078\nPASS source_stopped_before_import\nFINAL COUNTS cases=86 passed=81 failed=5 assertions=47094\n"
+   },
+   "independent": {
+    "failed": true,
+    "tail": "_seating_repair_invalidates_old_series_revision_without_marking_exceptions\n2 failed, 325 passed, 1 deselected in 56.74s\n"
+   }
+  },
+  "11-series-amend-marks-exceptions": {
+   "shipped": {
+    "failed": 0,
+    "total": 158,
+    "state": "completed"
+   },
+   "sealed": {
+    "failed": true,
+    "tail": " tail)\nINFO:     Started server process [1]\nINFO:     Waiting for application startup.\nINFO:     Application startup complete.\nINFO:     Uvicorn running on http://0.0.0.0:19728 (Press CTRL+C to quit)\n"
+   },
+   "probes": {
+    "failed": true,
+    "tail": "er_open_form_refused_after_empty_closure\nPASS planner_performance_bounded_hunt_and_50_inflight\nPASS planner_connected_performance_hunt_and_five_sender_load\nCOUNTS cases=85 passed=81 failed=4 assertions=49117\nPASS source_stopped_before_import\nFINAL COUNTS cases=86 passed=82 failed=4 assertions=49133\n"
+   },
+   "independent": {
+    "failed": true,
+    "tail": "ries_amend.py::test_midnight_and_last_minute_time_values_are_valid_formats\n6 failed, 321 passed, 1 deselected in 55.87s\n"
+   }
+  },
+  "12-series-amend-occupancy-precedence": {
+   "shipped": {
+    "failed": 0,
+    "total": 158,
+    "state": "completed"
+   },
+   "sealed": {
+    "failed": true,
+    "tail": " tail)\nINFO:     Started server process [1]\nINFO:     Waiting for application startup.\nINFO:     Application startup complete.\nINFO:     Uvicorn running on http://0.0.0.0:19032 (Press CTRL+C to quit)\n"
+   },
+   "probes": {
+    "failed": true,
+    "tail": "er_open_form_refused_after_empty_closure\nPASS planner_performance_bounded_hunt_and_50_inflight\nPASS planner_connected_performance_hunt_and_five_sender_load\nCOUNTS cases=85 passed=84 failed=1 assertions=49310\nPASS source_stopped_before_import\nFINAL COUNTS cases=86 passed=85 failed=1 assertions=49326\n"
+   },
+   "independent": {
+    "failed": true,
+    "tail": "::test_series_amend_nonoccupancy_index_precedence_and_all_resulting_fields\n1 failed, 326 passed, 1 deselected in 56.81s\n"
+   }
+  }
+ }
+}

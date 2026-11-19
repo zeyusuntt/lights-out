@@ -1,0 +1,86 @@
+{
+  "revision": "1713b99d57253edaf51ec4259ba30b7d29aad18f",
+  "track": "dossier",
+  "stages": {
+    "1": "pass"
+  },
+  "highest_contiguous": 1,
+  "started_at": "2026-11-18T15:20:34.218936+00:00",
+  "finished_at": "2026-11-18T15:21:30.695454+00:00",
+  "schema_version": 2,
+  "run_id": "88dd0a82ac6543b4a1371d7c095a08a2",
+  "mode": "isolated",
+  "provenance": "working-tree",
+  "state": "completed",
+  "pytest_args": [],
+  "suite_digest": "df1eb07cee2eadbe87cc314e6ad0770012e62be7821b2fea4ce2e06d591d83f9",
+  "suite_digests": {
+    "1": "df1eb07cee2eadbe87cc314e6ad0770012e62be7821b2fea4ce2e06d591d83f9"
+  },
+  "checks": {
+    "1": {
+      "collected": 122,
+      "passed": 122,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0,
+      "deselected": 0,
+      "xfailed": 0,
+      "leaks": 0,
+      "fabrications": 0,
+      "economy": null,
+      "files": {
+        "stage_1/test_auth.py": {
+          "passed": 51,
+          "total": 51
+        },
+        "stage_1/test_dossiers.py": {
+          "passed": 60,
+          "total": 60
+        },
+        "stage_1/test_sample.py": {
+          "passed": 11,
+          "total": 11
+        }
+      }
+    }
+  },
+  "implementation_stage": "1",
+  "overshoot": null,
+  "claimed_stage": "1",
+  "share": 1.0,
+  "upgrade_sources": {
+    "2": {
+      "folder": "/Users/[REDACTED]/dev/band-factory/work/foreman-clones/s1-1713b99d5725/stage-1",
+      "revision": "1713b99d57253edaf51ec4259ba30b7d29aad18f"
+    }
+  },
+  "web": {
+    "1": {
+      "fabrications": 0,
+      "economy": null
+    }
+  },
+  "probe": {
+    "suite": "2",
+    "status": "fail",
+    "checks": {
+      "collected": 12,
+      "passed": 0,
+      "failed": 1,
+      "errors": 0,
+      "skipped": 0,
+      "deselected": 0,
+      "xfailed": 0,
+      "leaks": 0,
+      "fabrications": 0,
+      "economy": null,
+      "files": {
+        "stage_2/test_sample.py": {
+          "passed": 0,
+          "total": 12
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,12 @@
+diff --git a/pocketful/correction_batches.py b/pocketful/correction_batches.py
+--- a/pocketful/correction_batches.py
++++ b/pocketful/correction_batches.py
+@@ -39,7 +39,7 @@
+         if len(members) != len(store.settlement_members[settlement_id]):
+             raise ApiError(422, "incomplete_settlement", "A batch must include every settlement member.")
+     for members in included.values():
+-        if len({member.effective for member in members}) != 1:
++        if len({member.effective_at for member in members}) != 1:
+             raise invalid("Members of one settlement must take effect at the same instant.")
+ 
+ 

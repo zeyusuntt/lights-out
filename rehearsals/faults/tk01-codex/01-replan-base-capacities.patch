@@ -1,0 +1,12 @@
+diff --git a/tablekeeper/replans.py b/tablekeeper/replans.py
+--- a/tablekeeper/replans.py
++++ b/tablekeeper/replans.py
+@@ -40,7 +40,7 @@
+     considered: set[str],
+ ) -> Candidate:
+     placement = reservation.placement
+-    terms = reservation.terms
++    terms = restaurant.base_terms
+     options = []
+     for rank, table_ids in enumerate(_option_sets(restaurant)):
+         seats = terms.seats(table_ids)

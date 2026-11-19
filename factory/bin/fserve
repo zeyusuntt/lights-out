@@ -1,0 +1,71 @@
+#!/usr/bin/env python3
+"""Build one exact revision's stage folder from a clean clone and run it.
+
+    fserve <full-hash> <stage> <host-port> [--fresh] [--container-port 8080]
+
+Prints the base URL once the service answers HTTP. CPU and memory are limited to the job's stated limits (SERVICE_CPUS, SERVICE_MEMORY in run.env).
+Stop it with: fstop <name>   (the name is printed too)
+"""
+import http.client, pathlib, shutil, subprocess, sys, time, urllib.error, urllib.request, uuid
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1] / "lib"))
+import fenv
+
+args = sys.argv[1:]
+if len(args) < 3 or args[0] in ("-h", "--help"):
+    print(__doc__); raise SystemExit(0)
+rev, stage, port = args[0], args[1], args[2]
+fresh = "--fresh" in args
+cport = args[args.index("--container-port") + 1] if "--container-port" in args else "8080"
+seat = fenv.SEAT or "operator"
+name = f"{seat}-{rev[:8]}-s{stage}-{uuid.uuid4().hex[:4]}"
+base = fenv.WORK / seat / "serve"; base.mkdir(parents=True, exist_ok=True)
+clone = base / name
+fclone = pathlib.Path(__file__).with_name("fclone")
+subprocess.run([str(fclone), rev, str(clone)], check=True, stdout=subprocess.DEVNULL)
+folder = clone / f"stage-{stage}"
+if not folder.is_dir():
+    fenv.die(f"fserve: {rev} has no stage-{stage}/")
+slot = pathlib.Path(__file__).with_name("with-slot")
+with (base / "started").open("a") as record:   # fstop --all removes exactly what this list names
+    record.write(name + "\n")
+
+
+def clean_up():
+    subprocess.run(["docker", "rm", "-f", name], capture_output=True)
+    subprocess.run(["docker", "rmi", "-f", name], capture_output=True)
+    shutil.rmtree(clone, ignore_errors=True)
+
+
+build = [str(slot), "docker", "build", "-q", "-t", name, *(["--no-cache"] if fresh else []), str(folder)]
+try:
+    done = subprocess.run(build, capture_output=True, text=True, timeout=1800)
+except subprocess.TimeoutExpired:
+    clean_up()
+    fenv.die("fserve: build took over 30 minutes")
+if done.returncode:
+    clean_up()
+    fenv.die(f"fserve: build failed\n{done.stdout}\n{done.stderr}")
+try:
+    cpus, memory = fenv.service_limits()
+    started = subprocess.run(["docker", "run", "-d", "--name", name, "--cpus", cpus, "--memory", memory, "-e", f"PORT={cport}",
+                              "-p", f"127.0.0.1:{port}:{cport}", name], capture_output=True, text=True, timeout=120)
+except subprocess.TimeoutExpired:
+    clean_up()
+    fenv.die("fserve: the container did not start within 2 minutes")
+if started.returncode:
+    clean_up()
+    fenv.die(f"fserve: could not start the container\n{started.stderr}")
+# Docker's proxy accepts a connection before the service listens, so only an HTTP answer of any status counts.
+deadline = time.monotonic() + 60
+while time.monotonic() < deadline:
+    try:
+        with urllib.request.urlopen(f"http://127.0.0.1:{port}/", timeout=2):
+            pass
+        print(f"http://127.0.0.1:{port}  name={name}"); raise SystemExit(0)
+    except urllib.error.HTTPError:
+        print(f"http://127.0.0.1:{port}  name={name}"); raise SystemExit(0)
+    except (urllib.error.URLError, OSError, http.client.HTTPException):
+        time.sleep(0.5)
+logs = subprocess.run(["docker", "logs", "--tail", "40", name], capture_output=True, text=True)
+clean_up()
+fenv.die(f"fserve: nothing listening on {port} after 60 s\n{logs.stdout}\n{logs.stderr}")

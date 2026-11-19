@@ -1,0 +1,12 @@
+diff --git a/pocketful/statements.py b/pocketful/statements.py
+--- a/pocketful/statements.py
++++ b/pocketful/statements.py
+@@ -30,7 +30,7 @@
+         "user_id": user["id"],
+         "start": to_stored(start_instant),
+         "end": to_stored(end_instant),
+-        "known": to_stored(min(known_at[1], read_at)) if known_at else read_at,
++        "known": to_stored(known_at[1]) if known_at else read_at,
+         "known_at": known_at[0] if known_at else None,
+         "pre_refunds": False,
+     }

@@ -1,0 +1,33 @@
+#!/usr/bin/env python3
+"""List who is in the run's room: the human and every seat.
+
+    fwho
+
+Use it to confirm the roster. Adding a seat that is missing: `fwho --add <seat>` (foreman only).
+"""
+import pathlib, subprocess, sys
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1] / "lib"))
+import fenv
+
+args = sys.argv[1:]
+if args and args[0] in ("-h", "--help"):
+    print(__doc__); raise SystemExit(0)
+env = fenv.run_env()
+owner, room = env.get("OWNER"), env.get("ROOM")
+if not owner or not room or not fenv.SEAT:
+    fenv.die("fwho: no room in run.env, or FACTORY_SEAT is unset")
+if args[:1] == ["--add"] and len(args) == 2:
+    if fenv.SEAT != "foreman":
+        fenv.die("fwho: only the foreman adds seats")
+    cmd = [fenv.BAND, "--as", f"{owner}/{fenv.SEAT}", "chat", "add", room, f"{owner}/{args[1]}"]
+elif not args:
+    cmd = [fenv.BAND, "--as", f"{owner}/{fenv.SEAT}", "chat", "participants", room]
+else:
+    fenv.die(__doc__)
+try:
+    out = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
+except subprocess.TimeoutExpired:
+    fenv.die("fwho: the Band CLI did not answer within 60 s")
+print("\n".join(l for l in out.stdout.splitlines() if l.strip()))
+if out.returncode:
+    fenv.die(f"fwho: {out.stderr.strip().splitlines()[-1] if out.stderr.strip() else 'failed'}")

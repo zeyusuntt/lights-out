@@ -1,0 +1,12 @@
+diff --git a/pocketful/authorizations.py b/pocketful/authorizations.py
+--- a/pocketful/authorizations.py
++++ b/pocketful/authorizations.py
+@@ -54,6 +54,8 @@
+     final = body.get("final", True)
+     if not isinstance(final, bool):
+         raise malformed("final must be true or false.")
++    if "amount" not in body:
++        body = {**body, "amount": authorization["amount"]}
+     amount = fields.capture_amount(body, authorization["remaining_amount"])
+ 
+     payment = store.transfer(

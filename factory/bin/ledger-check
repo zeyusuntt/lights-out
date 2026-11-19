@@ -1,0 +1,79 @@
+#!/usr/bin/env python3
+"""Check the sentence ledger against the numbered specification.
+
+    ledger-check <stage> --phase reading
+    ledger-check <stage> --phase audit --revision <full-hash>
+
+reading: every unit has a row; each normative unit says what it requires and how to observe it;
+         each ambiguous unit lists at least two readings.
+audit:   every normative or ambiguous unit has passing evidence for that exact revision.
+Also writes a readable ledger/stage-<stage>.md. Exit 0 only when nothing is open.
+"""
+import json, pathlib, sys
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1] / "lib"))
+import fenv
+
+args = sys.argv[1:]
+if len(args) < 3 or args[0] in ("-h", "--help"):
+    print(__doc__); raise SystemExit(0)
+stage = args[0]
+phase = args[args.index("--phase") + 1]
+revision = args[args.index("--revision") + 1] if "--revision" in args else ""
+if phase == "audit" and not revision:
+    fenv.die("ledger-check: --phase audit needs --revision")
+base = fenv.result() / "ledger"
+units = {}
+for line in (base / f"stage-{stage}.units.tsv").read_text().splitlines():
+    key, _, text = line.partition("\t")
+    units[key] = text
+rows = {}
+problems = []
+for n, line in enumerate((base / f"stage-{stage}.jsonl").read_text().splitlines(), 1):
+    if not line.strip():
+        continue
+    try:
+        row = json.loads(line)
+    except ValueError as exc:
+        problems.append(f"line {n}: not JSON ({exc})")
+        continue
+    if row.get("unit") in rows:
+        problems.append(f"{row.get('unit')}: appears more than once (line {n}); keep one row per unit")
+    rows[row.get("unit")] = row
+for key in units:
+    row = rows.get(key)
+    if not row:
+        problems.append(f"{key}: no row")
+        continue
+    kind = row.get("class")
+    if kind not in ("normative", "informative", "ambiguous"):
+        problems.append(f"{key}: class is {kind!r}")
+    if kind in ("normative", "ambiguous"):
+        if not str(row.get("requires", "")).strip():
+            problems.append(f"{key}: says nothing about what it requires")
+        if not str(row.get("observe", "")).strip():
+            problems.append(f"{key}: says nothing about how to observe it")
+    if kind == "ambiguous" and len(row.get("readings") or []) < 2:
+        problems.append(f"{key}: ambiguous without two readings")
+    if phase == "audit" and kind in ("normative", "ambiguous"):
+        evidence = [e for e in (row.get("evidence") or []) if e.get("revision") == revision]
+        if not evidence:
+            problems.append(f"{key}: no evidence for {revision[:12]}")
+        elif any(e.get("result") != "pass" for e in evidence):
+            problems.append(f"{key}: failing evidence for {revision[:12]}")
+for key in rows:
+    if key not in units:
+        problems.append(f"{key}: row for a unit that does not exist")
+counts = {k: sum(1 for r in rows.values() if r.get("class") == k) for k in ("normative", "ambiguous", "informative")}
+md = [f"# Stage {stage} sentence ledger", "", f"{len(units)} units: {counts['normative']} normative, {counts['ambiguous']} ambiguous, {counts['informative']} informative.", "",
+      "| Unit | Text | Class | Requires | Evidence |", "|---|---|---|---|---|"]
+for key, text in units.items():
+    row = rows.get(key, {})
+    ev = "; ".join(f"{e.get('kind')}:{e.get('ref')}={e.get('result')}" for e in (row.get("evidence") or []) if not revision or e.get("revision") == revision)
+    cell = lambda s: str(s).replace("|", "\\|").replace("\n", " ")
+    md.append(f"| {key} | {cell(text)} | {row.get('class', '')} | {cell(row.get('requires', ''))} | {cell(ev)} |")
+(base / f"stage-{stage}.md").write_text("\n".join(md) + "\n")
+if problems:
+    print(f"{len(problems)} open:")
+    print("\n".join(problems))
+    raise SystemExit(1)
+print(f"ok: {len(units)} units, {counts['normative']} normative, {counts['ambiguous']} ambiguous, phase {phase}")

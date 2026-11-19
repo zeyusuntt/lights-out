@@ -1,0 +1,25 @@
+# Installed by make-seats as the second-reader's CODEX_HOME/config.toml. The seat writes only under the run's workspace.
+model = "{MODEL}"
+model_reasoning_effort = "{EFFORT}"
+web_search = "disabled"
+
+[features]
+apps = false
+browser_use = false
+browser_use_external = false
+computer_use = false
+memories = false
+plugins = false
+remote_plugin = false
+plugin_discovery_prefetch = false
+plugin_sharing = false
+tool_suggest = false
+skill_search = false
+image_generation = false
+multi_agent = false
+goals = false
+in_app_browser = false
+
+[sandbox_workspace_write]
+network_access = true
+writable_roots = ["{WORK}"]

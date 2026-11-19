@@ -1,0 +1,130 @@
+#!/usr/bin/env python3
+"""Start a run: archive the last workspace, make a fresh empty result repository, open a fresh room.
+
+    new-run <run-id> <track> [--kit-view full|holdout] [--kit <path>] [--submission] [--cpus <n>] [--memory <size>]
+            [--keep-submission-room]
+
+--cpus and --memory are the service limits the job states (default 2 and 2g); seat tools run services with them.
+
+A run started with --submission is protected: the next new-run refuses to archive it until
+work/state/room-downloaded exists (the console's full-session download, saved by the operator).
+
+full:    the kit as shipped.
+holdout: rehearsal only. Each stage keeps at most its sample check; the rest of the shipped checks are
+         withheld from the seats, so they can later score the run the way hidden tests would.
+"""
+import json, os, pathlib, re, shutil, subprocess, sys, time
+HOME = pathlib.Path(__file__).resolve().parents[2]
+WORK = HOME / "work"
+SEATS = ["foreman", "builder", "verifier", "second-reader", "product-user", "timekeeper"]
+
+args = sys.argv[1:]
+if len(args) < 2 or args[0] in ("-h", "--help"):
+    print(__doc__); raise SystemExit(0)
+run_id, track = args[0], args[1]
+view = args[args.index("--kit-view") + 1] if "--kit-view" in args else "full"
+kit_src = (pathlib.Path(args[args.index("--kit") + 1]) if "--kit" in args else HOME / "vendor/dark-factory-wearedevs").resolve()   # seats work elsewhere
+
+who = subprocess.run(["band", "whoami"], capture_output=True, text=True).stdout
+owner = re.search(r"@(\S+)", who).group(1)
+user_id = re.search(r"\[user\]\s+(\S+)", who).group(1)
+
+# Archive the last run's workspace; seats keep their fixed working directories.
+env_path = WORK / "run.env"
+if env_path.exists():
+    old = dict(l.split("=", 1) for l in env_path.read_text().splitlines() if "=" in l)
+    dest = HOME / "runs" / old.get("RUN_ID", f"unknown-{int(time.time())}")
+    if old.get("SUBMISSION") == "1" and not (WORK / "state" / "room-downloaded").exists():
+        if "--keep-submission-room" not in args:
+            raise SystemExit("new-run: the current run is the submission and its room has not been downloaded; "
+                             "save the console's full-session download, touch work/state/room-downloaded, then retry "
+                             "(or pass --keep-submission-room: the room is never deleted and stays downloadable)")
+        dest.mkdir(parents=True, exist_ok=True)
+        (dest / "ROOM-NOT-YET-DOWNLOADED").write_text(f"room {old.get('ROOM')}: download it from the Band console "
+                                                     f"(Download full session) before submitting this run\n")
+    # Keep the old room's log, then retire the room so its idle seat sessions go away.
+    if old.get("ROOM"):
+        dest.mkdir(parents=True, exist_ok=True)
+        subprocess.run([str(HOME / "factory/bin/export-room"), str(dest / "room-export.json")], check=True)
+        if old.get("SUBMISSION") == "1":
+            # The submitted room stays: it is evidence. Its seats are stopped instead, so they can't act here again.
+            for seat in SEATS:
+                subprocess.run(["band", "--session", f"df-{seat}", "stop"], capture_output=True)
+            deleted = subprocess.CompletedProcess([], 0)
+        else:
+            deleted = subprocess.run(["band", "room", "delete", "--yes", old["ROOM"]], capture_output=True, text=True)
+        if deleted.returncode:
+            raise SystemExit(f"new-run: could not retire room {old['ROOM']}; its seats may still write here. "
+                             f"Nothing was moved. {deleted.stderr.strip()[:200]}")
+    dest.mkdir(parents=True, exist_ok=True)
+    for item in list(WORK.iterdir()):
+        if item.name in ("verifier", "second-reader", "product-user"):
+            shutil.move(str(item), str(dest / item.name)); item.mkdir()
+        else:
+            shutil.move(str(item), str(dest / item.name))
+elif WORK.exists() and any(WORK.iterdir()):
+    # No run.env, so this is what a start that failed part way leaves behind. It holds no run's work.
+    assert not any((WORK / "result").glob("stage-*")), "work/ has stage folders but no run.env; look before starting"
+    shutil.rmtree(WORK); WORK.mkdir()
+for sub in ("result", "verifier", "second-reader", "product-user", "checks", "state", "tmp"):
+    (WORK / sub).mkdir(parents=True, exist_ok=True)
+
+repo = WORK / "result"
+subprocess.run(["git", "init", "-q", "-b", "main", str(repo)], check=True)
+for hook in ("pre-commit", "commit-msg"):
+    shutil.copy(HOME / "factory/githooks" / hook, repo / ".git/hooks" / hook)
+subprocess.run(["git", "config", "user.name", "operator"], cwd=repo, check=True)
+subprocess.run(["git", "config", "user.email", "[REDACTED]"], cwd=repo, check=True)
+(repo / ".git/info/exclude").open("a").write(".claude/\n")
+
+# Seat settings live in each working directory: Band passes its own --settings flag, which replaces any other.
+for sub in ("result", "verifier", "second-reader", "product-user"):
+    target = WORK / sub / ".claude"; target.mkdir(parents=True, exist_ok=True)
+    text = (HOME / "factory/settings/seat-base.json").read_text().replace("{FACTORY}", str(HOME)).replace("{HOME}", str(pathlib.Path.home()))
+    (target / "settings.local.json").write_text(text)
+
+# The kit the seats see. In holdout view the withheld checks are removed from a copy.
+kit = kit_src
+if view == "holdout":
+    kit = WORK / "kit"
+    shutil.copytree(kit_src, kit, ignore=shutil.ignore_patterns(".venv", ".git", "__pycache__", "runs"))
+    tests = (kit / "challenges" / track if (kit / "challenges" / track).is_dir() else kit / track) / "test"
+    stub = '"""Withheld in this rehearsal: the service starts and answers."""\nimport httpx\n\ndef test_service_answers(base_url):\n    assert httpx.get(f"{base_url}/health", timeout=5).status_code == 200\n'
+    for stage in sorted(tests.glob("stage_*")):
+        for path in stage.glob("test_*.py"):
+            if path.name != "test_sample.py":
+                path.unlink()
+        if stage.name in ("stage_3", "stage_4"):
+            (stage / "test_sample.py").write_text(stub)
+    os.symlink(kit_src / ".venv", kit / ".venv")
+    # A stub suite would make every earlier folder look like an overshoot, so the copy's probe is off for those stages.
+    cli = kit / "harness" / "cli.py"
+    cli.write_text(cli.read_text().replace('NO_NEW_SURFACE = {("toy", "3")}', f'NO_NEW_SURFACE = {{("toy", "3"), ("{track}", "3"), ("{track}", "4")}}'))
+
+# Archiving a submitted run stops every identity, the timekeeper's too, so none can act in that room again. The new
+# room needs running workers, the timekeeper first (it creates the room): start them all before anything else here.
+# sub-02 (11-16) failed at this point with "peer df-timekeeper has no running worker".
+for seat in SEATS:
+    subprocess.run(["band", "--session", f"df-{seat}", "restart"], capture_output=True, text=True)
+
+# The timekeeper opens the room: an agent with no running session can create one, but no other seat can add it.
+room = subprocess.run(["band", "--session", "df-timekeeper", "chat", "new", *sum([["--with", f"{owner}/{s}"] for s in SEATS if s != "timekeeper"], [])],
+                      capture_output=True, text=True, check=True).stdout.strip().splitlines()[-1]
+subprocess.run(["band", "--session", "df-timekeeper", "chat", "add", room, user_id], check=True, capture_output=True)
+env_path.write_text("\n".join([f"RUN_ID={run_id}", f"TRACK={track}", f"KIT={kit}", f"KIT_SOURCE={kit_src}", f"KIT_VIEW={view}", f"ROOM={room}", f"OWNER={owner}", f"USER_ID={user_id}",
+                               f"STARTED={int(time.time())}", f"SUBMISSION={1 if '--submission' in args else 0}",
+                               f"SERVICE_CPUS={args[args.index('--cpus') + 1] if '--cpus' in args else '2'}",
+                               f"SERVICE_MEMORY={args[args.index('--memory') + 1] if '--memory' in args else '2g'}"]) + "\n")
+# A seat whose worker was stopped (by hand, or by a submitted run's archive) never wakes on a mention, and the watchdog
+# only restarts seats that already hold a session in the room. Start every worker now, before anything is dispatched.
+# sub-01 (11-13) lost two minutes at its start this way.
+for seat in SEATS:
+    if seat != "timekeeper":
+        subprocess.run(["band", "--session", f"df-{seat}", "restart"], capture_output=True, text=True)
+# `restart` refuses when a seat holds sessions in several kept rooms (sub-03, 11-17), so check rather than trust it.
+for seat in SEATS:
+    state = subprocess.run(["band", "--session", f"df-{seat}", "status"], capture_output=True, text=True).stdout
+    if "running=true" not in state:
+        print(f"WARNING: seat {seat} has no running worker; start it before dispatching, or the seat will never wake",
+              file=sys.stderr)
+print(json.dumps({"run": run_id, "room": room, "kit": str(kit), "view": view}))

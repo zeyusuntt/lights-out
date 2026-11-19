@@ -1,0 +1,26 @@
+#!/usr/bin/env python3
+"""Each seat commits only what it owns. An accepted stage folder never changes again."""
+import os, pathlib, re, subprocess, sys
+seat = os.environ.get("GIT_AUTHOR_NAME", "")
+OWN = {
+    "builder": [r"stage-\d+/", r"\.gitignore$"],
+    "verifier": [r"acceptance/stage-\d+(/|\.seal$)", r"verdicts/stage-\d+/verifier-"],
+    "second-reader": [r"ledger/", r"verdicts/stage-\d+/second-reader-", r"acceptance/second-reader/"],
+    "product-user": [r"journey/", r"verdicts/stage-\d+/product-user-"],
+    "foreman": [r"plan/", r"rulings/", r"accepted/", r"reports/"],
+}
+if seat not in OWN:
+    raise SystemExit(0)      # the operator setting up the repository
+names = subprocess.run(["git", "diff", "--cached", "--name-only"], capture_output=True, text=True).stdout.splitlines()
+bad = [n for n in names if not any(re.match(p, n) for p in OWN[seat])]
+if bad:
+    print(f"{seat} does not own: {', '.join(bad[:8])}", file=sys.stderr); raise SystemExit(1)
+frozen = sorted({m.group(1) for n in names for m in [re.match(r"(stage-\d+)/", n)] if m
+                 and not subprocess.run(["git", "cat-file", "-e", f"HEAD:accepted/{m.group(1)}.txt"], capture_output=True).returncode})
+if frozen:
+    print(f"{', '.join(frozen)} is accepted and final; fix the defect in the current stage's folder", file=sys.stderr); raise SystemExit(1)
+for name in names:
+    if re.search(r"(^|/)\.git(/|$)", name):
+        print(f"no nested repository: {name}", file=sys.stderr); raise SystemExit(1)
+    if re.search(r"(__pycache__|\.pyc$|node_modules/|\.pytest_cache)", name):
+        print(f"not a source file: {name}", file=sys.stderr); raise SystemExit(1)

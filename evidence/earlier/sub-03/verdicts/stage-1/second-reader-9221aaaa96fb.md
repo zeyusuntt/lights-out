@@ -1,0 +1,11 @@
+VERDICT: BLOCK
+REVISION: 9221aaaa96fb8310b2e221d7b8b360f0e3725107
+
+The reported fifty-build timing problem is fixed, as are queued dispatch accounting and the live300second deadline. Two recovery failures remain. Full commands, transcripts and source corroboration are in `ledger/stage-1-audit-9221aaaa96fb.md`.
+
+1. **S1-122/S1-123, R1-3:** after reset during overlapping builds, a new build ends ready at90.056seconds with spent38 and zero successful bare-domain searches. Its first request waits behind old provider operations, times out, and is never retried despite time/budget remaining. Provider policy is two82second refusals then success, not permanent refusal. Full-suite repetition agrees. Reproduce: `SECOND_READER_CASE=reset-overlap-domain-search timeout 1200 /Users/[REDACTED]/dev/band-factory/work/second-reader/probes/stage-1/run.sh /Users/[REDACTED]/dev/band-factory/work/second-reader/clones/stage-1-9221aaaa96fb/stage-1`. **3578checks,3577pass,onefailure**.
+2. **S1-223/S1-121, R1-2/R1-7:** lose only the first accepted research-start response. The company has supported research-only founded_year2014. The build spends39, ends ready with year unknown and never retries research;41units remain. A subsequent refresh returns2014known with the served complete citation. Reproduce: `SECOND_READER_CASE=lost-research-response-recovery timeout 1000 /Users/[REDACTED]/dev/band-factory/work/second-reader/probes/stage-1/run.sh /Users/[REDACTED]/dev/band-factory/work/second-reader/clones/stage-1-9221aaaa96fb/stage-1`. **32checks,31pass,onefailure**. Accepted lost run cost is correctly charged; this is evidence completeness.
+
+Reported problem first: **461/461pass**, max build6.452s/provider0.600s. Next isolated queued/deadline regressions: **718/718pass**. Whole stage afterward: **11951checks,11950pass**, only Finding1 (Finding2 was then isolated separately). Full-run fifty-build max6.279s/provider0.579s; fast service cgroup2CPU/3GiB,peak94.8MiB,noOOM. R1-8 complete original sentences and>500character evidence behavior pass. Verifier PASS read only after own probes; findings retained independently.
+
+Reading check0; audit1 with exactly S1-121,S1-122,S1-123,S1-223 failing. Other293 normative/ruled obligations have passing evidence for this revision. No product code/tests edited. Private probes remain unpublished.

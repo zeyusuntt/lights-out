@@ -1,0 +1,2 @@
+warning: dossier-runway.com.json has 4 of its 6 fields unknown. The live providers answer far more slowly than the sample ones: a search can take over ten seconds and a research run about a minute, and a service that stops waiting sooner leaves fields unknown. This fails no gate
+ok — gates 1, 2 and the mandate part of gate 4 pass. Not checked here: gate 3 (stage-1/ builds and serves /health). Run: python -m harness run --track dossier --repo <this repository> --stage 1 --mode isolated

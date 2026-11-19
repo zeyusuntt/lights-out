@@ -1,0 +1,231 @@
+{
+ "valid": {
+  "shipped": false,
+  "sealed": false,
+  "probes": true,
+  "independent": false
+ },
+ "results": {
+  "__baseline__": {
+   "shipped": {
+    "failed": null,
+    "total": 0,
+    "state": "skipped"
+   },
+   "sealed": {
+    "failed": null
+   },
+   "probes": {
+    "failed": false,
+    "tail": "er_open_form_refused_after_empty_closure\nPASS planner_performance_bounded_hunt_and_50_inflight\nPASS planner_connected_performance_hunt_and_five_sender_load\nCOUNTS cases=85 passed=85 failed=0 assertions=49439\nPASS source_stopped_before_import\nFINAL COUNTS cases=86 passed=86 failed=0 assertions=49455\n"
+   },
+   "independent": {
+    "failed": null
+   }
+  },
+  "01-replan-base-capacities": {
+   "shipped": {
+    "failed": null,
+    "total": 0,
+    "state": "skipped"
+   },
+   "sealed": {
+    "failed": null
+   },
+   "probes": {
+    "failed": true,
+    "tail": "formance_bounded_hunt_and_50_inflight planner deadline/load failures: variant 3 AssertionError\nPASS planner_connected_performance_hunt_and_five_sender_load\nCOUNTS cases=85 passed=78 failed=7 assertions=42457\nPASS source_stopped_before_import\nFINAL COUNTS cases=86 passed=79 failed=7 assertions=42473\n"
+   },
+   "independent": {
+    "failed": null
+   }
+  },
+  "02-replan-equal-score": {
+   "shipped": {
+    "failed": null,
+    "total": 0,
+    "state": "skipped"
+   },
+   "sealed": {
+    "failed": null
+   },
+   "probes": {
+    "failed": true,
+    "tail": "formance_bounded_hunt_and_50_inflight planner deadline/load failures: variant 0 AssertionError\nPASS planner_connected_performance_hunt_and_five_sender_load\nCOUNTS cases=85 passed=80 failed=5 assertions=42618\nPASS source_stopped_before_import\nFINAL COUNTS cases=86 passed=81 failed=5 assertions=42634\n"
+   },
+   "independent": {
+    "failed": null
+   }
+  },
+  "03-repair-series-overcount": {
+   "shipped": {
+    "failed": null,
+    "total": 0,
+    "state": "skipped"
+   },
+   "sealed": {
+    "failed": null
+   },
+   "probes": {
+    "failed": true,
+    "tail": "er_open_form_refused_after_empty_closure\nPASS planner_performance_bounded_hunt_and_50_inflight\nPASS planner_connected_performance_hunt_and_five_sender_load\nCOUNTS cases=85 passed=80 failed=5 assertions=47215\nPASS source_stopped_before_import\nFINAL COUNTS cases=86 passed=81 failed=5 assertions=47231\n"
+   },
+   "independent": {
+    "failed": null
+   }
+  },
+  "04-series-amend-exceptions": {
+   "shipped": {
+    "failed": null,
+    "total": 0,
+    "state": "skipped"
+   },
+   "sealed": {
+    "failed": null
+   },
+   "probes": {
+    "failed": true,
+    "tail": "er_open_form_refused_after_empty_closure\nPASS planner_performance_bounded_hunt_and_50_inflight\nPASS planner_connected_performance_hunt_and_five_sender_load\nCOUNTS cases=85 passed=81 failed=4 assertions=49210\nPASS source_stopped_before_import\nFINAL COUNTS cases=86 passed=82 failed=4 assertions=49226\n"
+   },
+   "independent": {
+    "failed": null
+   }
+  },
+  "05-series-noop-cutoff": {
+   "shipped": {
+    "failed": null,
+    "total": 0,
+    "state": "skipped"
+   },
+   "sealed": {
+    "failed": null
+   },
+   "probes": {
+    "failed": true,
+    "tail": "er_open_form_refused_after_empty_closure\nPASS planner_performance_bounded_hunt_and_50_inflight\nPASS planner_connected_performance_hunt_and_five_sender_load\nCOUNTS cases=85 passed=84 failed=1 assertions=49285\nPASS source_stopped_before_import\nFINAL COUNTS cases=86 passed=85 failed=1 assertions=49301\n"
+   },
+   "independent": {
+    "failed": null
+   }
+  },
+  "06-series-stale-precedence": {
+   "shipped": {
+    "failed": null,
+    "total": 0,
+    "state": "skipped"
+   },
+   "sealed": {
+    "failed": null
+   },
+   "probes": {
+    "failed": false,
+    "tail": "er_open_form_refused_after_empty_closure\nPASS planner_performance_bounded_hunt_and_50_inflight\nPASS planner_connected_performance_hunt_and_five_sender_load\nCOUNTS cases=85 passed=85 failed=0 assertions=49412\nPASS source_stopped_before_import\nFINAL COUNTS cases=86 passed=86 failed=0 assertions=49428\n"
+   },
+   "independent": {
+    "failed": null
+   }
+  },
+  "07-policy-same-date-tie": {
+   "shipped": {
+    "failed": null,
+    "total": 0,
+    "state": "skipped"
+   },
+   "sealed": {
+    "failed": null
+   },
+   "probes": {
+    "failed": true,
+    "tail": "er_open_form_refused_after_empty_closure\nPASS planner_performance_bounded_hunt_and_50_inflight\nPASS planner_connected_performance_hunt_and_five_sender_load\nCOUNTS cases=85 passed=77 failed=8 assertions=42968\nPASS source_stopped_before_import\nFINAL COUNTS cases=86 passed=78 failed=8 assertions=42984\n"
+   },
+   "independent": {
+    "failed": null
+   }
+  },
+  "08-pair-to-single-history": {
+   "shipped": {
+    "failed": null,
+    "total": 0,
+    "state": "skipped"
+   },
+   "sealed": {
+    "failed": null
+   },
+   "probes": {
+    "failed": true,
+    "tail": "er_open_form_refused_after_empty_closure\nPASS planner_performance_bounded_hunt_and_50_inflight\nPASS planner_connected_performance_hunt_and_five_sender_load\nCOUNTS cases=85 passed=84 failed=1 assertions=49381\nPASS source_stopped_before_import\nFINAL COUNTS cases=86 passed=85 failed=1 assertions=49397\n"
+   },
+   "independent": {
+    "failed": null
+   }
+  },
+  "09-pair-availability-member": {
+   "shipped": {
+    "failed": null,
+    "total": 0,
+    "state": "skipped"
+   },
+   "sealed": {
+    "failed": null
+   },
+   "probes": {
+    "failed": true,
+    "tail": "er_open_form_refused_after_empty_closure\nPASS planner_performance_bounded_hunt_and_50_inflight\nPASS planner_connected_performance_hunt_and_five_sender_load\nCOUNTS cases=85 passed=84 failed=1 assertions=49238\nPASS source_stopped_before_import\nFINAL COUNTS cases=86 passed=85 failed=1 assertions=49254\n"
+   },
+   "independent": {
+    "failed": null
+   }
+  },
+  "10-idempotency-key-order": {
+   "shipped": {
+    "failed": null,
+    "total": 0,
+    "state": "skipped"
+   },
+   "sealed": {
+    "failed": null
+   },
+   "probes": {
+    "failed": true,
+    "tail": "er_open_form_refused_after_empty_closure\nPASS planner_performance_bounded_hunt_and_50_inflight\nPASS planner_connected_performance_hunt_and_five_sender_load\nCOUNTS cases=85 passed=78 failed=7 assertions=49198\nFAIL source_stopped_before_import\nFINAL COUNTS cases=86 passed=78 failed=8 assertions=49198\n"
+   },
+   "independent": {
+    "failed": null
+   }
+  },
+  "11-dst-second-occurrence": {
+   "shipped": {
+    "failed": null,
+    "total": 0,
+    "state": "skipped"
+   },
+   "sealed": {
+    "failed": null
+   },
+   "probes": {
+    "failed": true,
+    "tail": "er_open_form_refused_after_empty_closure\nPASS planner_performance_bounded_hunt_and_50_inflight\nPASS planner_connected_performance_hunt_and_five_sender_load\nCOUNTS cases=85 passed=82 failed=3 assertions=49251\nPASS source_stopped_before_import\nFINAL COUNTS cases=86 passed=83 failed=3 assertions=49267\n"
+   },
+   "independent": {
+    "failed": null
+   }
+  },
+  "12-cutoff-equality": {
+   "shipped": {
+    "failed": null,
+    "total": 0,
+    "state": "skipped"
+   },
+   "sealed": {
+    "failed": null
+   },
+   "probes": {
+    "failed": false,
+    "tail": "er_open_form_refused_after_empty_closure\nPASS planner_performance_bounded_hunt_and_50_inflight\nPASS planner_connected_performance_hunt_and_five_sender_load\nCOUNTS cases=85 passed=85 failed=0 assertions=49439\nPASS source_stopped_before_import\nFINAL COUNTS cases=86 passed=86 failed=0 assertions=49455\n"
+   },
+   "independent": {
+    "failed": null
+   }
+  }
+ }
+}

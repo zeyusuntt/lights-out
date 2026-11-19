@@ -1,0 +1,6 @@
+room.json is the Band console's full-session download of room b62e27db-6fe2-4a98-98bb-41ddd09f422c with one kind of edit: values
+replaced with [REDACTED]: 3 occurrence(s) of a private name from another of the operator's projects,
+1711 copies of the operator's home-directory path or user name, 0 of the operator's e-mail addresses and 164 copies
+of the operator's Band account name, mention records (metadata.mentions[].handle) included.
+Also 1 occurrence(s) of the name of another person who uses the build machine.
+sha256 of the download before the edit: d0bfffa79b6338147da1aa3200fd13ff588635a8623909861feb7dc5b3cf9580

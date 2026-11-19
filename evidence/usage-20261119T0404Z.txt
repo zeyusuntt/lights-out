@@ -1,0 +1,10 @@
+Band usage for room b62e27db-6fe2-4a98-98bb-41ddd09f422c, read 2026-11-19T04:04:18Z by the operator
+
+== band usage rooms (this room's row)
+b62e27db-6fe2-4a98-98bb-41ddd09f422c           4      223515366     $72.72  [REDACTED]/builder $32.96 · [REDACTED]/verifier $26.67 · [REDACTED]/product-user $2.21 · [REDACTED]/foreman $10.88
+
+== band usage sessions --json (this room's Claude seat sessions: cost and last activity)
+{"provider": "claudecode", "sessionId": "cad0ce8d-e50b-49b1-b95b-8edb59ea7e87", "totalCost": 32.9603672, "lastActivity": "2026-11-18T22:56:19.595Z"}
+{"provider": "claudecode", "sessionId": "83301b36-12c2-4654-8c82-bf9a077f3c9f", "totalCost": 26.665666799999993, "lastActivity": "2026-11-18T22:56:33.060Z"}
+{"provider": "claudecode", "sessionId": "1db25acc-893e-4d75-a474-893f5af01897", "totalCost": 10.88482540000001, "lastActivity": "2026-11-18T22:59:41.268Z"}
+{"provider": "claudecode", "sessionId": "3e08a081-9e93-4e6b-9b3a-dae455853106", "totalCost": 2.2064565, "lastActivity": "2026-11-18T22:56:14.642Z"}

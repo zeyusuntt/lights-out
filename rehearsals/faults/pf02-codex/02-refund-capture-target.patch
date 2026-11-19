@@ -1,0 +1,12 @@
+diff --git a/pocketful/refunds.py b/pocketful/refunds.py
+--- a/pocketful/refunds.py
++++ b/pocketful/refunds.py
+@@ -13,7 +13,7 @@
+     target = payment_for(state, ctx.params["id"])
+     if target.to_user_id != ctx.user.id:
+         raise forbidden("only the payment's receiver may refund it")
+-    if target.refund_of is not None:
++    if target.immutable:
+         raise ApiError(422, "invalid_refund_target", "a refund cannot itself be refunded")
+     if state.refunded(target.id) + amount > target.latest["amount"]:
+         raise ApiError(422, "refund_exceeds_payment", "refunds would exceed the payment's amount")

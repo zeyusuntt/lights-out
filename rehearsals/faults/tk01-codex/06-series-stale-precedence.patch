@@ -1,0 +1,16 @@
+diff --git a/tablekeeper/series.py b/tablekeeper/series.py
+--- a/tablekeeper/series.py
++++ b/tablekeeper/series.py
+@@ -139,10 +139,10 @@
+     if series is None or series.user_id != user.id:
+         raise not_found("No such series")
+     expected, from_index, clock = _read_amendment(body, len(series.references))
++    restaurant = store.restaurants[series.restaurant_id]
++    changes = _plan_amendment(store, restaurant, series, from_index, clock)
+     if expected != series.revision:
+         raise ApiError(409, "stale_revision", "The series has changed since that revision")
+-    restaurant = store.restaurants[series.restaurant_id]
+-    changes = _plan_amendment(store, restaurant, series, from_index, clock)
+     check_final_occupancy(store, changes)
+     commit_changes(store, restaurant.id, changes, diner_exceptions=False)
+     return _envelope(store, series)

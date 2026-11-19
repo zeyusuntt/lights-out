@@ -1,0 +1,26 @@
+#!/usr/bin/env python3
+"""Commit paths in the result repository under this seat's identity, and print that commit's hash.
+
+    fcommit -m "message" <path> [<path>...]
+
+Paths are relative to the repository root. Seats take turns: the lock covers the commit and reading its hash.
+"""
+import fcntl, pathlib, subprocess, sys
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1] / "lib"))
+import fenv
+
+args = sys.argv[1:]
+if len(args) < 3 or args[0] != "-m":
+    print(__doc__); raise SystemExit(0 if args[:1] in (["-h"], ["--help"]) else 2)
+message, paths = args[1], args[2:]
+repo = fenv.result()
+state = fenv.WORK / "state"; state.mkdir(exist_ok=True)
+with open(state / "commit.lock", "a") as lock:
+    fcntl.flock(lock, fcntl.LOCK_EX)
+    add = subprocess.run(["git", "add", "--", *paths], cwd=repo, capture_output=True, text=True)
+    if add.returncode:
+        fenv.die(f"fcommit: {add.stderr.strip()}")
+    done = subprocess.run(["git", "commit", "-q", "-m", message, "--", *paths], cwd=repo, capture_output=True, text=True)
+    if done.returncode:
+        fenv.die(f"fcommit: {(done.stderr + done.stdout).strip()}")
+    print(subprocess.run(["git", "rev-parse", "HEAD"], cwd=repo, capture_output=True, text=True).stdout.strip())

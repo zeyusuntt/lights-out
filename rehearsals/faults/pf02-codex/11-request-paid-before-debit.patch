@@ -1,0 +1,11 @@
+diff --git a/pocketful/requests_api.py b/pocketful/requests_api.py
+--- a/pocketful/requests_api.py
++++ b/pocketful/requests_api.py
+@@ -53,6 +53,7 @@
+     if request.status != "pending":
+         raise _not_pending()
+     state = ctx.state
++    request.status = "paid"
+     payment = ledger.pay(state, request.payer_id, request.requester_id, request.amount,
+                          request.note, visibility, request_id=request.id)
+     request.status, request.payment_id = "paid", payment.id

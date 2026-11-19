@@ -1,0 +1,63 @@
+#!/usr/bin/env python3
+"""Seal an acceptance suite: record a digest of its exact contents, to post in the room.
+
+    seal <stage> <dir>
+    seal --amend "<reason>" <stage> <dir>
+    seal --verify <stage> <dir>
+"""
+import datetime, hashlib, json, pathlib, sys
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1] / "lib"))
+import fenv
+
+SKIP = {"__pycache__", ".pytest_cache", ".venv", "node_modules"}
+
+
+def digest(folder: pathlib.Path) -> tuple[str, int]:
+    sha, files = hashlib.sha256(), 0
+    for path in sorted(p for p in folder.rglob("*") if p.is_file() and not SKIP & set(p.relative_to(folder).parts)):
+        sha.update(path.relative_to(folder).as_posix().encode() + b"\0")
+        sha.update(path.read_bytes() + b"\0")
+        files += 1
+    return sha.hexdigest(), files
+
+
+def product_commits(stage: str) -> str:
+    """Commits that changed the stage folder, except a pure copy of the previous stage.
+
+    A commit whose stage-<n> tree is byte-identical to stage-<n-1> in that same commit only carried the frozen,
+    accepted folder forward (stage-copy); it holds no code written for this stage, so it may come before the seal.
+    """
+    revs = fenv.git("rev-list", "HEAD", "--", f"stage-{stage}", check=False).stdout.split()
+    tree = lambda rev, folder: fenv.git("rev-parse", "--verify", "--quiet", f"{rev}:{folder}", check=False).stdout.strip()
+    previous = f"stage-{int(stage) - 1}" if stage.isdigit() and int(stage) > 1 else None
+    return str(sum(1 for rev in revs if not (previous and tree(rev, f"stage-{stage}") and tree(rev, f"stage-{stage}") == tree(rev, previous))))
+
+
+args = sys.argv[1:]
+if not args or args[0] in ("-h", "--help"):
+    print(__doc__); raise SystemExit(0)
+verify = "--verify" in args
+if verify:
+    args.remove("--verify")
+reason = ""
+if "--amend" in args:
+    i = args.index("--amend"); reason = args[i + 1]; del args[i:i + 2]
+stage, folder = args[0], pathlib.Path(args[1])
+if not folder.is_dir():
+    fenv.die(f"seal: {folder} is not a directory")
+value, files = digest(folder)
+if not verify and (files == 0 or not (folder / "run.sh").is_file()):
+    fenv.die(f"seal: {folder} holds no suite to seal (it needs test files and a run.sh)")
+path = fenv.seal_path(stage)
+log = json.loads(path.read_text()) if path.exists() else []
+if verify:
+    if not log or log[-1]["digest"] != value:
+        fenv.die(f"seal: {value} does not match the last seal")
+    print(f"ok: {value}"); raise SystemExit(0)
+if log and not reason:
+    fenv.die("seal: stage already sealed; use --amend with the reason")
+log.append({"digest": value, "files": files, "at": datetime.datetime.now(datetime.timezone.utc).isoformat(), "reason": reason,
+            "product_commits": product_commits(stage)})
+path.parent.mkdir(parents=True, exist_ok=True)
+path.write_text(json.dumps(log, indent=1) + "\n")
+print(f"{'SEAL AMENDED' if reason else 'SEALED'} {stage} sha256:{value} files:{files} commits-in-stage-folder-at-seal:{log[-1]['product_commits'] or 0}")

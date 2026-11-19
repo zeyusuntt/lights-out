@@ -1,0 +1,19 @@
+#!/usr/bin/env python3
+"""Operator tool: write the whole room as room.json in the shape the kit's offline check reads.
+
+    export-room <out-path> [--room <id>]
+
+This is a cross-check and a rehearsal stand-in. For a real submission, use the console's Download full session.
+"""
+import sys as _sys
+if _sys.argv[1:2] in (["-h"], ["--help"]):
+    print(__doc__ or "see the comment at the top of this file"); raise SystemExit(0)
+import json, pathlib, subprocess, sys
+here = pathlib.Path(__file__).resolve().parent
+args = sys.argv[1:]
+cmd = [str(here / "room-page")] + (["--room", args[args.index("--room") + 1]] if "--room" in args else [])
+msgs = [json.loads(l) for l in subprocess.run(cmd, capture_output=True, text=True, check=True).stdout.splitlines()]
+out = {"scope": "full", "messages": [{"id": m["id"], "senderId": m["sender_id"], "senderName": m["sender_name"], "senderType": m["sender_type"],
+                                       "messageType": m["message_type"], "content": m["content"], "insertedAt": m["inserted_at"]} for m in msgs]}
+pathlib.Path(args[0]).write_text(json.dumps(out, indent=0) + "\n")
+print(f"{len(msgs)} messages, {sum(1 for m in msgs if m['sender_type']=='User' and m['message_type']=='text')} human")

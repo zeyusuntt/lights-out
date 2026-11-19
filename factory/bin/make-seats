@@ -1,0 +1,78 @@
+#!/usr/bin/env python3
+"""Create the factory's seats in Band, or update their instructions.
+
+    make-seats [--dry-run]
+
+Each seat's instructions are its mandate followed by PROTOCOL.md. Seats keep fixed working directories
+under work/, so a new run needs no new seats.
+"""
+import sys as _sys
+if _sys.argv[1:2] in (["-h"], ["--help"]):
+    print(__doc__ or "see the comment at the top of this file"); raise SystemExit(0)
+import json, pathlib, re, subprocess, sys
+HOME = pathlib.Path(__file__).resolve().parents[2]
+WORK = HOME / "work"
+BUILD = HOME / "factory" / "build"; BUILD.mkdir(exist_ok=True)
+CWD = {"foreman": "result", "builder": "result", "verifier": "verifier", "second-reader": "second-reader", "product-user": "product-user"}
+dry = "--dry-run" in sys.argv
+protocol = (HOME / "PROTOCOL.md").read_text()
+existing = subprocess.run(["band", "list"], capture_output=True, text=True).stdout
+
+
+def install_codex_home(model, effort):
+    """The Codex seat's own home: narrow sandbox, no plugins, sign-in by link to the operator's."""
+    codex_home = pathlib.Path.home() / ".local/share/band-factory/codex-home"
+    codex_home.mkdir(parents=True, exist_ok=True)
+    text = (HOME / "factory/settings/codex-config.toml").read_text().replace("{MODEL}", model).replace("{EFFORT}", effort).replace("{WORK}", str(WORK))
+    (codex_home / "config.toml").write_text(text)
+    auth = codex_home / "auth.json"
+    if not auth.exists():
+        auth.symlink_to(pathlib.Path.home() / ".codex/auth.json")
+
+
+for seat, sub in CWD.items():
+    text = (HOME / "mandates" / f"{seat}.md").read_text()
+    harness = re.search(r"^Harness:\s*(.+)$", text, re.M).group(1).strip()
+    model = re.search(r"^Model:\s*(.+)$", text, re.M).group(1).strip()
+    effort = re.search(r"^Effort:\s*(.+)$", text, re.M)
+    if not effort:
+        raise SystemExit(f"make-seats: mandates/{seat}.md states no Effort:; {harness} has that setting")
+    effort = effort.group(1).strip()
+    kind = "codex" if harness == "Codex" else "claude"
+    subprocess.run([str(HOME / "factory/bin/make-launchers"), f"{seat}:{kind}:{effort}"], check=True)
+    built = BUILD / f"{seat}.md"
+    built.write_text(text.rstrip() + "\n\n---\n\n" + protocol)
+    cwd = WORK / sub; cwd.mkdir(parents=True, exist_ok=True)
+    session = f"df-{seat}"
+    if kind == "codex":
+        install_codex_home(model, effort)
+    if f"[{session}]" in existing and not dry:
+        status = subprocess.run(["band", "--session", session, "status"], capture_output=True, text=True).stdout
+        if str(HOME / "factory/bin/seats" / seat) not in status:
+            raise SystemExit(f"make-seats: seat {seat} exists but runs from another checkout; recreate it for this one")
+        out = subprocess.run(["band", "--session", session, "agent", "instructions", "set", "--instructions-file", str(built)], capture_output=True, text=True)
+        tpl = subprocess.run(["band", "--session", session, "runtime", "template", "set", "--runtime-model", model]
+                             + (["--runtime-effort", effort] if kind == "codex" else []), capture_output=True, text=True)
+        print(seat, "updated", out.stdout.strip()[:80], out.stderr.strip()[:160], "| model", model, tpl.stderr.strip()[:160])
+        continue
+    cmd = ["band", "agent", "create", "--json", "--session", session, "--name", seat,
+           "--description", f"Factory seat: {seat}", "--cwd", str(cwd),
+           "--spawn-command", str(HOME / "factory/bin/seats" / seat), "--runtime-auth", "subscription", "--runtime-model", model]
+    if kind == "codex":
+        cmd += ["--transport", "codex-app-server", "--runtime-effort", effort, "--runtime-approval", "never", "--runtime-sandbox", "workspace-write"]
+    else:
+        cmd += ["--transport", "claude-code-cli", "--claude-context-mode", "local_config", "--claude-strict-mcp-config"]
+    if dry:
+        cmd.append("--dry-run")
+    else:
+        cmd += ["--instructions-file", str(built)]
+    raw = subprocess.run(cmd, capture_output=True, text=True).stdout
+    d = json.JSONDecoder().raw_decode(raw)[0] if raw.strip() else {"ok": False, "error": "no output"}
+    print(seat, "ok" if d.get("ok") else "FAILED", d.get("error") or "", (d.get("probe") or {}).get("message", "")[:160])
+
+# The timekeeper is a script with an identity, not a runtime.
+if "[df-timekeeper]" not in existing and not dry:
+    raw = subprocess.run(["band", "agent", "create", "--json", "--identity-only", "--session", "df-timekeeper", "--name", "timekeeper",
+                          "--description", "Factory clock: a script, no model", "--cwd", str(WORK)], capture_output=True, text=True)
+    d = json.JSONDecoder().raw_decode(raw.stdout)[0] if raw.stdout.strip() else {"ok": False, "error": raw.stderr[:200]}
+    print("timekeeper", "ok" if d.get("ok") else "FAILED", d.get("error") or "")

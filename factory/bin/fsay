@@ -1,0 +1,45 @@
+#!/usr/bin/env python3
+"""Post a message to the room at once, as this seat.
+
+    fsay <seat> [<seat>...] -- "text"
+    fsay <seat> [<seat>...] --file <path>
+
+Seat names are bare; `human` addresses the owner. Long bodies are fine.
+"""
+import pathlib, subprocess, sys, tempfile
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1] / "lib"))
+import fenv
+
+args = sys.argv[1:]
+if not args or args[0] in ("-h", "--help"):
+    print(__doc__); raise SystemExit(0)
+env = fenv.run_env()
+owner, room = env.get("OWNER"), env.get("ROOM")
+if not owner or not room or not fenv.SEAT:
+    fenv.die("fsay: no room in run.env, or FACTORY_SEAT is unset")
+targets, body = [], None
+while args:
+    a = args.pop(0)
+    if a == "--file":
+        body = pathlib.Path(args.pop(0)).read_text()
+    elif a == "--":
+        body = " ".join(args); args = []
+    else:
+        targets.append(a)
+if body is None or not targets:
+    fenv.die(__doc__)
+SEATS = {"foreman", "builder", "verifier", "second-reader", "product-user"}
+targets = ["human" if t in (owner, f"@{owner}") else t.lstrip("@") for t in targets]
+unknown = [t for t in targets if t != "human" and t not in SEATS]
+if unknown:
+    fenv.die(f"fsay: no seat named {', '.join(unknown)}; address seats by bare name and the owner as `human`")
+mentions = " ".join(f"@{owner}" if t == "human" else f"@{owner}/{t}" for t in targets)
+tmp_dir = fenv.WORK / "tmp"; tmp_dir.mkdir(parents=True, exist_ok=True)
+with tempfile.NamedTemporaryFile("w", dir=tmp_dir, suffix=".msg", delete=False) as handle:
+    handle.write(f"{mentions}\n{body}\n")
+cmd = [fenv.BAND, "--as", f"{owner}/{fenv.SEAT}", "send", room, "--body-file", handle.name]
+for attempt in range(3):
+    out = subprocess.run(cmd, capture_output=True, text=True, cwd=tmp_dir)
+    if out.returncode == 0:
+        print(out.stdout.strip()); pathlib.Path(handle.name).unlink(missing_ok=True); raise SystemExit(0)
+fenv.die(f"fsay: send failed: {out.stderr.strip()}")

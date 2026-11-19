@@ -1,0 +1,32 @@
+#!/bin/sh
+# Operator tool: have Amp write an independent test suite from the specifications alone. It stays outside the room.
+# amp-author <run-dir> <stage> <mode> <label>     writes <run-dir>/audit/amp-<label>-s<stage>/tests/. Sees nothing but spec/.
+# amp-author faults <run-dir> <stage> <mode> <label> <hash> <count>   writes <run-dir>/audit/ampfaults-<label>-s<stage>/patches/. Sees spec/ and the stage's code.
+# Runs under Amp's default permissions: it only needs to write files in its own directory.
+case "$1" in -h|--help) sed -n '2,/^[^#]/p' "$0" | grep "^#" | sed "s/^# \{0,1\}//"; exit 0;; esac
+set -e
+kind=suite; if [ "$1" = faults ]; then kind=faults; shift; fi
+run="$(cd "$1" && pwd)"; stage="$2"; mode="$3"; label="$4"; rev="$5"; count="${6:-12}"; . "$run/run.env"
+FH="$(cd "$(dirname "$0")/../.." && pwd)"; KITSRC="$FH/vendor/dark-factory-wearedevs"
+if [ "$kind" = faults ]; then dest="$run/audit/ampfaults-$label-s$stage"; else dest="$run/audit/amp-$label-s$stage"; fi
+[ ! -e "$dest" ] || { echo "$dest exists"; exit 2; }
+mkdir -p "$dest/spec"; for n in $(seq 1 "$stage"); do cp "$KITSRC/$TRACK/spec/stage-$n.md" "$dest/spec/"; done
+cd "$dest"
+if [ "$kind" = faults ]; then
+  git -C "$run/result" archive "$rev" "stage-$stage" | tar -x -C "$dest"
+  cat > prompt.txt <<PROMPT
+You plant realistic bugs to measure a test suite. Work only inside this directory. The specification is in spec/ and the service in stage-$stage/. Read them. Write $count separate unified diff patches in patches/NN-short-name.patch, each small, each breaking exactly one behaviour the specification requires, the kind of mistake a careful programmer actually makes. Favour requirements that are subtle and that an ordinary test might miss, and spread them across the stage's newest features and the older ones. Each must still build and start. Paths in the patch are relative to stage-$stage/ with prefix a/ and b/. Do not change stage-$stage/ itself: work out each diff by hand or on a scratch copy, and remove the copy. Write patches/INDEX.md with one line per patch: the sentence it breaks and the behaviour change, and say in its first line which model you are, as far as you know.
+PROMPT
+  timeout 5400 "$HOME/.local/bin/amp" -m "$mode" -x "$(cat prompt.txt)" </dev/null > author.log 2>&1 || true
+  echo "amp-author faults $label: $(ls patches 2>/dev/null | grep -c patch) patches"
+  exit 0
+fi
+cat > prompt.txt <<PROMPT
+You write an independent black-box acceptance suite for a service you will never see the source of. Work only inside this directory. Read every specification in spec/, in order; stage $stage is the target and earlier stages still apply unless superseded. Do not look for other copies of these specifications, solutions or tests anywhere else, on this machine or on the web.
+
+Write pytest tests in tests/ using httpx (and the playwright sync API only if a sentence needs a browser), reading the base URL from the environment variable SUT_URL. Reset the service per test as the specification says. Every test carries a comment quoting the sentence it enforces. Cover every rule, error case and limit, and especially what an ordinary test would miss: retries after state changes, ordering, boundaries, every parameter at each edge of its range, concurrency where stated, history that must stay truthful, atomicity. Test only what the text requires; where the text is silent, do not test.
+
+You can't run the service. Write tests/README.md listing any sentence you read as ambiguous, and say in its first line which model you are, as far as you know.
+PROMPT
+timeout 5400 "$HOME/.local/bin/amp" -m "$mode" -x "$(cat prompt.txt)" </dev/null > author.log 2>&1 || true
+echo "amp-author $label: $(ls tests 2>/dev/null | wc -l | tr -d ' ') files, $(cat tests/*.py 2>/dev/null | grep -cE '^\s*(async )?def test_') test functions"
